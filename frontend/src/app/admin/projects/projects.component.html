@@ -1,0 +1,203 @@
+<div class="p-6  min-h-screen">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold text-gray-900">Projects</h1>
+    <button (click)="openModal()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+      Create Project
+    </button>
+  </div>
+
+  <!-- Project Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div *ngFor="let project of projects" 
+         class="max-w-sm rounded-lg overflow-hidden shadow-lg bg-white dark:bg-gray-800 transition-all duration-300 ease-in-out transform hover:scale-105"
+         (mouseenter)="setHoveredProject(project._id)"
+         (mouseleave)="setHoveredProject(null)">
+      <div class="px-6 py-4">
+        <div class="flex justify-between items-start mb-2">
+          <div class="font-bold text-xl text-gray-800 dark:text-white hover:text-blue-500 transition-colors duration-300">
+            {{project.title}}
+          </div>
+          <span class="px-3 py-1 text-xs font-semibold rounded-full" 
+                [ngClass]="{
+                  'bg-green-100 text-green-800': project.status === 'Completed',
+                  'bg-yellow-100 text-yellow-800': project.status === 'In-Progress',
+                  'bg-blue-100 text-blue-800': project.status === 'Assigned',
+                  'bg-purple-100 text-purple-800': project.status === 'Testing',
+                  'bg-indigo-100 text-indigo-800': project.status === 'Started'
+                }">
+            {{project.status}}
+          </span>
+        </div>
+        <p class="text-gray-700 dark:text-gray-300 text-base line-clamp-2 mb-4">
+          {{project.description}}
+        </p>
+        <div class="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 ">
+          <div class="flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            <span>{{project.assignedTo.length}}</span>
+          </div>
+          <div class="flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            <span>{{project.relatedDocs.length}}</span>
+          </div>
+          <div class="flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <span>{{project.deadline | date:'shortDate'}}</span>
+          </div>
+        </div>
+      </div>
+      <div class="px-6 pb-4 flex justify-end">
+        <div class="flex bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
+          <button (click)="viewProject(project)" class="p-2 bg-blue-50 dark:bg-blue-900 text-blue-600 dark:text-blue-200 hover:bg-blue-100 dark:hover:bg-blue-800 transition duration-300">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+              <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+            </svg>
+          </button>
+          <button (click)="openModal(project)" class="p-2 bg-green-50 dark:bg-green-900 text-green-600 dark:text-green-200 hover:bg-green-100 dark:hover:bg-green-800 transition duration-300">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+            </svg>
+          </button>
+          <button (click)="deleteProject(project._id)" class="p-2 bg-red-50 dark:bg-red-900 text-red-600 dark:text-red-200 hover:bg-red-100 dark:hover:bg-red-800 transition duration-300">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="h-1 bg-blue-500 transition-all duration-300 ease-in-out" 
+           [ngStyle]="{'width': isProjectHovered(project._id) ? '100%' : '0%'}"></div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div *ngIf="showModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-4xl">
+      <h2 class="text-2xl font-bold mb-6">{{editingProject ? 'Edit' : 'Create'}} Project</h2>
+      <form (ngSubmit)="submitProject()" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+            <input type="text" id="title" [(ngModel)]="newProject.title" name="title" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+          </div>
+          <div>
+            <label for="deadline" class="block text-sm font-medium text-gray-700 mb-1">Deadline</label>
+            <input type="date" id="deadline" [(ngModel)]="newProject.deadline" name="deadline" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+          </div>
+        </div>
+        <div>
+          <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+          <textarea id="description" [(ngModel)]="newProject.description" name="description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required></textarea>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="assignedTo" class="block text-sm font-medium text-gray-700 mb-1">Assigned To</label>
+            <select #developerSelect class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="">Select a developer</option>
+              <option *ngFor="let dev of developers" [value]="dev._id">{{dev.username}}</option>
+            </select>
+            <button type="button" (click)="addDeveloper(developerSelect.value)" class="mt-2 bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition duration-300">Add Developer</button>
+          </div>
+          <div>
+            <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+            <select id="status" [(ngModel)]="newProject.status" name="status" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+              <option value="Assigned">Assigned</option>
+              <option value="Started">Started</option>
+              <option value="In-Progress">In-Progress</option>
+              <option value="Testing">Testing</option>
+              <option value="Completed">Completed</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label for="relatedDocs" class="block text-sm font-medium text-gray-700 mb-1">Related Documents</label>
+          <input type="file" id="relatedDocs" (change)="onFileSelected($event)" multiple class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div *ngIf="newProject.assignedTo.length > 0" class="mt-2">
+          <p class="text-sm font-medium text-gray-700">Assigned Developers:</p>
+          <ul class="mt-1 space-y-2">
+            <li *ngFor="let devId of newProject.assignedTo; let i = index" class="flex justify-between items-center bg-gray-100 px-3 py-2 rounded-md">
+              {{getDeveloperName(devId)}}
+              <button type="button" (click)="removeDeveloper(i)" class="text-red-500 hover:text-red-700 transition duration-300">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+              </button>
+            </li>
+          </ul>
+        </div>
+        <div *ngIf="selectedFiles.length > 0" class="mt-2">
+          <p class="text-sm font-medium text-gray-700">Selected files:</p>
+          <ul class="mt-1 space-y-1">
+            <li *ngFor="let file of selectedFiles" class="text-sm text-gray-600">{{ file.name }}</li>
+          </ul>
+        </div>
+        <div class="flex justify-end space-x-2 mt-6">
+          <button type="button" (click)="closeModal()" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-md transition duration-300">
+            Cancel
+          </button>
+          <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md transition duration-300">
+            {{editingProject ? 'Update' : 'Create'}} Project
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- View Project Modal -->
+  <div *ngIf="viewingProject" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-2xl">
+      <h2 class="text-2xl font-bold mb-6">{{viewingProject.title}}</h2>
+      <div class="space-y-4">
+        <div>
+          <h3 class="text-lg font-semibold">Description</h3>
+          <p class="text-gray-600">{{viewingProject.description}}</p>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold">Deadline</h3>
+          <p class="text-gray-600">{{viewingProject.deadline | date:'mediumDate'}}</p>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold">Status</h3>
+          <span class="px-3 py-1 text-sm font-semibold rounded-full" 
+                [ngClass]="{
+                  'bg-green-100 text-green-800': viewingProject.status === 'Completed',
+                  'bg-yellow-100 text-yellow-800': viewingProject.status === 'In-Progress',
+                  'bg-blue-100 text-blue-800': viewingProject.status === 'Assigned',
+                  'bg-purple-100 text-purple-800': viewingProject.status === 'Testing',
+                  'bg-indigo-100 text-indigo-800': viewingProject.status === 'Started'
+                }">
+            {{viewingProject.status}}
+          </span>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold">Assigned Developers</h3>
+          <ul class="list-disc list-inside">
+            <li *ngFor="let devId of viewingProject.assignedTo">{{getDeveloperName(devId)}}</li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold">Related Documents</h3>
+          <ul class="list-disc list-inside">
+            <li *ngFor="let doc of viewingProject.relatedDocs">
+              <a [href]="doc" target="_blank" class="text-blue-600 hover:underline">{{getFileName(doc)}}</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="flex justify-end mt-6">
+        <button (click)="closeViewModal()" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-md transition duration-300">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,152 @@
+::ng-deep .fc-daygrid-day-events {
+  margin-top: 0 !important;
+}
+
+::ng-deep .fc-event {
+  cursor: pointer;
+  padding: 2px 4px;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+::ng-deep .fc-more-link {
+  background-color: #f0f0f0;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 0.8em;
+}
+
+::ng-deep .fc-daygrid-day-number {
+  position: relative;
+}
+
+::ng-deep .fc-daygrid-day-number::after {
+  content: attr(data-event-count);
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: #3788d8;
+  color: white;
+  border-radius: 50%;
+  padding: 2px 5px;
+  font-size: 0.8em;
+}
+
+::ng-deep .swal-wide {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+::ng-deep .swal-popup {
+  margin: 0 !important;
+}
+
+.event-card {
+  transition: all 0.3s ease;
+}
+
+.event-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+::ng-deep .fc-day-today {
+  background-color: rgba(0, 255, 0, 0.1) !important;
+}
+
+/* Update existing styles */
+::ng-deep .fc-daygrid-day {
+  background: white;
+  border: 1px solid #e5e7eb !important;
+  min-height: 120px !important;
+  transition: all 0.2s ease;
+}
+
+::ng-deep .fc-daygrid-day:hover {
+  background-color: #f8fafc;
+}
+
+::ng-deep .fc-daygrid-day-frame {
+  padding: 8px !important;
+  height: 100%;
+}
+
+::ng-deep .fc-daygrid-day-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+::ng-deep .fc-daygrid-day-number {
+  font-weight: 600;
+  color: #4b5563;
+  padding: 4px 8px !important;
+  border-radius: 9999px;
+  font-size: 0.9em;
+}
+
+::ng-deep .fc-day-today {
+  background-color: #f0f9ff !important;
+}
+
+::ng-deep .fc-day-today .fc-daygrid-day-number {
+  background-color: #3b82f6;
+  color: white;
+}
+
+::ng-deep .fc-day-past {
+  background-color: #fafafa;
+}
+
+::ng-deep .fc-day-past .fc-daygrid-day-number {
+  color: #9ca3af;
+}
+
+::ng-deep .fc-event {
+  margin: 2px 0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: none;
+  font-size: 0.85em;
+  transition: transform 0.2s ease;
+}
+
+::ng-deep .fc-event:hover {
+  transform: translateX(2px);
+}
+
+::ng-deep .fc-more-link {
+  background: #e5e7eb;
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: #4b5563;
+  font-size: 0.8em;
+  margin-top: 4px;
+}
+
+/* Event count badge */
+::ng-deep .event-count-badge {
+  background: #e5e7eb;
+  color: #4b5563;
+  padding: 2px 6px;
+  border-radius: 9999px;
+  font-size: 0.75em;
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+/* Day with events indicator */
+::ng-deep .has-events::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 8px;
+  height: 8px;
+  background-color: #3b82f6;
+  border-radius: 50%;
+}
