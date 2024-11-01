@@ -29,6 +29,11 @@ export class LoginComponent {
       next: (response) => {
         console.log('Login response:', response);
         if (response && response.token) {
+          console.log('Stored Data in localStorage:');
+          console.log('Token:', localStorage.getItem('adminToken'));
+          console.log('Role:', localStorage.getItem('userRole'));
+          console.log('User ID:', localStorage.getItem('userId'));
+          
           this.router.navigate(['/admin/dashboard']);
         } else {
           console.error('No token received in login response');

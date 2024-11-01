@@ -1,15 +1,214 @@
-<div class="p-6">
-  <h1 class="text-3xl font-bold text-gray-900 mb-6">
-    Welcome, {{ adminName }}!
-  </h1>
-  <main>
-    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-      <!-- Add your dashboard content here -->
-      <div class="px-4 py-6 sm:px-0">
-        <div class="border-4 border-dashed border-gray-200 rounded-lg h-96">
-          <p class="text-center text-gray-500 mt-8">Dashboard content goes here</p>
+<div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 p-6">
+  <!-- Header Section -->
+  <div class="mb-8">
+    <div class="flex justify-between items-center">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800">Welcome back, {{ adminName }}</h1>
+        <div class="flex space-x-1 mt-1">
+          <div class="h-0.5 w-12 bg-blue-400/50 rounded-full"></div>
+          <div class="h-0.5 w-6 bg-indigo-400/50 rounded-full"></div>
+          <div class="h-0.5 w-3 bg-violet-400/50 rounded-full"></div>
+        </div>
+        <p class="text-gray-600 mt-2">Here's what's happening with your projects today.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-10">
+    <!-- Total Projects -->
+    <div class="bg-white p-4 rounded-xl shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px] hover:shadow-[rgba(0,_0,_0,_0.2)_0px_10px_20px] transition-all duration-300 hover:-translate-y-1">
+      <div class="flex items-center gap-3">
+        <div class="p-2 bg-blue-50 rounded-lg">
+          <span class="material-icons text-blue-500">folder_special</span>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500">Projects</p>
+          <p class="text-lg font-semibold text-gray-800">{{totalProjects}}</p>
         </div>
       </div>
     </div>
-  </main>
+
+    <!-- Total Tasks -->
+    <div class="bg-white p-4 rounded-xl shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px] hover:shadow-[rgba(0,_0,_0,_0.2)_0px_10px_20px] transition-all duration-300 hover:-translate-y-1">
+      <div class="flex items-center gap-3">
+        <div class="p-2 bg-indigo-50 rounded-lg">
+          <span class="material-icons text-indigo-500">assignment_turned_in</span>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500">Tasks</p>
+          <p class="text-lg font-semibold text-gray-800">{{totalTasks}}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Events -->
+    <div class="bg-white p-4 rounded-xl shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px] hover:shadow-[rgba(0,_0,_0,_0.2)_0px_10px_20px] transition-all duration-300 hover:-translate-y-1">
+      <div class="flex items-center gap-3">
+        <div class="p-2 bg-violet-50 rounded-lg">
+          <span class="material-icons text-violet-500">event_available</span>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500">Events</p>
+          <p class="text-lg font-semibold text-gray-800">{{totalEvents}}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Developers -->
+    <div class="bg-white p-4 rounded-xl shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px] hover:shadow-[rgba(0,_0,_0,_0.2)_0px_10px_20px] transition-all duration-300 hover:-translate-y-1">
+      <div class="flex items-center gap-3">
+        <div class="p-2 bg-pink-50 rounded-lg">
+          <span class="material-icons text-pink-500">code</span>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500">Developers</p>
+          <p class="text-lg font-semibold text-gray-800">{{totalDevelopers}}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Managers -->
+    <div class="bg-white p-4 rounded-xl shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px] hover:shadow-[rgba(0,_0,_0,_0.2)_0px_10px_20px] transition-all duration-300 hover:-translate-y-1">
+      <div class="flex items-center gap-3">
+        <div class="p-2 bg-emerald-50 rounded-lg">
+          <span class="material-icons text-emerald-500">diversity_3</span>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500">Managers</p>
+          <p class="text-lg font-semibold text-gray-800">{{totalManagers}}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Row -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+    <!-- Project Status Chart -->
+    <div class="bg-white p-6 rounded-xl shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px] hover:shadow-[rgba(0,_0,_0,_0.2)_0px_10px_20px] transition-all duration-300 hover:-translate-y-1">
+      <h2 class="text-xl font-semibold text-gray-800 mb-6">
+        <span class="material-icons align-middle mr-2">pie_chart</span>
+        Project Status Distribution
+      </h2>
+      <div class="h-[400px] relative">
+        <canvas id="projectStatusChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Task Status Chart -->
+    <div class="bg-white p-6 rounded-xl shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px] hover:shadow-[rgba(0,_0,_0,_0.2)_0px_10px_20px] transition-all duration-300 hover:-translate-y-1">
+      <h2 class="text-xl font-semibold text-gray-800 mb-6">
+        <span class="material-icons align-middle mr-2">bar_chart</span>
+        Task Status Overview
+      </h2>
+      <div class="h-[400px] relative">
+        <canvas id="taskStatusChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Team Distribution and Recent Tasks -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+    <!-- Team Distribution Chart -->
+    <div class="bg-white p-6 rounded-xl shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px] hover:shadow-[rgba(0,_0,_0,_0.2)_0px_10px_20px] transition-all duration-300 hover:-translate-y-1">
+      <h2 class="text-xl font-semibold text-gray-800 mb-6">
+        <span class="material-icons align-middle mr-2">groups</span>
+        Team Distribution
+      </h2>
+      <div class="h-[350px] relative">
+        <canvas id="teamDistributionChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Recent Tasks Table -->
+    <div class="bg-white p-6 rounded-xl shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px] hover:shadow-[rgba(0,_0,_0,_0.2)_0px_10px_20px] transition-all duration-300 hover:-translate-y-1">
+      <h2 class="text-xl font-semibold text-gray-800 mb-6">
+        <span class="material-icons align-middle mr-2">task_alt</span>
+        Recent Tasks
+      </h2>
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b-2 border-gray-200">
+              <th class="text-left py-4 px-4 text-sm font-medium text-gray-700">Task Name</th>
+              <th class="text-left py-4 px-4 text-sm font-medium text-gray-700">Project</th>
+              <th class="text-right py-4 px-4 text-sm font-medium text-gray-700">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let task of recentTasks" class="border-b border-gray-100 hover:bg-gray-50 transition-all duration-300">
+              <td class="py-4 px-4 text-sm text-gray-800">{{task.taskName}}</td>
+              <td class="py-4 px-4 text-sm text-gray-600">{{task.projectId.title}}</td>
+              <td class="py-4 px-4">
+                <span [class]="'px-4 py-2 text-xs font-medium rounded-full float-right ' + getStatusClass(task.status)">
+                  {{task.status}}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Row -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Upcoming Events -->
+    <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px] hover:shadow-[rgba(0,_0,_0,_0.2)_0px_10px_20px] transition-all duration-300 hover:-translate-y-1">
+      <h2 class="text-xl font-semibold text-gray-800 mb-6">
+        <span class="material-icons align-middle mr-2">event_upcoming</span>
+        Upcoming Events
+      </h2>
+      <div class="space-y-4">
+        <div *ngFor="let event of upcomingEvents" class="p-6 bg-gray-50 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+          <div class="flex justify-between items-start">
+            <div>
+              <h3 class="text-xl text-gray-800">{{event.title}}</h3>
+              <p class="text-sm text-gray-600 mt-2 flex items-center">
+                <span class="material-icons text-emerald-500 mr-1 text-base">calendar_today</span>
+                {{formatDate(event.eventDate)}}
+              </p>
+            </div>
+            <span class="px-4 py-2 text-xs font-medium rounded-full bg-emerald-100 text-emerald-700">
+              {{event.eventType}}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="bg-white p-6 rounded-xl shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px] hover:shadow-[rgba(0,_0,_0,_0.2)_0px_10px_20px] transition-all duration-300 hover:-translate-y-1">
+      <h2 class="text-xl font-semibold text-gray-800 mb-6">
+        <span class="material-icons align-middle mr-2">analytics</span>
+        Quick Summary
+      </h2>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="p-4 bg-blue-300 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+          <p class="text-sm font-medium text-blue-700">Active Projects</p>
+          <p class="text-2xl font-semibold text-blue-900 mt-2">
+            {{projectStatus.inProgress}}
+          </p>
+        </div>
+        <div class="p-4 bg-indigo-300 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+          <p class="text-sm font-medium text-indigo-700">Active Tasks</p>
+          <p class="text-2xl font-semibold text-indigo-900 mt-2">
+            {{taskStatus.inProgress}}
+          </p>
+        </div>
+        <div class="p-4 bg-emerald-300 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+          <p class="text-sm font-medium text-emerald-700">Completed</p>
+          <p class="text-2xl font-semibold text-emerald-900 mt-2">
+            {{projectStatus.completed}}
+          </p>
+        </div>
+        <div class="p-4 bg-amber-300 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+          <p class="text-sm font-medium text-amber-700">Pending</p>
+          <p class="text-2xl font-semibold text-amber-900 mt-2">
+            {{projectStatus.assigned}}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

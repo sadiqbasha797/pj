@@ -7,6 +7,8 @@ import { ProjectsComponent } from './projects/projects.component';
 import { TaskComponent } from './task/task.component';
 import { CalendarComponent } from './calendar/calendar.component';
 import { AuthGuard } from '../guards/auth.guard';
+import { UsersComponent } from './users/users.component';
+import { ChatComponent } from './chat/chat.component';
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -19,6 +21,8 @@ const routes: Routes = [
       { path: 'projects', component: ProjectsComponent },
       { path: 'tasks', component: TaskComponent },
       { path: 'calendar', component: CalendarComponent },
+      { path: 'users', component: UsersComponent },
+      { path: 'chat', component: ChatComponent },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   }

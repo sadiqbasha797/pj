@@ -38,6 +38,10 @@ export class AdminService {
   }
 
   // Developer management
+  registerDeveloper(developerData: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/register-dev`, developerData, { headers: this.getHeaders() });
+  }
+
   getAllDevelopers(): Observable<any> {
     return this.http.get(`${this.apiUrl}/developers`, { headers: this.getHeaders() });
   }

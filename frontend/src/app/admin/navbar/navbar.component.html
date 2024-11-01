@@ -1,32 +1,165 @@
-<nav class="bg-white shadow-md transition-all duration-300 ease-in-out" 
+<nav class="bg-white shadow-lg border border-gray-200 transition-all duration-300 ease-in-out" 
      [ngClass]="{'ml-64': !isSidebarCollapsed, 'ml-16': isSidebarCollapsed && !isMobile, 'ml-0': isMobile}">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between h-16">
-        <div class="flex items-center">
-          <button (click)="onToggleSidebar()" class="text-gray-500 focus:outline-none focus:bg-gray-100 focus:text-gray-600">
-            <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between h-16">
+      <!-- Left Section -->
+      <div class="flex items-center space-x-4">
+        <button (click)="onToggleSidebar()" 
+                class="text-gray-500 hover:text-gray-600 focus:outline-none focus:bg-gray-100 focus:text-gray-600 p-2 rounded-lg">
+          <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+
+        <!-- Date and Time Display -->
+        <div class="flex items-center space-x-4">
+          <!-- Date Display -->
+          <div class="flex items-center bg-blue-50 px-3 py-1.5 rounded-lg">
+            <svg class="h-5 w-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-          </button>
-          <div class="flex-shrink-0 flex items-center ml-4">
-            <img class="h-8 w-auto" src="path/to/your/logo.png" alt="Your Company Logo">
+            <span class="text-sm font-medium text-blue-600">{{currentDate}}</span>
+          </div>
+
+          <!-- Time Display -->
+          <div class="flex items-center bg-indigo-50 px-3 py-1.5 rounded-lg">
+            <svg class="h-5 w-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span class="text-sm font-medium text-indigo-600">{{currentTime}}</span>
           </div>
         </div>
-        <div class="flex items-center">
-          <div class="ml-3 relative">
-            <div>
-              <button (click)="toggleProfileDropdown()" class="flex text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-gray-300 transition duration-150 ease-in-out">
-                <img class="h-8 w-8 rounded-full" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="Profile">
-              </button>
+      </div>
+
+      <!-- Right Section -->
+      <div class="flex items-center space-x-4">
+        <!-- Embedded Search Bar -->
+        <div id="search-container" class="relative flex-1 max-w-lg">
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
             </div>
-            <div *ngIf="isProfileDropdownOpen" class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg">
-              <div class="py-1 rounded-md bg-white shadow-xs">
-                <a routerLink="/admin/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Your Profile</a>
-                <button (click)="onSignOut()" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign out</button>
+            <input [(ngModel)]="searchQuery"
+                   (input)="onSearchInput($event)"
+                   type="text"
+                   placeholder="Search tasks, projects, documents..."
+                   class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-gray-50 
+                          placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-indigo-500 
+                          focus:border-indigo-500 sm:text-sm transition-colors duration-200">
+            <button *ngIf="searchQuery"
+                    (click)="clearSearch()"
+                    class="absolute inset-y-0 right-0 pr-3 flex items-center">
+              <svg class="h-5 w-5 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Search Results Dropdown -->
+          <div *ngIf="isSearchResultsVisible && searchResults.length > 0"
+               class="absolute mt-1 w-full bg-white rounded-lg shadow-lg max-h-96 overflow-y-auto z-50 border border-gray-200">
+            <div class="py-1">
+              <div *ngFor="let result of searchResults"
+                   (click)="navigateToResult(result)"
+                   class="px-4 py-2 hover:bg-gray-50 cursor-pointer">
+                <div class="flex items-center">
+                  <!-- Icon based on result type -->
+                  <span [ngSwitch]="result.type" class="mr-3">
+                    <svg *ngSwitchCase="'task'" class="h-5 w-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    <svg *ngSwitchCase="'project'" class="h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                    </svg>
+                    <svg *ngSwitchCase="'document'" class="h-5 w-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </span>
+                  <div>
+                    <p class="text-sm font-medium text-gray-900">{{result.title}}</p>
+                    <p class="text-xs text-gray-500">{{result.description}}</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
+
+        <!-- Notifications -->
+        <div class="relative">
+          <button (click)="toggleNotifications()" 
+                  class="p-2 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 rounded-lg">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+            <span *ngIf="unreadCount > 0" 
+                  class="absolute top-0 right-0 block h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">
+              {{unreadCount}}
+            </span>
+          </button>
+
+          <!-- Notifications Dropdown -->
+          <div *ngIf="isNotificationOpen" 
+               class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg z-50">
+            <div class="p-3 border-b flex justify-between">
+              <h5 class="text-gray-600 text-xs font-medium uppercase tracking-widest">Notifications</h5>
+              <button (click)="markAllAsRead()" 
+                      class="text-xs text-indigo-600 hover:text-indigo-800">
+                Mark all as read
+              </button>
+            </div>
+            <div class="max-h-96 overflow-y-auto">
+              <div *ngFor="let notification of notifications" 
+                   (click)="markAsRead(notification)"
+                   class="p-4 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
+                   [class.bg-blue-50]="!notification.isRead">
+                <p class="text-sm text-gray-800">{{notification.message}}</p>
+                <p class="text-xs text-gray-500 mt-1">{{notification.time}}</p>
+              </div>
+            </div>
+            <div class="p-2 border-t">
+              <a routerLink="/admin/notifications" 
+                 class="block text-center text-sm text-indigo-600 hover:text-indigo-800">
+                View all notifications
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Profile Dropdown -->
+        <div class="relative ml-3">
+          <button (click)="toggleProfileDropdown()" 
+                  class="flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            <img class="h-8 w-8 rounded-full object-cover" 
+                 src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" 
+                 alt="Profile">
+            <span class="ml-2 text-gray-700 text-sm hidden md:block">John Doe</span>
+          </button>
+
+          <!-- Profile Dropdown Menu -->
+          <div *ngIf="isProfileDropdownOpen" 
+               class="origin-top-right absolute right-0 mt-2 w-48 rounded-lg shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 z-50">
+            <a routerLink="/admin/profile" 
+               class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+              Your Profile
+            </a>
+            <a routerLink="/admin/settings" 
+               class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+              Settings
+            </a>
+            <hr class="my-1">
+            <button (click)="onSignOut()" 
+                    class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+              Sign out
+            </button>
+          </div>
+        </div>
       </div>
     </div>
-  </nav>
+  </div>
+</nav>

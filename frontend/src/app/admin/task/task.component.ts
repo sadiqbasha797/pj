@@ -120,22 +120,51 @@ export class TaskComponent implements OnInit {
     }
   }
 
-  openModal(task?: Task) {
-    if (task) {
-      this.editingTask = task;
-      this.newTask = { ...task };
-      this.selectedProjectId = task.projectId._id;
-      this.loadAssignedDevelopers();
+  openModal(task: Task | null = null) {
+    // Close view modal first if it's open
+    if (this.viewingTask) {
+      this.closeViewModal();
+      // Wait for view modal animation to complete
+      setTimeout(() => {
+        this.setupEditModal(task);
+      }, 300);
     } else {
-      this.editingTask = null;
-      this.resetNewTask();
+      this.setupEditModal(task);
+    }
+  }
+
+  private setupEditModal(task: Task | null) {
+    this.editingTask = task;
+    if (task) {
+      this.newTask = { ...task };
+      this.selectedProjectId = typeof task.projectId === 'object' ? task.projectId._id : task.projectId;
+      this.onProjectSelect();
+    } else {
+      this.resetTaskForm();
     }
     this.showModal = true;
   }
 
+  resetTaskForm() {
+    throw new Error('Method not implemented.');
+  }
+
   closeModal() {
-    this.showModal = false;
-    this.resetNewTask();
+    // Add fadeOut animation class
+    const modalElement = document.querySelector('.animate__fadeInDown');
+    if (modalElement) {
+      modalElement.classList.remove('animate__fadeInDown');
+      modalElement.classList.add('animate__fadeOutUp');
+      
+      // Wait for animation to complete before hiding
+      setTimeout(() => {
+        this.showModal = false;
+        this.resetNewTask();
+      }, 300);
+    } else {
+      this.showModal = false;
+      this.resetNewTask();
+    }
   }
 
   addOrUpdateTask() {
@@ -266,7 +295,19 @@ export class TaskComponent implements OnInit {
   }
 
   closeViewModal() {
-    this.viewingTask = null;
+    // Add fadeOut animation class
+    const modalElement = document.querySelector('.animate__fadeInDown');
+    if (modalElement) {
+      modalElement.classList.remove('animate__fadeInDown');
+      modalElement.classList.add('animate__fadeOutUp');
+      
+      // Wait for animation to complete before hiding
+      setTimeout(() => {
+        this.viewingTask = null;
+      }, 300);
+    } else {
+      this.viewingTask = null;
+    }
   }
 
   setHoveredTask(taskId: string | null) {

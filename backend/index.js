@@ -8,6 +8,9 @@ const managerRoutes = require('./routes/managerRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const app = express();
 const PORT = process.env.PORT || 3000;
+const messageRoutes = require('./routes/messageRoutes');
+const http = require('http');
+const socketIO = require('socket.io');
 
 // Middleware
 app.use(cors());
@@ -30,9 +33,35 @@ app.get('/', (req, res) => {
 app.use('/api/manager', managerRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/developer', developerRoutes); // Use developer routes
-  
-// Start the server
-app.listen(PORT, () => {
+app.use('/api/message', messageRoutes);
+
+const server = http.createServer(app);
+const io = socketIO(server, {
+  cors: {
+    origin: "*", // In production, replace with your frontend URL
+    methods: ["GET", "POST"]
+  }
+});
+
+// Store io instance in app for use in controllers
+app.set('io', io);
+
+// Socket.IO connection handling
+io.on('connection', (socket) => {
+    console.log('User connected:', socket.id);
+
+    socket.on('join', (userId) => {
+        socket.join(userId);
+        console.log(`User ${userId} joined their room`);
+    });
+
+    socket.on('disconnect', () => {
+        console.log('User disconnected:', socket.id);
+    });
+});
+
+// Change this part from app.listen to server.listen
+server.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
 

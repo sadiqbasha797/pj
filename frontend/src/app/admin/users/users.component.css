@@ -1,0 +1,27 @@
+/* Remove all the previous tab-related styles */
+:host {
+  display: block;
+  padding: 20px;
+  min-height: 100vh;
+}
+
+.material-icons {
+  font-size: 20px;
+}
+
+/* Add smooth transition for tab changes */
+.tab-content {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+::-webkit-scrollbar {
+  width: 0px;
+  background: transparent; /* Optional: just to make the scrollbar invisible */
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+* {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}

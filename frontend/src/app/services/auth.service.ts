@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
+import { CacheService } from './cache.service';
 
 @Injectable({
   providedIn: 'root'
@@ -10,15 +11,22 @@ import { Router } from '@angular/router';
 export class AuthService {
   private apiUrl = 'http://localhost:3000/api/admin'; // Update this to your actual API URL
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private cacheService: CacheService
+  ) {}
 
   login(credentials: any): Observable<any> {
-    return this.http.post<{ token: string, role?: string }>(`${this.apiUrl}/login`, credentials).pipe(
+    return this.http.post<{ token: string, role?: string, _id?: string }>(`${this.apiUrl}/login`, credentials).pipe(
       tap(response => {
         if (response && response.token) {
           localStorage.setItem('adminToken', response.token);
           if (response.role) {
             localStorage.setItem('userRole', response.role);
+          }
+          if (response._id) {
+            localStorage.setItem('userId', response._id);
           }
         }
       })
@@ -40,6 +48,7 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem('adminToken');
     localStorage.removeItem('userRole');
+    this.cacheService.clearCache();
     this.router.navigate(['/admin/login']);
   }
 }

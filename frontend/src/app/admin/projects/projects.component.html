@@ -53,23 +53,21 @@
         </div>
       </div>
       <div class="px-6 pb-4 flex justify-end">
-        <div class="flex bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
-          <button (click)="viewProject(project)" class="p-2 bg-blue-50 dark:bg-blue-900 text-blue-600 dark:text-blue-200 hover:bg-blue-100 dark:hover:bg-blue-800 transition duration-300">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-              <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
-            </svg>
+        <div class="flex">
+          <button (click)="viewProject(project)" 
+                  class="px-4 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 transition duration-300 text-sm">
+            <span class="material-icons text-sm">visibility</span>
           </button>
-          <button (click)="openModal(project)" class="p-2 bg-green-50 dark:bg-green-900 text-green-600 dark:text-green-200 hover:bg-green-100 dark:hover:bg-green-800 transition duration-300">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <button (click)="openModal(project)" 
+                  class="px-4 py-1.5 bg-green-50 text-green-600 hover:bg-green-100 transition duration-300 text-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
               <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
             </svg>
           </button>
-          <button (click)="deleteProject(project._id)" class="p-2 bg-red-50 dark:bg-red-900 text-red-600 dark:text-red-200 hover:bg-red-100 dark:hover:bg-red-800 transition duration-300">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
-            </svg>
+          <button (click)="deleteProject(project._id)" 
+                  class="px-4 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 transition duration-300 text-sm">
+            <span class="material-icons text-sm">delete</span>
           </button>
         </div>
       </div>
@@ -79,8 +77,9 @@
   </div>
 
   <!-- Modal -->
-  <div *ngIf="showModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
-    <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-4xl">
+  <div *ngIf="showModal" 
+       class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-4xl animate__animated animate__fadeInDown animate__faster">
       <h2 class="text-2xl font-bold mb-6">{{editingProject ? 'Edit' : 'Create'}} Project</h2>
       <form (ngSubmit)="submitProject()" class="space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -153,51 +152,256 @@
   </div>
 
   <!-- View Project Modal -->
-  <div *ngIf="viewingProject" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
-    <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-2xl">
-      <h2 class="text-2xl font-bold mb-6">{{viewingProject.title}}</h2>
-      <div class="space-y-4">
-        <div>
-          <h3 class="text-lg font-semibold">Description</h3>
-          <p class="text-gray-600">{{viewingProject.description}}</p>
+  <div *ngIf="viewingProject" 
+       class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-5xl animate__animated animate__fadeInDown animate__faster">
+      <!-- Header with modern gradient design -->
+      <div class="relative rounded-t-lg overflow-hidden">
+        <!-- Gradient background -->
+        <div class="absolute inset-0 bg-gradient-to-r from-blue-400 via-indigo-500 to-purple-600"></div>
+        
+        <!-- Decorative shapes -->
+        <div class="absolute inset-0">
+          <div class="absolute w-32 h-32 -top-16 -right-16 bg-white opacity-10 rounded-full"></div>
+          <div class="absolute w-24 h-24 -bottom-12 -left-12 bg-white opacity-10 rounded-full"></div>
+          <div class="absolute w-20 h-20 top-8 left-1/3 bg-white opacity-5 rounded-full"></div>
         </div>
-        <div>
-          <h3 class="text-lg font-semibold">Deadline</h3>
-          <p class="text-gray-600">{{viewingProject.deadline | date:'mediumDate'}}</p>
-        </div>
-        <div>
-          <h3 class="text-lg font-semibold">Status</h3>
-          <span class="px-3 py-1 text-sm font-semibold rounded-full" 
-                [ngClass]="{
-                  'bg-green-100 text-green-800': viewingProject.status === 'Completed',
-                  'bg-yellow-100 text-yellow-800': viewingProject.status === 'In-Progress',
-                  'bg-blue-100 text-blue-800': viewingProject.status === 'Assigned',
-                  'bg-purple-100 text-purple-800': viewingProject.status === 'Testing',
-                  'bg-indigo-100 text-indigo-800': viewingProject.status === 'Started'
-                }">
-            {{viewingProject.status}}
-          </span>
-        </div>
-        <div>
-          <h3 class="text-lg font-semibold">Assigned Developers</h3>
-          <ul class="list-disc list-inside">
-            <li *ngFor="let devId of viewingProject.assignedTo">{{getDeveloperName(devId)}}</li>
-          </ul>
-        </div>
-        <div>
-          <h3 class="text-lg font-semibold">Related Documents</h3>
-          <ul class="list-disc list-inside">
-            <li *ngFor="let doc of viewingProject.relatedDocs">
-              <a [href]="doc" target="_blank" class="text-blue-600 hover:underline">{{getFileName(doc)}}</a>
-            </li>
-          </ul>
+
+        <!-- Header content -->
+        <div class="relative p-6">
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-3">
+              <div class="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
+                <span class="material-icons text-white text-xl">folder_special</span>
+              </div>
+              <div>
+                <h2 class="text-lg font-bold text-white">{{viewingProject.title}}</h2>
+                <p class="text-blue-100 text-xs mt-0.5">Project Details</p>
+              </div>
+            </div>
+            <button (click)="closeViewModal()" 
+                    class="bg-white/10 hover:bg-white/20 p-1.5 rounded-full backdrop-blur-sm transition-all duration-300">
+              <span class="material-icons text-white text-sm">close</span>
+            </button>
+          </div>
+
+          <!-- Quick stats -->
+          <div class="flex gap-4 mt-4">
+            <div class="bg-white/10 px-3 py-1.5 rounded-lg backdrop-blur-sm">
+              <p class="text-blue-100 text-xs">Status</p>
+              <p class="text-white text-sm font-medium">{{viewingProject.status}}</p>
+            </div>
+            <div class="bg-white/10 px-3 py-1.5 rounded-lg backdrop-blur-sm">
+              <p class="text-blue-100 text-xs">Team Size</p>
+              <p class="text-white text-sm font-medium">{{viewingProject.assignedTo.length}} Members</p>
+            </div>
+            <div class="bg-white/10 px-3 py-1.5 rounded-lg backdrop-blur-sm">
+              <p class="text-blue-100 text-xs">Deadline</p>
+              <p class="text-white text-sm font-medium">{{viewingProject.deadline | date:'mediumDate'}}</p>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="flex justify-end mt-6">
-        <button (click)="closeViewModal()" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-md transition duration-300">
-          Close
-        </button>
+
+      <!-- Content Grid -->
+      <div class="p-6 bg-gray-50">
+        <div class="grid grid-cols-2 gap-6">
+          <!-- Left Column -->
+          <div class="space-y-4">
+            <!-- Description -->
+            <div class="bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-all duration-300">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="material-icons text-purple-400 text-sm">description</span>
+                <h3 class="font-semibold text-gray-700 text-sm">Description</h3>
+              </div>
+              <p class="text-gray-600 text-sm">{{viewingProject.description}}</p>
+            </div>
+
+            <!-- Assigned Developers -->
+            <div class="bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-all duration-300">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="material-icons text-orange-400 text-sm">group</span>
+                <h3 class="font-semibold text-gray-700 text-sm">Team Members</h3>
+              </div>
+              <div class="space-y-2">
+                <div *ngFor="let devId of viewingProject.assignedTo" 
+                     class="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
+                  <div class="bg-blue-100 p-1 rounded-lg">
+                    <span class="material-icons text-blue-500 text-xs">person</span>
+                  </div>
+                  <span class="text-gray-700 text-sm">{{getDeveloperName(devId)}}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column -->
+          <div class="space-y-4">
+            <!-- Related Documents -->
+            <div class="bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-all duration-300">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="material-icons text-blue-400 text-sm">folder</span>
+                <h3 class="font-semibold text-gray-700 text-sm">Related Documents</h3>
+              </div>
+              <div class="space-y-2">
+                <div *ngFor="let doc of viewingProject.relatedDocs"
+                     class="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
+                  <span class="material-icons text-gray-400 text-xs">description</span>
+                  <a [href]="doc" target="_blank" 
+                     class="text-blue-600 hover:text-blue-800 hover:underline text-sm">
+                    {{getFileName(doc)}}
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-all duration-300">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="material-icons text-green-400 text-sm">timeline</span>
+                <h3 class="font-semibold text-gray-700 text-sm">Timeline</h3>
+              </div>
+              <div class="space-y-2">
+                <div class="flex items-center gap-2">
+                  <div class="bg-green-100 p-1 rounded-lg">
+                    <span class="material-icons text-green-500 text-xs">create</span>
+                  </div>
+                  <div>
+                    <p class="text-xs text-gray-500">Created</p>
+                    <p class="text-gray-700 text-sm">{{viewingProject.createdAt | date:'medium'}}</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <div class="bg-purple-100 p-1 rounded-lg">
+                    <span class="material-icons text-purple-500 text-xs">update</span>
+                  </div>
+                  <div>
+                    <p class="text-xs text-gray-500">Last Updated</p>
+                    <p class="text-gray-700 text-sm">{{viewingProject.updatedAt | date:'medium'}}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
+
+      <!-- Footer -->
+      <div class="bg-gradient-to-r from-gray-50 to-gray-100 p-4 rounded-b-lg border-t border-gray-200">
+        <div class="flex justify-between items-center">
+          <!-- Project Stats -->
+          <div class="flex gap-6">
+            <div class="flex items-center gap-2">
+              <span class="material-icons text-blue-400 text-sm">task_alt</span>
+              <div>
+                <p class="text-xs text-gray-500">Tasks Completed</p>
+                <p class="text-sm font-medium text-gray-700">
+                  {{projectStats.completedTasks}}/{{projectStats.totalTasks}}
+                </p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="material-icons text-green-400 text-sm">trending_up</span>
+              <div>
+                <p class="text-xs text-gray-500">Progress</p>
+                <p class="text-sm font-medium text-gray-700">{{projectStats.progress}}%</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="material-icons text-purple-400 text-sm">schedule</span>
+              <div>
+                <p class="text-xs text-gray-500">Time {{projectStats.isOverdue ? 'Overdue' : 'Remaining'}}</p>
+                <p class="text-sm font-medium" 
+                   [ngClass]="projectStats.isOverdue ? 'text-red-600' : 'text-gray-700'">
+                  {{projectStats.daysRemaining}} days {{projectStats.isOverdue ? 'overdue' : 'left'}}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex gap-2">
+            <button (click)="editProjectFromView()" 
+                    class="px-3 py-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all duration-300">
+              <span class="material-icons text-xs mr-1">edit</span>
+              Edit Project
+            </button>
+            <button (click)="addTaskFromProject()" 
+                    class="px-3 py-1.5 text-xs font-medium text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg transition-all duration-300">
+              <span class="material-icons text-xs mr-1">add_task</span>
+              Add Task
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Task Modal -->
+  <div *ngIf="showTaskModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-2xl animate__animated animate__fadeInDown animate__faster">
+      <h2 class="text-2xl font-bold mb-6">Add Task</h2>
+      <form (ngSubmit)="addOrUpdateTask()">
+        <div class="mb-4">
+          <label for="taskName" class="block text-gray-700 text-sm font-bold mb-2">Task Name</label>
+          <input type="text" id="taskName" name="taskName" [(ngModel)]="newTask.taskName" 
+                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                 required>
+        </div>
+        
+        <div class="mb-4">
+          <label for="startDate" class="block text-gray-700 text-sm font-bold mb-2">Start Date</label>
+          <input type="date" id="startDate" name="startDate" [(ngModel)]="newTask.startDate" 
+                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                 required>
+        </div>
+        
+        <div class="mb-4">
+          <label for="endDate" class="block text-gray-700 text-sm font-bold mb-2">End Date</label>
+          <input type="date" id="endDate" name="endDate" [(ngModel)]="newTask.endDate" 
+                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                 required>
+        </div>
+        
+        <div class="mb-4">
+          <label class="block text-gray-700 text-sm font-bold mb-2">Participants</label>
+          <div *ngIf="assignedDevelopers.length > 0; else noDevelopers">
+            <div *ngFor="let developer of assignedDevelopers" class="flex items-center mb-2">
+              <input type="checkbox" [id]="developer._id" 
+                     [checked]="isParticipantSelected(developer._id)"
+                     (change)="toggleParticipant(developer)" 
+                     class="mr-2">
+              <label [for]="developer._id">{{developer.username}}</label>
+            </div>
+          </div>
+          <ng-template #noDevelopers>
+            <p class="text-gray-600">No developers assigned to this project.</p>
+          </ng-template>
+        </div>
+        
+        <div class="mb-4">
+          <label for="status" class="block text-gray-700 text-sm font-bold mb-2">Status</label>
+          <select id="status" name="status" [(ngModel)]="newTask.status" 
+                  class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                  required>
+            <option value="Assigned">Assigned</option>
+            <option value="In-Progress">In-Progress</option>
+            <option value="Testing">Testing</option>
+            <option value="Completed">Completed</option>
+          </select>
+        </div>
+        
+        <div class="flex justify-end space-x-2 mt-6">
+          <button type="button" (click)="closeTaskModal()" 
+                  class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-md transition duration-300">
+            Cancel
+          </button>
+          <button type="submit" 
+                  class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md transition duration-300">
+            Create Task
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 </div>

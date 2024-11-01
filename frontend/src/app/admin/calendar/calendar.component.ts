@@ -1,17 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { CalendarOptions, EventInput, EventClickArg, DateSelectArg } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
-import interactionPlugin from '@fullcalendar/interaction';
+import interactionPlugin, { DateClickArg } from '@fullcalendar/interaction';
 import { AdminService } from '../../services/admin.service';
 import { LoaderService } from '../../services/loader.service';
 import Swal from 'sweetalert2';
 import { CommonModule } from '@angular/common';
 import { FullCalendarModule } from '@fullcalendar/angular';
-
+import { FormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormGroup, FormBuilder } from '@angular/forms';
 @Component({
   selector: 'app-calendar',
   standalone: true,
-  imports: [CommonModule, FullCalendarModule],
+  imports: [CommonModule, FullCalendarModule, FormsModule, ReactiveFormsModule],
   templateUrl: './calendar.component.html',
   styleUrls: ['./calendar.component.css']
 })
@@ -42,22 +43,63 @@ export class CalendarComponent implements OnInit {
     eventDate: '',
     status: 'Active'
   };
+  viewingEvent: any = null;
+  eventProject: any = null;
+  showEventListModal = false;
+  showEditModal = false;
+  showCreateModal = false;
+  selectedDate: Date | null = null;
+  eventsOnSelectedDate: any[] = [];
+  editingEvent: any = null;
+  eventForm: FormGroup;
+  totalEvents: number = 0;
+  meetingsCount: number = 0;
+  tasksCount: number = 0;
+  monthlyEvents: number = 0;
+  events: any;
+
+  eventTypes = ['Meeting', 'Project Deadline', 'Reminder', 'Other', 'Work', 'Holiday', 'Task'];
+  filterForm: FormGroup;
+  filteredEvents: any[] = [];
+  showFilterModal = false;
 
   constructor(
     private adminService: AdminService,
-    private loaderService: LoaderService
-  ) {}
+    private loaderService: LoaderService,
+    private fb: FormBuilder  // Add FormBuilder
+  ) {
+    this.eventForm = this.fb.group({
+      title: [''],
+      description: [''],
+      eventType: [''],
+      location: [''],
+      eventDate: [''],
+      // remove status from form
+    });
+
+    // Initialize filter form
+    this.filterForm = this.fb.group({
+      eventType: [''],
+      startDate: [''],
+      endDate: ['']
+    });
+  }
 
   ngOnInit(): void {
     this.fetchEvents();
     this.fetchDevelopers();
     this.fetchManagers();
+    this.updateEventCounts();
   }
 
   fetchEvents(): void {
     this.loaderService.show();
     this.adminService.getAllEvents().subscribe({
       next: (events) => {
+        // Store original events for counts
+        this.events = events;
+        
+        // Map events for calendar display
         this.allEvents = events.map((event: any) => ({
           id: event._id,
           title: event.title,
@@ -71,11 +113,17 @@ export class CalendarComponent implements OnInit {
             projectId: event.projectId,
             location: event.location,
             status: event.status,
-            createdAt: event.createdAt,    // Add this
-            updatedAt: event.updatedAt     // Add this
+            createdAt: event.createdAt,
+            updatedAt: event.updatedAt
           }
         }));
+
+        // Update the calendar events
         this.calendarOptions.events = this.getEventCounts.bind(this);
+        
+        // Update the count cards
+        this.updateEventCounts();
+        
         this.loaderService.hide();
       },
       error: (error) => {
@@ -114,10 +162,12 @@ export class CalendarComponent implements OnInit {
     }
   }
 
-  handleDateClick(arg: any): void {
-    const date = arg.date;
-    const events = this.getEventsForDate(date);
-    this.showEventsModal(date, events);
+  handleDateClick(arg: DateClickArg): void {
+    this.selectedDate = arg.date;
+    this.eventsOnSelectedDate = this.allEvents.filter(event => 
+      new Date(event.start as string).toDateString() === arg.date.toDateString()
+    );
+    this.showEventListModal = true;
   }
 
   getEventsForDate(date: Date): EventInput[] {
@@ -196,131 +246,87 @@ export class CalendarComponent implements OnInit {
   viewEvent(eventId: string): void {
     const event = this.allEvents.find(e => e.id === eventId);
     if (event) {
-      // Get participants' names
-      const participantsHtml = event.extendedProps?.['participants']?.map((participant: any) => {
-        const name = participant.onModel === 'Developer' 
-          ? this.developers.find(dev => dev._id === participant.participantId)?.username
-          : this.managers.find(manager => manager._id === participant.participantId)?.username;
-        return `<li>${name || 'Unknown'} (${participant.onModel})</li>`;
-      }).join('') || 'None';
-
-      // Format dates with proper timezone and ISO string handling
-      const formatDate = (dateString: string) => {
-        if (!dateString) return 'N/A';
-        try {
-          const date = new Date(dateString);
-          if (isNaN(date.getTime())) return 'N/A';
-          
-          return date.toLocaleString('en-US', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            timeZoneName: 'short'
+      this.closeFilterModal();
+      
+      setTimeout(() => {
+        this.viewingEvent = event;
+        this.showEventListModal = false;
+        
+        if (event.extendedProps?.['projectId']) {
+          this.adminService.getProject(event.extendedProps['projectId']).subscribe({
+            next: (response) => {
+              this.eventProject = response.project;
+            },
+            error: (error) => {
+              console.error('Error fetching project details:', error);
+              this.eventProject = null;
+            }
           });
-        } catch (e) {
-          return 'N/A';
+        } else {
+          this.eventProject = null;
         }
-      };
-
-      const eventDate = formatDate(event.start as string);
-      const createdAt = formatDate(event.extendedProps?.['createdAt']);
-      const updatedAt = formatDate(event.extendedProps?.['updatedAt']);
-
-      let projectHtml = '';
-      if (event.extendedProps?.['projectId']) {
-        this.adminService.getProject(event.extendedProps?.['projectId']).subscribe({
-          next: (response) => {
-            const project = response.project;
-            const projectDeadline = formatDate(project.deadline);
-            const projectCreatedAt = formatDate(project.createdAt);
-            const projectUpdatedAt = formatDate(project.updatedAt);
-
-            projectHtml = `
-              <div class="mb-4">
-                <strong>Related Project:</strong>
-                <div class="pl-4">
-                  <p><strong>Title:</strong> ${project.title}</p>
-                  <p><strong>Description:</strong> ${project.description}</p>
-                  <p><strong>Deadline:</strong> ${projectDeadline}</p>
-                  <p><strong>Status:</strong> ${project.status}</p>
-                  <p><strong>Created At:</strong> ${projectCreatedAt}</p>
-                  <p><strong>Last Updated:</strong> ${projectUpdatedAt}</p>
-                  <p><strong>Assigned Developers:</strong></p>
-                  <ul class="list-disc list-inside">
-                    ${project.assignedTo.map((dev: any) => `<li>${dev.username}</li>`).join('')}
-                  </ul>
-                </div>
-              </div>
-            `;
-
-            Swal.fire({
-              title: event.title,
-              html: `
-                <div class="text-left">
-                  <p class="mb-2"><strong>Date:</strong> ${eventDate}</p>
-                  <p class="mb-2"><strong>Type:</strong> ${event.extendedProps?.['eventType']}</p>
-                  <p class="mb-2"><strong>Description:</strong> ${event.extendedProps?.['description'] || 'N/A'}</p>
-                  <p class="mb-2"><strong>Location:</strong> ${event.extendedProps?.['location'] || 'N/A'}</p>
-                  <p class="mb-2"><strong>Status:</strong> ${event.extendedProps?.['status'] || 'N/A'}</p>
-                  <p class="mb-2"><strong>All Day Event:</strong> ${event.extendedProps?.['isAllDay'] ? 'Yes' : 'No'}</p>
-                  ${projectHtml}
-                  <div class="mb-2">
-                    <strong>Participants:</strong>
-                    <ul class="list-disc list-inside">
-                      ${participantsHtml}
-                    </ul>
-                  </div>
-                  <p class="mb-2"><strong>Created At:</strong> ${createdAt}</p>
-                  <p class="mb-2"><strong>Last Updated:</strong> ${updatedAt}</p>
-                </div>
-              `,
-              icon: 'info',
-              customClass: {
-                htmlContainer: 'text-left'
-              }
-            });
-          },
-          error: (error) => {
-            console.error('Error fetching project details:', error);
-            this.showEventWithoutProject(event, eventDate, participantsHtml, createdAt, updatedAt);
-          }
-        });
-      } else {
-        this.showEventWithoutProject(event, eventDate, participantsHtml, createdAt, updatedAt);
-      }
+      }, 300);
     }
   }
 
-  private showEventWithoutProject(event: any, eventDate: string, participantsHtml: string, createdAt: string, updatedAt: string) {
-    Swal.fire({
-      title: event.title,
-      html: `
-        <div class="text-left">
-          <p class="mb-2"><strong>Date:</strong> ${eventDate}</p>
-          <p class="mb-2"><strong>Type:</strong> ${event.extendedProps?.['eventType']}</p>
-          <p class="mb-2"><strong>Description:</strong> ${event.extendedProps?.['description'] || 'N/A'}</p>
-          <p class="mb-2"><strong>Location:</strong> ${event.extendedProps?.['location'] || 'N/A'}</p>
-          <p class="mb-2"><strong>Status:</strong> ${event.extendedProps?.['status'] || 'N/A'}</p>
-          <p class="mb-2"><strong>All Day Event:</strong> ${event.extendedProps?.['isAllDay'] ? 'Yes' : 'No'}</p>
-          <div class="mb-2">
-            <strong>Participants:</strong>
-            <ul class="list-disc list-inside">
-              ${participantsHtml}
-            </ul>
-          </div>
-          <p class="mb-2"><strong>Created At:</strong> ${createdAt}</p>
-          <p class="mb-2"><strong>Last Updated:</strong> ${updatedAt}</p>
-        </div>
-      `,
-      icon: 'info',
-      customClass: {
-        htmlContainer: 'text-left'
-      }
-    });
+  closeViewModal() {
+    const modalElement = document.querySelector('.animate__fadeInDown');
+    modalElement?.classList.remove('animate__fadeInDown');
+    modalElement?.classList.add('animate__fadeOutUp');
+    
+    setTimeout(() => {
+      this.viewingEvent = null;
+    }, 300);
+  }
+
+  editEventFromView(event: any) {
+    const eventToEdit = event;
+    this.closeViewModal();
+    setTimeout(() => {
+      this.openEditModal(eventToEdit);
+    }, 300);
+  }
+
+  getParticipantName(participant: any): string {
+    if (!participant) return 'Unknown';
+    
+    if (participant.onModel === 'Developer') {
+      const developer = this.developers.find(dev => dev._id === participant.participantId);
+      return developer?.username || 'Unknown Developer';
+    } else if (participant.onModel === 'Manager') {
+      const manager = this.managers.find(mgr => mgr._id === participant.participantId);
+      return manager?.username || 'Unknown Manager';
+    }
+    return 'Unknown';
+  }
+
+  formatDate(dateString: string): string {
+    if (!dateString) return 'N/A';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'N/A';
+      
+      return date.toLocaleString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+    } catch (e) {
+      return 'N/A';
+    }
+  }
+
+  getStatusClass(status: string): string {
+    switch (status?.toLowerCase()) {
+      case 'in-progress': return 'bg-blue-100 text-blue-800';
+      case 'completed': return 'bg-green-100 text-green-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
   }
 
   editEvent(eventId: string): void {
@@ -421,6 +427,7 @@ export class CalendarComponent implements OnInit {
           next: () => {
             this.fetchEvents();
             this.showSuccessAlert('Event deleted successfully');
+            this.closeEventListModal();
           },
           error: (error) => {
             console.error('Error deleting event:', error);
@@ -619,6 +626,191 @@ export class CalendarComponent implements OnInit {
 
       participantElement.appendChild(removeButton);
       selectedParticipantsDiv!.appendChild(participantElement);
+    });
+  }
+
+  openCreateModal(): void {
+    const now = new Date();
+    const defaultTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    
+    this.newEvent = {
+      title: '',
+      description: '',
+      eventType: '',
+      location: '',
+      participants: [],
+      eventDate: defaultTime,
+      status: 'Active'
+    };
+    
+    this.eventForm.patchValue({
+      eventDate: defaultTime
+    });
+    
+    this.showCreateModal = true;
+    this.showEventListModal = false;
+  }
+
+  openEditModal(event: any): void {
+    this.editingEvent = event;
+    this.eventForm.patchValue({
+      title: event.title,
+      description: event.extendedProps?.description || '',
+      eventType: event.extendedProps?.eventType || '',
+      location: event.extendedProps?.location || '',
+      eventDate: new Date(event.start as string).toISOString().slice(0, 16),
+      status: event.extendedProps?.status || 'Active'
+    });
+    this.newEvent.participants = [...(event.extendedProps?.participants || [])];
+    this.showEditModal = true;
+    this.showEventListModal = false;
+  }
+
+  closeEventListModal(): void {
+    const modalElement = document.querySelector('.animate__fadeInDown');
+    modalElement?.classList.remove('animate__fadeInDown');
+    modalElement?.classList.add('animate__fadeOutUp');
+    
+    setTimeout(() => {
+      this.showEventListModal = false;
+      this.selectedDate = null;
+      this.eventsOnSelectedDate = [];
+    }, 300);
+  }
+
+  closeEditCreateModal(): void {
+    const modalElement = document.querySelector('.animate__fadeInDown');
+    modalElement?.classList.remove('animate__fadeInDown');
+    modalElement?.classList.add('animate__fadeOutUp');
+    
+    setTimeout(() => {
+      this.showEditModal = false;
+      this.showCreateModal = false;
+      this.editingEvent = null;
+      this.newEvent = {
+        title: '',
+        description: '',
+        eventType: '',
+        location: '',
+        participants: [],
+        eventDate: '',
+        status: 'Active'
+      };
+    }, 300);
+  }
+
+  handleEventSubmit(): void {
+    const formValue = this.eventForm.value;
+    const selectedTime = formValue.eventDate; // This will be just the time
+    
+    // Combine selected date with time
+    const eventDate = new Date(this.selectedDate!);
+    const [hours, minutes] = selectedTime.split(':');
+    eventDate.setHours(parseInt(hours), parseInt(minutes), 0);
+
+    const formData = {
+      ...formValue,
+      eventDate: eventDate.toISOString(),
+      status: 'Active', // Set default status
+      participants: this.newEvent.participants
+    };
+    
+    if (this.showEditModal) {
+      this.updateEvent(this.editingEvent.id, formData);
+    } else {
+      this.addEvent(formData);
+    }
+    this.closeEditCreateModal();
+  }
+
+  onEventTypeChange(event: any): void {
+    const eventType = event.target.value;
+    this.newEvent.eventType = eventType;
+    if (eventType !== 'Meeting') {
+      this.newEvent.participants = [];
+    }
+  }
+
+  addParticipant(id: string, type: 'Developer' | 'Manager'): void {
+    if (!id || this.newEvent.participants.some((p: any) => p.participantId === id)) {
+      return;
+    }
+    this.newEvent.participants.push({ participantId: id, onModel: type });
+  }
+
+  removeParticipant(participant: any): void {
+    this.newEvent.participants = this.newEvent.participants.filter(
+      (p: any) => p.participantId !== participant.participantId
+    );
+  }
+
+  updateEventCounts(): void {
+    if (this.events) {
+      // Total Events
+      this.totalEvents = this.events.length;
+
+      // Meetings Count
+      this.meetingsCount = this.events.filter((e: { eventType: string; }) => e.eventType === 'Meeting').length;
+
+      // Tasks Count (including Project Deadlines)
+      this.tasksCount = this.events.filter((e: { eventType: string; }) => 
+        e.eventType === 'Task' || e.eventType === 'Project Deadline'
+      ).length;
+
+      // Monthly Events
+      const currentMonth = new Date().getMonth();
+      this.monthlyEvents = this.events.filter((e: { eventDate: string | number | Date; }) => 
+        new Date(e.eventDate).getMonth() === currentMonth
+      ).length;
+    }
+  }
+
+  openFilterModal(): void {
+    this.showFilterModal = true;
+    this.filterForm.reset();
+    this.filteredEvents = [];
+  }
+
+  closeFilterModal(): void {
+    const modalElement = document.querySelector('.animate__fadeInDown');
+    modalElement?.classList.remove('animate__fadeInDown');
+    modalElement?.classList.add('animate__fadeOutUp');
+    
+    setTimeout(() => {
+      this.showFilterModal = false;
+      this.filterForm.reset();
+    }, 300);
+  }
+
+  applyFilter(): void {
+    const { eventType, startDate, endDate } = this.filterForm.value;
+    
+    if (!eventType && !startDate && !endDate) {
+      this.showErrorAlert('Please select at least one filter criteria');
+      return;
+    }
+
+    this.filteredEvents = this.allEvents.filter(event => {
+      let matchesType = true;
+      let matchesDateRange = true;
+
+      // Check event type
+      if (eventType) {
+        matchesType = event.extendedProps?.['eventType'] === eventType;
+      }
+
+      // Check date range
+      if (startDate || endDate) {
+        const eventDate = new Date(event.start as string);
+        if (startDate) {
+          matchesDateRange = matchesDateRange && eventDate >= new Date(startDate);
+        }
+        if (endDate) {
+          matchesDateRange = matchesDateRange && eventDate <= new Date(endDate);
+        }
+      }
+
+      return matchesType && matchesDateRange;
     });
   }
 }
