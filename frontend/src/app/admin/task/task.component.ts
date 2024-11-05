@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AdminService } from '../../services/admin.service';
@@ -29,6 +29,9 @@ interface Task {
   createdBy: string;
   createdAt: string;
   updatedAt: string;
+  updates?: TaskUpdate[];
+  finalResult?: FinalResult;
+  relatedDocuments?: string[];
 }
 
 interface Developer {
@@ -36,6 +39,26 @@ interface Developer {
   username: string;
   email: string;
   skills: string[];
+}
+
+interface TaskUpdate {
+  _id?: string;
+  updateId: string;
+  content: string;
+  updatedBy: string;
+  updatedByName: string;
+  updatedByModel: string;
+  relatedMedia: string[];
+  timestamp: string;
+}
+
+interface FinalResult {
+  description: string;
+  resultImages?: string[];
+  images?: File[];
+  updatedBy?: string;
+  updatedByName?: string;
+  updatedByModel?: string;
 }
 
 @Component({
@@ -62,6 +85,18 @@ export class TaskComponent implements OnInit {
   editingTask: Task | null = null;
   viewingTask: Task | null = null;
   hoveredTaskId: string | null = null;
+  showUpdateModal = false;
+  showFinalResultModal = false;
+  newUpdate: { content: string; media?: File[] } = { content: '' };
+  finalResult: FinalResult = {
+    description: '',
+    images: []
+  };
+
+  @ViewChild('modalContent') modalContent!: ElementRef;
+  @ViewChild('viewModalContent') viewModalContent!: ElementRef;
+  @ViewChild('updateModalContent') updateModalContent!: ElementRef;
+  @ViewChild('finalResultModalContent') finalResultModalContent!: ElementRef;
 
   constructor(
     private adminService: AdminService,
@@ -146,7 +181,17 @@ export class TaskComponent implements OnInit {
   }
 
   resetTaskForm() {
-    throw new Error('Method not implemented.');
+    this.newTask = {
+      taskName: '',
+      startDate: '',
+      endDate: '',
+      projectId: { _id: '', title: '' },
+      participants: [],
+      status: 'Assigned'
+    };
+    this.selectedProjectId = '';
+    this.assignedDevelopers = [];
+    this.editingTask = null;
   }
 
   closeModal() {
@@ -334,5 +379,171 @@ export class TaskComponent implements OnInit {
       icon: 'error',
       confirmButtonText: 'OK'
     });
+  }
+
+  openUpdateModal() {
+    this.showUpdateModal = true;
+    this.newUpdate = { content: '' };
+  }
+
+  closeUpdateModal() {
+    const modalElement = document.querySelector('.animate__fadeInDown');
+    if (modalElement) {
+      modalElement.classList.remove('animate__fadeInDown');
+      modalElement.classList.add('animate__fadeOutUp');
+      
+      setTimeout(() => {
+        this.showUpdateModal = false;
+      }, 300);
+    } else {
+      this.showUpdateModal = false;
+    }
+  }
+
+  onUpdateMediaSelected(event: any) {
+    this.newUpdate.media = Array.from(event.target.files);
+  }
+
+  submitUpdate() {
+    if (!this.viewingTask) return;
+
+    const formData = new FormData();
+    formData.append('content', this.newUpdate.content);
+    
+    if (this.newUpdate.media) {
+      this.newUpdate.media.forEach((file) => {
+        formData.append('media', file);
+      });
+    }
+
+    this.loaderService.show();
+    this.adminService.addTaskUpdate(this.viewingTask._id, formData).subscribe({
+      next: (response) => {
+        this.viewingTask = response.task;
+        this.closeUpdateModal();
+        this.showSuccessAlert('Task update added successfully');
+        this.loaderService.hide();
+      },
+      error: (error) => {
+        console.error('Error adding task update:', error);
+        this.showErrorAlert('Failed to add task update');
+        this.loaderService.hide();
+      }
+    });
+  }
+
+  deleteUpdate(taskId: string, updateId: string) {
+    console.log('Deleting update:', { taskId, updateId, update: this.viewingTask?.updates?.find(u => u.updateId === updateId) });
+    
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.loaderService.show();
+        this.adminService.deleteTaskUpdate(taskId, updateId).subscribe({
+          next: (response) => {
+            if (this.viewingTask && this.viewingTask.updates) {
+              this.viewingTask.updates = this.viewingTask.updates.filter(
+                update => update.updateId !== updateId
+              );
+            }
+            this.showSuccessAlert('Update deleted successfully');
+            this.loaderService.hide();
+          },
+          error: (error) => {
+            console.error('Error deleting update:', error);
+            this.showErrorAlert('Failed to delete update');
+            this.loaderService.hide();
+          }
+        });
+      }
+    });
+  }
+
+  openFinalResultModal() {
+    this.showFinalResultModal = true;
+    this.finalResult = { 
+      description: '',
+      images: []
+    };
+  }
+
+  closeFinalResultModal() {
+    const modalElement = document.querySelector('.animate__fadeInDown');
+    if (modalElement) {
+      modalElement.classList.remove('animate__fadeInDown');
+      modalElement.classList.add('animate__fadeOutUp');
+      
+      setTimeout(() => {
+        this.showFinalResultModal = false;
+      }, 300);
+    } else {
+      this.showFinalResultModal = false;
+    }
+  }
+
+  onResultImagesSelected(event: any) {
+    const files = event.target.files;
+    if (files) {
+      this.finalResult.images = Array.from(files);
+    }
+  }
+
+  submitFinalResult() {
+    if (!this.viewingTask) return;
+
+    const formData = new FormData();
+    formData.append('description', this.finalResult.description);
+    
+    if (this.finalResult.images) {
+      this.finalResult.images.forEach((file) => {
+        formData.append('resultImages', file);
+      });
+    }
+
+    this.loaderService.show();
+    this.adminService.addFinalResult(this.viewingTask._id, formData).subscribe({
+      next: (response) => {
+        this.viewingTask = response.task;
+        this.closeFinalResultModal();
+        this.showSuccessAlert('Final result added successfully');
+        this.loaderService.hide();
+      },
+      error: (error) => {
+        console.error('Error adding final result:', error);
+        this.showErrorAlert('Failed to add final result');
+        this.loaderService.hide();
+      }
+    });
+  }
+
+  ImageViewer(imageUrl: string) {
+    Swal.fire({
+      imageUrl,
+      imageAlt: 'Task Image',
+      width: '80%',
+      confirmButtonText: 'Close'
+    });
+  }
+
+  closeModalOnOutsideClick(event: MouseEvent, modalContent: HTMLElement) {
+    if (!(modalContent as any).contains(event.target)) {
+      // Check which modal is open and close it
+      if (this.showModal) {
+        this.closeModal();
+      } else if (this.showUpdateModal) {
+        this.closeUpdateModal();
+      } else if (this.showFinalResultModal) {
+        this.closeFinalResultModal();
+      } else if (this.viewingTask) {
+        this.closeViewModal();
+      }
+    }
   }
 }

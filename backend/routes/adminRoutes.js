@@ -17,10 +17,12 @@ const {
     updateDeveloper, 
     updateManager, 
     verifyDeveloper,
-   
+    initiatePasswordReset,
+    resetPassword,
+    updateAdminMedia,
   } = require('../controllers/adminController');
 const verifyAdminToken = require('../middleware/verifyAdminToken'); // Ensure you have this middleware
-const { addTask, updateTask, getTasksByProject, deleteTask, getAllTasks, getTaskById } = require('../controllers/taskController');
+const { addTask, updateTask, getTasksByProject, deleteTask, getAllTasks, getTaskById, addTaskUpdate, addFinalResult, deleteTaskUpdate } = require('../controllers/taskController');
 const { 
   getProjectsByStatus,
   addProject,
@@ -39,6 +41,9 @@ const {
   addEvent,
   updateEvent,
   deleteEvent,
+  getAllHolidays,
+  getDeveloperHolidays,
+  getHolidayById
 } = require('../controllers/calendarController')
 const {registerManager} = require('../controllers/managerController');
 const {registerDeveloper} = require('../controllers/developerController');
@@ -84,11 +89,37 @@ router.get('/user-events', verifyAdminToken, fetchUserEvents);
 router.put('/holidays/:holidayId', verifyAdminToken, approveOrDenyHoliday);
 router.put('/holidays/update/:holidayId', verifyAdminToken, updateHoliday);
 router.delete('/holidays/delete/:holidayId', verifyAdminToken, deleteHoliday);
+router.get('/holidays', verifyAdminToken, getAllHolidays);
+router.get('/holidays/developer/:developerId', verifyAdminToken, getDeveloperHolidays);
+router.get('/holidays/:holidayId', verifyAdminToken, getHolidayById); 
 //task
 router.post('/add-task', verifyAdminToken, addTask);
-router.put('/update-task/:taskId', verifyAdminToken, updateTask);
-router.get('/project-task/:projectId', verifyAdminToken, getTasksByProject);
+router.put(
+  '/update-task/:taskId', 
+  verifyAdminToken, 
+  upload.fields([
+    { name: 'relatedDocuments', maxCount: 5 },
+    { name: 'media', maxCount: 5 },
+    { name: 'resultImages', maxCount: 5 }
+  ]), 
+  updateTask
+);router.get('/project-task/:projectId', verifyAdminToken, getTasksByProject);
 router.delete('/delete-task/:taskId', verifyAdminToken, deleteTask);
 router.get('/all-tasks', verifyAdminToken, getAllTasks);
 router.get('/task/:taskId', verifyAdminToken, getTaskById);
+router.post('/initiate-password-reset', initiatePasswordReset);
+router.post('/reset-password', resetPassword);
+// Update the media upload route
+router.put('/update-media', 
+  verifyAdminToken, 
+  upload.fields([
+    { name: 'profileImage', maxCount: 1 },
+    { name: 'companyLogo', maxCount: 1 }
+  ]), 
+  updateAdminMedia
+);
+// Task update routes
+router.post('/task/:taskId/update', verifyAdminToken, upload.array('media', 5), addTaskUpdate);
+router.post('/task/:taskId/final-result', verifyAdminToken, upload.array('resultImages', 5), addFinalResult);
+router.delete('/task/:taskId/update/:updateId', verifyAdminToken, deleteTaskUpdate);
 module.exports = router;

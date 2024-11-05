@@ -7,6 +7,10 @@ const HolidaySchema = new Schema({
         ref: 'Developer',  // Assuming you have a Developer model
         required: true
     },
+    developerName: {
+        type: String,
+        required: true
+    },
     startDate: {
         type: Date,
         required: true

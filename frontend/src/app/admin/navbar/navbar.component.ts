@@ -5,6 +5,7 @@ import { AuthService } from '../../services/auth.service';
 import { FormsModule } from '@angular/forms';
 import { interval, Subscription, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { AdminService } from '../../services/admin.service';
 
 interface Notification {
   id: number;
@@ -18,6 +19,13 @@ interface SearchResult {
   type: 'task' | 'project' | 'document';
   title: string;
   description: string;
+}
+
+interface AdminProfile {
+  username: string;
+  email: string;
+  profileImage: string;
+  // ... other profile fields
 }
 
 @Component({
@@ -74,8 +82,11 @@ export class NavbarComponent implements OnInit, OnDestroy {
     { id: 5, type: 'project', title: 'Mobile App', description: 'iOS and Android' }
   ];
 
+  userProfile: AdminProfile | null = null;
+
   constructor(
     private authService: AuthService,
+    private adminService: AdminService,
     private router: Router
   ) {
     this.unreadCount = this.notifications.filter(n => !n.isRead).length;
@@ -84,6 +95,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.startClock();
     this.checkScreenSize();
+    this.loadUserProfile();
   }
 
   ngOnDestroy() {
@@ -211,5 +223,16 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   private checkScreenSize() {
     this.isMobile = window.innerWidth < 768;
+  }
+
+  loadUserProfile() {
+    this.adminService.getProfile().subscribe({
+      next: (profile) => {
+        this.userProfile = profile;
+      },
+      error: (error) => {
+        console.error('Error loading profile:', error);
+      }
+    });
   }
 }

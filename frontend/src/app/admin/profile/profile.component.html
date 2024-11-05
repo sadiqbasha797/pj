@@ -1,0 +1,283 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="bg-white shadow rounded-lg">
+    <!-- Profile Header -->
+    <div class="relative h-48 rounded-t-lg bg-gradient-to-r from-blue-400 via-indigo-500 to-violet-600">
+      <!-- Decorative shapes -->
+      <div class="absolute inset-0">
+        <div class="absolute w-32 h-32 -top-16 -right-16 bg-white opacity-10 rounded-full"></div>
+        <div class="absolute w-24 h-24 -bottom-12 -left-12 bg-white opacity-10 rounded-full"></div>
+        <div class="absolute w-20 h-20 top-8 left-1/3 bg-white opacity-5 rounded-full"></div>
+      </div>
+      <div class="absolute -bottom-12 left-8">
+        <div class="relative">
+          <img [src]="profile?.profileImage || 'assets/default-avatar.png'"
+               class="w-24 h-24 rounded-full border-4 border-white shadow-lg object-cover"
+               [alt]="profile?.username">
+          <input *ngIf="isEditing"
+                 type="file"
+                 (change)="onProfileImageChange($event)"
+                 class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+        </div>
+      </div>
+      
+      <!-- Action Buttons -->
+      <div class="absolute bottom-4 right-4 space-x-3">
+        <button *ngIf="!isEditing"
+                (click)="toggleEdit()"
+                class="px-4 py-2 bg-white text-blue-600 rounded-lg shadow hover:bg-blue-50">
+          Edit Profile
+        </button>
+        <button *ngIf="isEditing"
+                (click)="saveProfile()"
+                class="px-4 py-2 bg-green-500 text-white rounded-lg shadow hover:bg-green-600">
+          Save Changes
+        </button>
+        <button *ngIf="isEditing"
+                (click)="toggleEdit()"
+                class="px-4 py-2 bg-gray-500 text-white rounded-lg shadow hover:bg-gray-600">
+          Cancel
+        </button>
+      </div>
+    </div>
+
+    <!-- Profile Content -->
+    <div class="pt-16 pb-8 px-8">
+      <!-- Basic Information -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Basic Information</h3>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Username</label>
+              <input *ngIf="isEditing" 
+                     [(ngModel)]="editedProfile.username"
+                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+              <p *ngIf="!isEditing" class="mt-1 text-gray-900">{{profile?.username}}</p>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Email</label>
+              <input *ngIf="isEditing" 
+                     [(ngModel)]="editedProfile.email"
+                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+              <p *ngIf="!isEditing" class="mt-1 text-gray-900">{{profile?.email}}</p>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Mobile</label>
+              <input *ngIf="isEditing" 
+                     [(ngModel)]="editedProfile.mobile"
+                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+              <p *ngIf="!isEditing" class="mt-1 text-gray-900">{{profile?.mobile}}</p>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Address</label>
+              <textarea *ngIf="isEditing" 
+                        [(ngModel)]="editedProfile.address"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+              </textarea>
+              <p *ngIf="!isEditing" class="mt-1 text-gray-900">{{profile?.address}}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Social Links -->
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Social Links</h3>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700">LinkedIn</label>
+              <input *ngIf="isEditing" 
+                     [(ngModel)]="editedProfile.socialLinks!.linkedin"
+                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+              <p *ngIf="!isEditing" class="mt-1 text-gray-900">{{profile?.socialLinks?.linkedin}}</p>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Twitter</label>
+              <input *ngIf="isEditing" 
+                     [(ngModel)]="editedProfile.socialLinks!.twitter"
+                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+              <p *ngIf="!isEditing" class="mt-1 text-gray-900">{{profile?.socialLinks?.twitter}}</p>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Facebook</label>
+              <input *ngIf="isEditing" 
+                     [(ngModel)]="editedProfile.socialLinks!.facebook"
+                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+              <p *ngIf="!isEditing" class="mt-1 text-gray-900">{{profile?.socialLinks?.facebook}}</p>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Instagram</label>
+              <input *ngIf="isEditing" 
+                     [(ngModel)]="editedProfile.socialLinks!.instagram"
+                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+              <p *ngIf="!isEditing" class="mt-1 text-gray-900">{{profile?.socialLinks?.instagram}}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Company Details -->
+      <div class="mt-8">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="material-icons text-indigo-500">business</span>
+          <h3 class="text-lg font-semibold text-gray-900">Company Details</h3>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Company Basic Info -->
+          <div class="space-y-4">
+            <!-- Company Logo -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Company Logo</label>
+              <div class="relative group">
+                <img [src]="profile?.companyDetails?.logo || 'assets/default-company-logo.png'"
+                     class="h-32 w-32 object-contain border rounded-lg shadow-sm group-hover:shadow-md transition-all duration-300">
+                <div *ngIf="isEditing" 
+                     class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg cursor-pointer">
+                  <input type="file"
+                         (change)="onCompanyLogoChange($event)"
+                         class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                  <span class="material-icons text-white">photo_camera</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Company Name -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Company Name</label>
+              <input *ngIf="isEditing" 
+                     [(ngModel)]="editedProfile.companyDetails!.name"
+                     class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+              <p *ngIf="!isEditing" class="mt-1 text-gray-900">{{profile?.companyDetails?.name}}</p>
+            </div>
+
+            <!-- Company Address -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Company Address</label>
+              <textarea *ngIf="isEditing" 
+                        [(ngModel)]="editedProfile.companyDetails!.address"
+                        class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+              </textarea>
+              <p *ngIf="!isEditing" class="mt-1 text-gray-900">{{profile?.companyDetails?.address}}</p>
+            </div>
+
+            <!-- Established Date -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Established Date</label>
+              <input *ngIf="isEditing" 
+                     type="date"
+                     [(ngModel)]="editedProfile.companyDetails!.established"
+                     class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+              <p *ngIf="!isEditing" class="mt-1 text-gray-900">
+                {{profile?.companyDetails?.established | date:'mediumDate'}}
+              </p>
+            </div>
+          </div>
+
+          <!-- Company Social Links and Achievements -->
+          <div class="space-y-6">
+            <!-- Company Social Links -->
+            <div>
+              <h4 class="text-md font-medium text-gray-900 mb-3">Company Social Links</h4>
+              <div class="space-y-3">
+                <!-- LinkedIn -->
+                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <span class="material-icons text-blue-600">link</span>
+                  <div class="flex-grow">
+                    <label class="block text-sm font-medium text-gray-700">LinkedIn</label>
+                    <input *ngIf="isEditing" 
+                           [(ngModel)]="editedProfile.companyDetails!.socialLinks.linkedin"
+                           class="mt-1 block w-full bg-white rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <a *ngIf="!isEditing" 
+                       [href]="profile?.companyDetails?.socialLinks?.linkedin"
+                       target="_blank"
+                       class="mt-1 text-blue-600 hover:underline">
+                      {{profile?.companyDetails?.socialLinks?.linkedin}}
+                    </a>
+                  </div>
+                </div>
+
+                <!-- Twitter -->
+                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <span class="material-icons text-blue-400">tag</span>
+                  <div class="flex-grow">
+                    <label class="block text-sm font-medium text-gray-700">Twitter</label>
+                    <input *ngIf="isEditing" 
+                           [(ngModel)]="editedProfile.companyDetails!.socialLinks.twitter"
+                           class="mt-1 block w-full bg-white rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <a *ngIf="!isEditing" 
+                       [href]="profile?.companyDetails?.socialLinks?.twitter"
+                       target="_blank"
+                       class="mt-1 text-blue-600 hover:underline">
+                      {{profile?.companyDetails?.socialLinks?.twitter}}
+                    </a>
+                  </div>
+                </div>
+
+                <!-- Facebook -->
+                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <span class="material-icons text-blue-800">facebook</span>
+                  <div class="flex-grow">
+                    <label class="block text-sm font-medium text-gray-700">Facebook</label>
+                    <input *ngIf="isEditing" 
+                           [(ngModel)]="editedProfile.companyDetails!.socialLinks.facebook"
+                           class="mt-1 block w-full bg-white rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <a *ngIf="!isEditing" 
+                       [href]="profile?.companyDetails?.socialLinks?.facebook"
+                       target="_blank"
+                       class="mt-1 text-blue-600 hover:underline">
+                      {{profile?.companyDetails?.socialLinks?.facebook}}
+                    </a>
+                  </div>
+                </div>
+
+                <!-- Instagram -->
+                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <span class="material-icons text-pink-600">photo_camera</span>
+                  <div class="flex-grow">
+                    <label class="block text-sm font-medium text-gray-700">Instagram</label>
+                    <input *ngIf="isEditing" 
+                           [(ngModel)]="editedProfile.companyDetails!.socialLinks.instagram"
+                           class="mt-1 block w-full bg-white rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <a *ngIf="!isEditing" 
+                       [href]="profile?.companyDetails?.socialLinks?.instagram"
+                       target="_blank"
+                       class="mt-1 text-blue-600 hover:underline">
+                      {{profile?.companyDetails?.socialLinks?.instagram}}
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Achievements -->
+            <div>
+              <h4 class="text-md font-medium text-gray-900 mb-3">Company Achievements</h4>
+              <div class="space-y-2">
+                @for (achievement of profile?.companyDetails?.achievements; track achievement) {
+                  <div class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                    <span class="material-icons text-amber-500">emoji_events</span>
+                    <span class="text-gray-700">{{ achievement }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Delete Profile -->
+      <div class="mt-8 pt-8 border-t">
+        <button (click)="deleteProfile()"
+                class="px-4 py-2 bg-red-500 text-white rounded-lg shadow hover:bg-red-600">
+          Delete Profile
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

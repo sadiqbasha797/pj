@@ -6,6 +6,10 @@ const TaskSchema = new Schema({
         type: String,
         required: true
     },
+    description: {
+        type: String,
+        required: true
+    },
     startDate: {
         type: Date,
         required: true
@@ -34,6 +38,68 @@ const TaskSchema = new Schema({
     createdBy: {
         type: Schema.Types.ObjectId,
         required: true
+    },
+    relatedDocuments: [{
+        type: String,
+        required: false
+    }],
+    updates: [{
+        updateId: {
+            type: Schema.Types.ObjectId,
+            default: () => new mongoose.Types.ObjectId(),
+            required: true
+        },
+        content: {
+            type: String,
+            required: false
+        },
+        updatedBy: {
+            type: Schema.Types.ObjectId,
+            ref: 'Developer',
+            required: false
+        },
+        updatedByName: {
+            type: String,
+            required: false
+        },
+        updatedByModel: {
+            type: String,
+            required: false,
+            enum: ['Developer', 'Admin', 'Manager']
+        },
+        relatedMedia: [{
+            type: String,
+            required: false
+        }],
+        timestamp: {
+            type: Date,
+            default: Date.now,
+            required: true
+        }
+    }],
+    finalResult: {
+        description: {
+            type: String,
+            required: false
+        },
+        resultImages: [{
+            type: String,
+            required: false
+        }],
+        updatedBy: {
+            type: Schema.Types.ObjectId,
+            ref: 'Developer',
+            required: false
+        },
+        updatedByName: {
+            type: String,
+            required: false
+        },
+        updatedByModel: {
+            type: String,
+            required: false,
+            enum: ['Developer', 'Admin', 'Manager']
+        }
     }
 }, { timestamps: true });
 

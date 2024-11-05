@@ -136,6 +136,20 @@
             <span [ngClass]="{'hidden': isCollapsed, 'ml-3 font-medium': !isCollapsed}">Chat</span>
           </a>
         </li>
+
+        <!-- Leave -->
+        <li>
+          <a routerLink="/admin/leave" routerLinkActive="bg-gradient-to-r from-blue-100/50 to-indigo-100/50 text-blue-700"
+             class="group flex items-center py-2.5 px-4 rounded-xl hover:bg-blue-50/40 transition-all duration-300 hover:shadow-[0_0_15px_rgba(251,146,60,0.5)] hover:border-orange-400 border border-transparent"
+             [title]="isCollapsed ? 'Leave' : ''">
+            <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-orange-100 to-amber-50 group-hover:from-orange-200 group-hover:to-amber-100 transition-colors duration-300">
+              <svg class="h-5 w-5 text-orange-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+            </div>
+            <span [ngClass]="{'hidden': isCollapsed, 'ml-3 font-medium': !isCollapsed}">Leave</span>
+          </a>
+        </li>
       </ul>
     </nav>
   </div>

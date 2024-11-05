@@ -4,6 +4,8 @@ const Project = require('../models/Project');
 const Developer = require('../models/Developer');
 const { createNotification,notifyCreation,notifyUpdate,leaveUpdateNotification,leaveNotification } = require('../utils/notificationHelper'); // Adjust the path as necessary
 const CalendarEvent = require('../models/calendarEvent');
+const { uploadToCloudinary, deleteFromCloudinary } = require('../utils/cloudinary');
+const mongoose = require('mongoose');
 
 // Email configuration
 const transporter = nodemailer.createTransport({
@@ -37,8 +39,18 @@ const sendEmailToParticipants = async (participantIds, taskDetails) => {
 
 const addTask = async (req, res) => {
     try {
-        const { taskName, startDate, endDate, projectId, participants, status } = req.body;
-        const createdBy = req.admin ? req.admin._id : req.manager._id;  // Use correct authentication based on your setup
+        const { taskName, description, startDate, endDate, projectId, participants, status } = req.body;
+        const createdBy = req.admin ? req.admin._id : req.manager._id;
+        const files = req.files; // From multer
+        let relatedDocuments = [];
+
+        // Handle file uploads
+        if (files && files.length > 0) {
+            for (const file of files) {
+                const result = await uploadToCloudinary(file.path, 'task-documents');
+                relatedDocuments.push(result.secure_url);
+            }
+        }
 
         // Ensure the project exists
         const project = await Project.findById(projectId);
@@ -54,12 +66,14 @@ const addTask = async (req, res) => {
 
         const newTask = new Task({
             taskName,
+            description,
             startDate,
             endDate,
             projectId,
             participants,
             status,
-            createdBy
+            createdBy,
+            relatedDocuments
         });
         await newTask.save();
 
@@ -89,24 +103,84 @@ const addTask = async (req, res) => {
         res.status(500).json({ message: 'Error adding task and calendar event', error: error.message });
     }
 };
+
 // Update a task
 const updateTask = async (req, res) => {
     try {
         const taskId = req.params.taskId;
-        const updates = req.body;
+        const updates = { ...req.body };
+        const files = req.files; // This will now be an object with field names as keys
 
-        const updatedTask = await Task.findByIdAndUpdate(taskId, updates, { new: true });
-        if (!updatedTask) {
+        // Fetch existing task
+        const task = await Task.findById(taskId);
+        if (!task) {
             return res.status(404).json({ message: 'Task not found' });
         }
 
-        // Notify participants
-        await notifyUpdate(updatedTask.participants, 'Task', updatedTask.taskName, updatedTask._id);
+        // Handle related documents
+        if (files && files.relatedDocuments) {
+            let newDocs = [];
+            
+            // Upload new documents
+            for (const file of files.relatedDocuments) {
+                const result = await uploadToCloudinary(file.path, 'task-documents');
+                newDocs.push(result.secure_url);
+            }
 
-        res.status(200).json({ message: 'Task updated successfully', task: updatedTask });
+            // Handle document deletion if specified
+            if (updates.deletedDocuments) {
+                const deletedDocs = JSON.parse(updates.deletedDocuments);
+                
+                // Delete from Cloudinary
+                for (const docUrl of deletedDocs) {
+                    const publicId = docUrl.split('/').slice(-2).join('/').split('.')[0];
+                    await deleteFromCloudinary(publicId);
+                }
+
+                // Filter out deleted documents
+                const remainingDocs = task.relatedDocuments.filter(
+                    doc => !deletedDocs.includes(doc)
+                );
+                
+                // Combine remaining and new documents
+                updates.relatedDocuments = [...remainingDocs, ...newDocs];
+            } else {
+                // Just add new documents to existing ones
+                updates.relatedDocuments = [...(task.relatedDocuments || []), ...newDocs];
+            }
+        }
+
+        // Convert string arrays back to arrays if they're stringified
+        if (typeof updates.participants === 'string') {
+            updates.participants = JSON.parse(updates.participants);
+        }
+
+        // Update the task
+        const updatedTask = await Task.findByIdAndUpdate(
+            taskId,
+            { $set: updates },
+            { 
+                new: true,
+                runValidators: true 
+            }
+        ).populate('participants.participantId', 'username email')
+         .populate('projectId', 'title');
+
+        // Notify participants about the update
+        const participantIds = updatedTask.participants.map(p => p.participantId._id);
+        await notifyUpdate(participantIds, 'Task', updatedTask.taskName, updatedTask._id);
+
+        res.status(200).json({ 
+            message: 'Task updated successfully', 
+            task: updatedTask 
+        });
+
     } catch (error) {
         console.error('Failed to update task:', error);
-        res.status(500).json({ message: 'Error updating task', error: error.message });
+        res.status(500).json({ 
+            message: 'Error updating task', 
+            error: error.message 
+        });
     }
 };
 
@@ -175,11 +249,231 @@ const getTaskById = async (req, res) => {
     }
 };
 
+// Add task update
+const addTaskUpdate = async (req, res) => {
+    try {
+        const taskId = req.params.taskId;
+        const content = req.body.content;
+        const files = req.files;  // This will contain files from 'media' field
+        let relatedMedia = [];
+
+        // Handle file uploads
+        if (files && files.length > 0) {
+            for (const file of files) {
+                const result = await uploadToCloudinary(file.path, 'task-updates');
+                relatedMedia.push(result.secure_url);
+            }
+        }
+
+        // Determine user type, ID, and name
+        let updatedBy, updatedByModel, updatedByName;
+        if (req.admin) {
+            updatedBy = req.admin._id;
+            updatedByModel = 'Admin';
+            updatedByName = req.admin.username;
+        } else if (req.manager) {
+            updatedBy = req.manager._id;
+            updatedByModel = 'Manager';
+            updatedByName = req.manager.username;
+        } else if (req.developer) {
+            updatedBy = req.developer._id;
+            updatedByModel = 'Developer';
+            updatedByName = req.developer.username;
+        }
+
+        // Validate content
+        if (!content) {
+            return res.status(400).json({ 
+                message: 'Content is required for the update' 
+            });
+        }
+
+        const update = {
+            content,
+            updatedBy,
+            updatedByModel,
+            updatedByName,  // Added username
+            relatedMedia
+        };
+
+        const task = await Task.findByIdAndUpdate(
+            taskId,
+            { $push: { updates: update } },
+            { 
+                new: true,
+                runValidators: true 
+            }
+        ).populate({
+            path: 'updates.updatedBy',
+            select: 'username',
+            model: updatedByModel
+        });
+
+        if (!task) {
+            return res.status(404).json({ 
+                message: 'Task not found' 
+            });
+        }
+
+        res.status(200).json({ 
+            message: 'Update added successfully', 
+            task 
+        });
+    } catch (error) {
+        console.error('Error adding task update:', error);
+        res.status(500).json({ 
+            message: 'Error adding update', 
+            error: error.message 
+        });
+    }
+};
+
+// Add final result
+const addFinalResult = async (req, res) => {
+    try {
+        const taskId = req.params.taskId;
+        const { description } = req.body;
+        const files = req.files;
+        let resultImages = [];
+
+        // Determine user type, ID, and name
+        let updatedBy, updatedByModel, updatedByName;
+        if (req.admin) {
+            updatedBy = req.admin._id;
+            updatedByModel = 'Admin';
+            updatedByName = req.admin.username;
+        } else if (req.manager) {
+            updatedBy = req.manager._id;
+            updatedByModel = 'Manager';
+            updatedByName = req.manager.username;
+        } else if (req.developer) {
+            updatedBy = req.developer._id;
+            updatedByModel = 'Developer';
+            updatedByName = req.developer.username;
+        }
+
+        // Validate description
+        if (!description) {
+            return res.status(400).json({ 
+                message: 'Description is required for the final result' 
+            });
+        }
+
+        // Handle file uploads
+        if (files && files.length > 0) {
+            for (const file of files) {
+                const result = await uploadToCloudinary(file.path, 'task-results');
+                resultImages.push(result.secure_url);
+            }
+        }
+
+        // Find and update the task
+        const task = await Task.findByIdAndUpdate(
+            taskId,
+            {
+                finalResult: {
+                    description,
+                    resultImages,
+                    updatedBy,
+                    updatedByModel,
+                    updatedByName  // Added username
+                },
+                status: 'Completed'
+            },
+            { 
+                new: true,
+                runValidators: true 
+            }
+        ).populate({
+            path: 'finalResult.updatedBy',
+            select: 'username',
+            model: updatedByModel
+        });
+
+        if (!task) {
+            return res.status(404).json({ 
+                message: 'Task not found' 
+            });
+        }
+
+        // Notify participants about the final result
+        const participantIds = task.participants.map(p => p.participantId);
+        await notifyUpdate(participantIds, 'Task', `Final result added for ${task.taskName}`, task._id);
+
+        res.status(200).json({ 
+            message: 'Final result added successfully', 
+            task 
+        });
+
+    } catch (error) {
+        console.error('Error adding final result:', error);
+        res.status(500).json({ 
+            message: 'Error adding final result', 
+            error: error.message 
+        });
+    }
+};
+
+// Delete task update
+const deleteTaskUpdate = async (req, res) => {
+    try {
+        const { taskId, updateId } = req.params;
+        
+        // Find the task first to get the update details
+        const task = await Task.findById(taskId);
+        if (!task) {
+            return res.status(404).json({ 
+                message: 'Task not found' 
+            });
+        }
+
+        // Find the update to get media URLs before deletion
+        const update = task.updates.find(u => u.updateId.toString() === updateId);
+        if (!update) {
+            return res.status(404).json({ 
+                message: 'Update not found' 
+            });
+        }
+
+        // Delete media files from Cloudinary if they exist
+        if (update.relatedMedia && update.relatedMedia.length > 0) {
+            for (const mediaUrl of update.relatedMedia) {
+                try {
+                    const publicId = mediaUrl.split('/').slice(-2).join('/').split('.')[0];
+                    await deleteFromCloudinary(publicId);
+                } catch (cloudinaryError) {
+                    console.error('Error deleting from Cloudinary:', cloudinaryError);
+                }
+            }
+        }
+
+        // Use updateOne to avoid validation of the entire document
+        await Task.updateOne(
+            { _id: taskId },
+            { $pull: { updates: { updateId: new mongoose.Types.ObjectId(updateId) } } }
+        );
+
+        res.status(200).json({ 
+            message: 'Update deleted successfully'
+        });
+
+    } catch (error) {
+        console.error('Error deleting task update:', error);
+        res.status(500).json({ 
+            message: 'Error deleting update', 
+            error: error.message 
+        });
+    }
+};
+
 module.exports = {
     addTask,
     updateTask,
     getTasksByProject,
     deleteTask,
     getAllTasks,
-    getTaskById
+    getTaskById,
+    addTaskUpdate,
+    addFinalResult,
+    deleteTaskUpdate
 };

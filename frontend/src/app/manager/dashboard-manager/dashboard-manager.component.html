@@ -1,0 +1,44 @@
+<div class="container mx-auto px-4 py-8">
+  <h1 class="text-3xl font-bold mb-8">Manager Dashboard</h1>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <!-- Projects Overview -->
+    <div class="bg-white p-6 rounded-lg shadow">
+      <h2 class="text-xl font-semibold mb-4">Projects Overview</h2>
+      <div *ngIf="projects.length > 0; else noProjects">
+        <div *ngFor="let project of projects" class="mb-2">
+          <p>{{ project.name }}</p>
+        </div>
+      </div>
+      <ng-template #noProjects>
+        <p class="text-gray-500">No projects available</p>
+      </ng-template>
+    </div>
+
+    <!-- Developers Overview -->
+    <div class="bg-white p-6 rounded-lg shadow">
+      <h2 class="text-xl font-semibold mb-4">Team Members</h2>
+      <div *ngIf="developers.length > 0; else noDevelopers">
+        <div *ngFor="let dev of developers" class="mb-2">
+          <p>{{ dev.name }}</p>
+        </div>
+      </div>
+      <ng-template #noDevelopers>
+        <p class="text-gray-500">No team members available</p>
+      </ng-template>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="bg-white p-6 rounded-lg shadow">
+      <h2 class="text-xl font-semibold mb-4">Quick Actions</h2>
+      <div class="space-y-2">
+        <button class="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+          Add New Project
+        </button>
+        <button class="w-full bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+          Add Team Member
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

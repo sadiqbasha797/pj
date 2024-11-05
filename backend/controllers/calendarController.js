@@ -287,6 +287,63 @@ const deleteEvent = async (req, res) => {
     }
   };
   
+const getAllHolidays = async (req, res) => {
+  try {
+    const holidays = await Holiday.find({})
+      .populate('developer', 'username email') // Populate developer details but exclude password
+      .sort({ appliedOn: -1 }); // Sort by application date, most recent first
+
+    if (holidays.length === 0) {
+      return res.status(404).json({ message: 'No holiday records found' });
+    }
+
+    res.status(200).json(holidays);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching holidays', error: error.message });
+  }
+};
+
+const getDeveloperHolidays = async (req, res) => {
+  try {
+    const developerId = req.params.developerId;
+
+    // Verify developer exists
+    const developer = await Developer.findById(developerId);
+    if (!developer) {
+      return res.status(404).json({ message: 'Developer not found' });
+    }
+
+    const holidays = await Holiday.find({ developer: developerId })
+      .sort({ appliedOn: -1 }); // Sort by application date, most recent first
+
+    if (holidays.length === 0) {
+      return res.status(404).json({ message: 'No holiday records found for this developer' });
+    }
+
+    res.status(200).json(holidays);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching developer holidays', error: error.message });
+  }
+};
+
+const getHolidayById = async (req, res) => {
+  try {
+    const holidayId = req.params.holidayId;
+
+    const holiday = await Holiday.findById(holidayId)
+      .populate('developer', 'username email');
+
+    if (!holiday) {
+      return res.status(404).json({ message: 'Holiday record not found' });
+    }
+
+    res.status(200).json(holiday);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching holiday record', error: error.message });
+  }
+};
+
+  
   module.exports = {
     updateHoliday,
     deleteHoliday,
@@ -296,4 +353,7 @@ const deleteEvent = async (req, res) => {
     addEvent,
     updateEvent,
     deleteEvent,
+    getAllHolidays,
+    getDeveloperHolidays,
+    getHolidayById
   }

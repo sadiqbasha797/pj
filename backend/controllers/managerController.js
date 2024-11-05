@@ -68,7 +68,7 @@ const managerLogin = async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
-    const token = jwt.sign({ id: manager._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
+    const token = jwt.sign({ id: manager._id, username: manager.username }, process.env.JWT_SECRET, { expiresIn: '1d' });
     res.status(200).json({ message: 'Manager logged in', token, manager });
   } catch (error) {
     res.status(500).json({ message: 'Login error', error });

@@ -50,7 +50,7 @@ const developerLogin = async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    const token = jwt.sign({ id: developer._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
+    const token = jwt.sign({ id: developer._id, username: developer.username }, process.env.JWT_SECRET, { expiresIn: '1d' });
     res.status(200).json({ message: 'Developer logged in', token, developer });
   } catch (error) {
     console.error('Login error:', error);  
@@ -228,10 +228,11 @@ const fetchUserEvents = async (req, res) => {
 const applyForHoliday = async (req, res) => {
   const { startDate, endDate, reason } = req.body;
   const developerId = req.developer._id; // Assuming req.developer is set after authentication
-
+  const developerName = req.developer.username;
   try {
       const newHoliday = new Holiday({
           developer: developerId,
+          developerName: developerName,
           startDate,
           endDate,
           reason

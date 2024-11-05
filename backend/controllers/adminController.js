@@ -8,6 +8,7 @@ const nodemailer = require('nodemailer');
 const CalendarEvent = require('../models/calendarEvent');
 const Holiday = require('../models/Holiday');
 const { createNotification,notifyCreation,notifyUpdate,leaveUpdateNotification,leaveNotification } = require('../utils/notificationHelper'); // Adjust the path as necessary
+const { uploadToCloudinary, deleteFromCloudinary } = require('../utils/cloudinary');
 
 // Email configuration
 const transporter = nodemailer.createTransport({
@@ -70,8 +71,19 @@ const adminLogin = async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
-    const token = jwt.sign({ id: admin._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
-    res.status(200).json({ message: 'Admin logged in', token, admin });
+    const token = jwt.sign({ id: admin._id, username: admin.username }, process.env.JWT_SECRET, { expiresIn: '1d' });
+    
+    // Send the admin's _id explicitly in the response
+    res.status(200).json({ 
+      message: 'Admin logged in', 
+      token, 
+      _id: admin._id,
+      role: 'admin',
+      admin: {
+        ...admin.toObject(),
+        password: undefined
+      }
+    });
   } catch (error) {
     res.status(500).json({ message: 'Login error', error });
   }
@@ -92,15 +104,77 @@ const getAdminProfile = async (req, res) => {
 
 const updateAdminProfile = async (req, res) => {
   try {
-    const adminid = req.admin.id
-    const updates = req.body;
-    const admin = await Admin.findByIdAndUpdate(adminid, updates, { new: true });
-    if (!admin) {
+    const adminId = req.admin.id;
+    const updates = { ...req.body };
+    
+    // Get the current admin document
+    const currentAdmin = await Admin.findById(adminId);
+    if (!currentAdmin) {
       return res.status(404).json({ message: 'Admin not found' });
     }
-    res.status(200).json({ message: 'Admin profile updated', admin });
+
+    // Handle profile image upload
+    if (req.files && req.files.profileImage) {
+      const file = req.files.profileImage;
+      const result = await uploadToCloudinary(file.tempFilePath, {
+        folder: 'admin-profiles',
+        resource_type: 'auto'
+      });
+      updates.profileImage = result.secure_url;
+
+      // Delete old profile image if it exists
+      if (currentAdmin.profileImage) {
+        const publicId = currentAdmin.profileImage.split('/').slice(-2).join('/').split('.')[0];
+        await deleteFromCloudinary(publicId);
+      }
+    }
+
+    // Handle company logo upload
+    if (req.files && req.files.companyLogo) {
+      const file = req.files.companyLogo;
+      const result = await uploadToCloudinary(file.tempFilePath, {
+        folder: 'company-logos',
+        resource_type: 'auto'
+      });
+
+      // Merge existing company details with new logo
+      updates.companyDetails = {
+        ...currentAdmin.companyDetails?.toObject(), // Convert to plain object if it's a Mongoose document
+        ...updates.companyDetails, // Merge any new company details from the request
+        logo: result.secure_url // Add the new logo URL
+      };
+
+      // Delete old company logo if it exists
+      if (currentAdmin.companyDetails?.logo) {
+        const publicId = currentAdmin.companyDetails.logo.split('/').slice(-2).join('/').split('.')[0];
+        await deleteFromCloudinary(publicId);
+      }
+    } else if (updates.companyDetails) {
+      // If updating company details without logo, preserve the existing logo
+      updates.companyDetails = {
+        ...currentAdmin.companyDetails?.toObject(), // Keep existing details including logo
+        ...updates.companyDetails // Merge new details
+      };
+    }
+
+    // Update the admin document
+    const admin = await Admin.findByIdAndUpdate(
+      adminId,
+      { $set: updates },
+      { new: true, runValidators: true }
+    );
+
+    res.status(200).json({ 
+      message: 'Admin profile updated successfully', 
+      admin 
+    });
+
   } catch (error) {
-    res.status(500).json({ message: 'Error updating admin profile', error });
+    console.error('Update error:', error);
+    res.status(500).json({ 
+      message: 'Error updating admin profile', 
+      error: error.message 
+    });
   }
 };
 
@@ -185,6 +259,165 @@ const  getNonVerifiedDevelopers = async (req, res) => {
 
 
 
+// Add these functions after the existing ones
+
+const initiatePasswordReset = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const admin = await Admin.findOne({ email });
+    
+    if (!admin) {
+      return res.status(404).json({ message: 'Admin not found' });
+    }
+
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    // Set OTP expiration to 10 minutes from now
+    const otpExpiration = new Date();
+    otpExpiration.setMinutes(otpExpiration.getMinutes() + 10);
+
+    // Save OTP to admin document
+    admin.resetPasswordOTP = {
+      code: otp,
+      expiresAt: otpExpiration
+    };
+    await admin.save();
+
+    // Send OTP via email
+    const mailOptions = {
+      from: 'khanbasha7777777@gmail.com',
+      to: email,
+      subject: 'Password Reset OTP',
+      text: `Your OTP for password reset is: ${otp}\nThis OTP will expire in 10 minutes.`
+    };
+
+    transporter.sendMail(mailOptions, function(error, info) {
+      if (error) {
+        console.log('Error sending email:', error);
+      } else {
+        console.log('Email sent:', info.response);
+      }
+    });
+
+    res.status(200).json({ 
+      message: 'OTP has been sent to your email',
+      email: email
+    });
+
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Error initiating password reset', 
+      error: error.message 
+    });
+  }
+};
+
+const resetPassword = async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+    const admin = await Admin.findOne({ email });
+
+    if (!admin) {
+      return res.status(404).json({ message: 'Admin not found' });
+    }
+
+    // Verify OTP
+    if (!admin.resetPasswordOTP || 
+        admin.resetPasswordOTP.code !== otp || 
+        new Date() > admin.resetPasswordOTP.expiresAt) {
+      return res.status(400).json({ 
+        message: 'Invalid or expired OTP' 
+      });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 8);
+    
+    // Update password and clear OTP
+    admin.password = hashedPassword;
+    admin.resetPasswordOTP = undefined;
+    await admin.save();
+
+    res.status(200).json({ 
+      message: 'Password reset successful' 
+    });
+
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Error resetting password', 
+      error: error.message 
+    });
+  }
+};
+
+// Add this new controller function
+const updateAdminMedia = async (req, res) => {
+  try {
+    const adminId = req.admin.id;
+    const files = req.files; // multer provides files as an object
+    const updates = {};
+
+    // Check if any files were uploaded
+    if (files) {
+      // Handle profile image
+      if (files.profileImage) {
+        const profileImage = files.profileImage[0]; // Get the first file from profileImage array
+        const result = await uploadToCloudinary(profileImage.path, 'admin-profiles');
+        updates.profileImage = result.secure_url;
+
+        // Delete old profile image if exists
+        const oldAdmin = await Admin.findById(adminId);
+        if (oldAdmin.profileImage) {
+          const publicId = oldAdmin.profileImage.split('/').slice(-2).join('/').split('.')[0];
+          await deleteFromCloudinary(publicId);
+        }
+      }
+
+      // Handle company logo
+      if (files.companyLogo) {
+        const companyLogo = files.companyLogo[0]; // Get the first file from companyLogo array
+        const result = await uploadToCloudinary(companyLogo.path, 'company-logos');
+        
+        // Initialize companyDetails if it doesn't exist
+        updates.companyDetails = updates.companyDetails || {};
+        updates.companyDetails.logo = result.secure_url;
+
+        // Delete old company logo if exists
+        const oldAdmin = await Admin.findById(adminId);
+        if (oldAdmin.companyDetails?.logo) {
+          const publicId = oldAdmin.companyDetails.logo.split('/').slice(-2).join('/').split('.')[0];
+          await deleteFromCloudinary(publicId);
+        }
+      }
+
+      // Update admin document
+      const admin = await Admin.findByIdAndUpdate(
+        adminId,
+        { $set: updates },
+        { new: true }
+      );
+
+      if (!admin) {
+        return res.status(404).json({ message: 'Admin not found' });
+      }
+
+      res.status(200).json({
+        message: 'Media files updated successfully',
+        admin
+      });
+    } else {
+      res.status(400).json({ message: 'No files uploaded' });
+    }
+  } catch (error) {
+    console.error('Media update error:', error);
+    res.status(500).json({
+      message: 'Error updating media files',
+      error: error.message
+    });
+  }
+};
+
 // Export all functions
 module.exports = {
  
@@ -201,5 +434,8 @@ module.exports = {
   deleteManager,
   updateDeveloper,
   updateManager,
-  verifyDeveloper
+  verifyDeveloper,
+  initiatePasswordReset,
+  resetPassword,
+  updateAdminMedia,
 };

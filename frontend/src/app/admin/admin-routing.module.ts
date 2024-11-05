@@ -9,6 +9,8 @@ import { CalendarComponent } from './calendar/calendar.component';
 import { AuthGuard } from '../guards/auth.guard';
 import { UsersComponent } from './users/users.component';
 import { ChatComponent } from './chat/chat.component';
+import { ProfileComponent } from './profile/profile.component';
+import { LeaveComponent } from './leave/leave.component';
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -23,6 +25,8 @@ const routes: Routes = [
       { path: 'calendar', component: CalendarComponent },
       { path: 'users', component: UsersComponent },
       { path: 'chat', component: ChatComponent },
+      { path: 'profile', component: ProfileComponent },
+      { path: 'leave', component: LeaveComponent },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   }

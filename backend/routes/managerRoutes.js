@@ -13,7 +13,7 @@ const {registerDeveloper} = require('../controllers/developerController');
 const router = express.Router();
 const verifyAdminToken = require('../middleware/verifyAdminToken');
 const verifyManagerToken = require('../middleware/verifyManagerToken');
-const { addTask, updateTask, getTasksByProject, deleteTask } = require('../controllers/taskController');
+const { addTask, updateTask, getTasksByProject, deleteTask, addTaskUpdate, addFinalResult, deleteTaskUpdate } = require('../controllers/taskController');
 const { 
   getProjectsByStatus,
   addProject,
@@ -30,6 +30,9 @@ const {
     updateEvent,
     deleteEvent,
   } = require('../controllers/calendarController')
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' });
+
 // Register a new manager
 router.post('/register',verifyAdminToken, registerManager);
 router.post('/register-dev', verifyAdminToken, registerDeveloper);
@@ -60,5 +63,26 @@ router.post('/add-task', verifyManagerToken, addTask);
 router.put('/update-task/:taskId', verifyManagerToken, updateTask);
 router.get('/project-task/:projectId', verifyManagerToken, getTasksByProject);
 router.delete('/delete-task/:taskId', verifyManagerToken, deleteTask);
+
+// Add these new routes
+router.post(
+    '/task/:taskId/update', 
+    verifyManagerToken, 
+    upload.array('media', 5), 
+    addTaskUpdate
+);
+
+router.post(
+    '/task/:taskId/final-result', 
+    verifyManagerToken, 
+    upload.array('resultImages', 5), 
+    addFinalResult
+);
+
+router.delete(
+    '/task/:taskId/update/:updateId', 
+    verifyManagerToken, 
+    deleteTaskUpdate
+);
 
 module.exports = router;

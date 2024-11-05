@@ -125,8 +125,12 @@ export class AdminService {
   }
 
   // Holiday management
-  approveOrDenyHoliday(holidayId: string, decision: string): Observable<any> {
-    return this.http.put(`${this.apiUrl}/holidays/${holidayId}`, { decision }, { headers: this.getHeaders() });
+  approveOrDenyHoliday(holidayId: string, status: 'Approved' | 'Denied'): Observable<any> {
+    return this.http.put(
+      `${this.apiUrl}/holidays/${holidayId}`,
+      { status },
+      { headers: this.getHeaders() }
+    );
   }
 
   updateHoliday(holidayId: string, holidayData: any): Observable<any> {
@@ -135,6 +139,21 @@ export class AdminService {
 
   deleteHoliday(holidayId: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/holidays/delete/${holidayId}`, { headers: this.getHeaders() });
+  }
+
+  getAllHolidays(): Observable<any> {
+    return this.http.get(
+      `${this.apiUrl}/holidays`,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  getDeveloperHolidays(developerId: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/holidays/developer/${developerId}`, { headers: this.getHeaders() });
+  }
+
+  getHolidayById(holidayId: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/holidays/${holidayId}`, { headers: this.getHeaders() });
   }
 
   // Task management
@@ -177,5 +196,62 @@ export class AdminService {
 
   getProject(projectId: string): Observable<any> {
     return this.http.get(`${this.apiUrl}/project/${projectId}`, { headers: this.getHeaders() });
+  }
+
+  getUserEvents(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/user-events`, { headers: this.getHeaders() });
+  }
+
+  getTaskById(taskId: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/task/${taskId}`, { headers: this.getHeaders() });
+  }
+
+  initiatePasswordReset(email: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/initiate-password-reset`, { email });
+  }
+
+  resetPassword(resetData: { token: string; newPassword: string }): Observable<any> {
+    return this.http.post(`${this.apiUrl}/reset-password`, resetData);
+  }
+
+  updateAdminMedia(formData: FormData): Observable<any> {
+    return this.http.put(`${this.apiUrl}/update-media`, formData, { headers: this.getHeaders() });
+  }
+
+  // Add new task-related methods
+  addTaskUpdate(taskId: string, formData: FormData): Observable<any> {
+    return this.http.post(
+      `${this.apiUrl}/task/${taskId}/update`,
+      formData,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  deleteTaskUpdate(taskId: string, updateId: string): Observable<any> {
+    return this.http.delete(
+      `${this.apiUrl}/task/${taskId}/update/${updateId}`,
+      { headers: this.getHeaders() }
+    ).pipe(
+      catchError(error => {
+        console.error('Error deleting task update:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  addFinalResult(taskId: string, formData: FormData): Observable<any> {
+    return this.http.post(
+      `${this.apiUrl}/task/${taskId}/final-result`,
+      formData,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  updateTaskMedia(taskId: string, formData: FormData): Observable<any> {
+    return this.http.put(
+      `${this.apiUrl}/task/${taskId}/media`,
+      formData,
+      { headers: this.getHeaders() }
+    );
   }
 }
