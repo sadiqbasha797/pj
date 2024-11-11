@@ -157,12 +157,14 @@ export class AdminService {
   }
 
   // Task management
-  addTask(taskData: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/add-task`, taskData, { headers: this.getHeaders() });
+  addTask(taskData: FormData | any): Observable<any> {
+    const headers = this.getHeaders();
+    return this.http.post(`${this.apiUrl}/add-task`, taskData, { headers });
   }
 
-  updateTask(taskId: string, taskData: any): Observable<any> {
-    return this.http.put(`${this.apiUrl}/update-task/${taskId}`, taskData, { headers: this.getHeaders() });
+  updateTask(taskId: string, taskData: FormData | any): Observable<any> {
+    const headers = this.getHeaders();
+    return this.http.put(`${this.apiUrl}/update-task/${taskId}`, taskData, { headers });
   }
 
   getAllTasks(): Observable<any> {
@@ -252,6 +254,42 @@ export class AdminService {
       `${this.apiUrl}/task/${taskId}/media`,
       formData,
       { headers: this.getHeaders() }
+    );
+  }
+
+  getAllNotifications(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/notifications`, { headers: this.getHeaders() });
+  }
+
+  markNotificationAsRead(notificationId: string): Observable<any> {
+    return this.http.put(
+      `${this.apiUrl}/notifications/${notificationId}/read`,
+      {},
+      { headers: this.getHeaders() }
+    ).pipe(
+      tap(() => {
+        console.log('Notification marked as read:', notificationId);
+      }),
+      catchError((error) => {
+        console.error('Error marking notification as read:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  markAllNotificationsAsRead(): Observable<any> {
+    return this.http.put(
+      `${this.apiUrl}/notifications/mark-all-read`,
+      {},
+      { headers: this.getHeaders() }
+    ).pipe(
+      tap(() => {
+        console.log('All notifications marked as read');
+      }),
+      catchError((error) => {
+        console.error('Error marking all notifications as read:', error);
+        return throwError(() => error);
+      })
     );
   }
 }

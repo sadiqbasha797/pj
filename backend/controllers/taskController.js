@@ -44,6 +44,9 @@ const addTask = async (req, res) => {
         const files = req.files; // From multer
         let relatedDocuments = [];
 
+        // Parse participants from string to object
+        const parsedParticipants = JSON.parse(participants);
+
         // Handle file uploads
         if (files && files.length > 0) {
             for (const file of files) {
@@ -59,7 +62,10 @@ const addTask = async (req, res) => {
         }
 
         // Ensure participants are part of the project
-        const validParticipants = participants.every(p => project.assignedTo.includes(p.participantId));
+        const validParticipants = parsedParticipants.every(p => 
+            project.assignedTo.includes(p.participantId)
+        );
+        
         if (!validParticipants) {
             return res.status(400).json({ message: 'All participants must be part of the project' });
         }
@@ -70,7 +76,7 @@ const addTask = async (req, res) => {
             startDate,
             endDate,
             projectId,
-            participants,
+            participants: parsedParticipants,
             status,
             createdBy,
             relatedDocuments
@@ -88,11 +94,11 @@ const addTask = async (req, res) => {
             eventType: 'Task',
             projectId,
             onModel : 'Developer',
-            participants: participants.map(p => ({ participantId: p.participantId, onModel: 'Developer' }))
+            participants: parsedParticipants.map(p => ({ participantId: p.participantId, onModel: 'Developer' }))
         });
         await newEvent.save();
 
-        const participantIds = participants.map(p => p.participantId);
+        const participantIds = parsedParticipants.map(p => p.participantId);
         await notifyCreation(participantIds, 'Task', taskName, newTask._id);
 
         await sendEmailToParticipants(participantIds, newTask);

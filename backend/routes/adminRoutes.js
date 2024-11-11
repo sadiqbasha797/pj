@@ -20,6 +20,9 @@ const {
     initiatePasswordReset,
     resetPassword,
     updateAdminMedia,
+    getAllNotifications,
+    markNotificationAsRead,
+    markAllNotificationsAsRead
   } = require('../controllers/adminController');
 const verifyAdminToken = require('../middleware/verifyAdminToken'); // Ensure you have this middleware
 const { addTask, updateTask, getTasksByProject, deleteTask, getAllTasks, getTaskById, addTaskUpdate, addFinalResult, deleteTaskUpdate } = require('../controllers/taskController');
@@ -93,7 +96,7 @@ router.get('/holidays', verifyAdminToken, getAllHolidays);
 router.get('/holidays/developer/:developerId', verifyAdminToken, getDeveloperHolidays);
 router.get('/holidays/:holidayId', verifyAdminToken, getHolidayById); 
 //task
-router.post('/add-task', verifyAdminToken, addTask);
+router.post('/add-task', upload.array('relatedDocs', 5), verifyAdminToken, addTask);
 router.put(
   '/update-task/:taskId', 
   verifyAdminToken, 
@@ -122,4 +125,8 @@ router.put('/update-media',
 router.post('/task/:taskId/update', verifyAdminToken, upload.array('media', 5), addTaskUpdate);
 router.post('/task/:taskId/final-result', verifyAdminToken, upload.array('resultImages', 5), addFinalResult);
 router.delete('/task/:taskId/update/:updateId', verifyAdminToken, deleteTaskUpdate);
+//notifications
+router.get('/notifications', verifyAdminToken, getAllNotifications);
+router.put('/notifications/:notificationId/read', verifyAdminToken, markNotificationAsRead);
+router.put('/notifications/mark-all-read', verifyAdminToken, markAllNotificationsAsRead);
 module.exports = router;

@@ -259,7 +259,10 @@ createProject() {
   this.selectedFiles.forEach((file) => {
     formData.append('relatedDocs', file, file.name);
   });
-
+  console.log('Sending FormData:');
+  formData.forEach((value, key) => {
+    console.log(key, value);
+  });
   this.adminService.addProject(formData).subscribe({
     next: (response) => {
       this.projects.push(response.project);

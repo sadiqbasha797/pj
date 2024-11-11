@@ -7,6 +7,7 @@ const nodemailer = require('nodemailer');
 const Holiday = require('../models/Holiday');
 const CalendarEvent = require('../models/calendarEvent');
 const { createNotification,notifyCreation,notifyUpdate,leaveUpdateNotification,leaveNotification } = require('../utils/notificationHelper'); // Adjust the path as necessary
+const { uploadToCloudinary, deleteFromCloudinary } = require('../utils/cloudinary');
 
 // Email configuration
 const transporter = nodemailer.createTransport({
@@ -92,13 +93,104 @@ const updateManagerProfile = async (req, res) => {
   try {
     const managerId = req.manager.id;
     const updates = req.body;
-    const updatedManager = await Manager.findByIdAndUpdate(managerId, updates, { new: true });
+
+    // If developers array is being updated
+    if (updates.developers && updates.developers.length > 0) {
+      const existingManager = await Manager.findById(managerId);
+      
+      for (const dev of updates.developers) {
+        const developerId = dev.developerId;
+        
+        // Check if developer already exists in the team
+        const isDeveloperAssigned = existingManager.developers.some(
+          d => d.developerId.toString() === developerId
+        );
+
+        if (isDeveloperAssigned) {
+          continue; // Skip if already assigned
+        }
+
+        // Find developer details
+        const developer = await Developer.findById(developerId);
+        if (!developer) {
+          continue; // Skip if developer not found
+        }
+
+        // Add developer to the team
+        existingManager.developers.push({
+          developerId: developer._id,
+          developerName: developer.username,
+          assignedOn: new Date()
+        });
+      }
+
+      // Update team size
+      existingManager.teamSize = existingManager.developers.length;
+      
+      // Save the updated manager
+      const updatedManager = await existingManager.save();
+      
+      return res.status(200).json({
+        message: 'Team updated successfully',
+        manager: updatedManager
+      });
+    }
+
+    // For single developer addition (backward compatibility)
+    if (updates.developerId) {
+      const developer = await Developer.findById(updates.developerId);
+      if (!developer) {
+        return res.status(404).json({ message: 'Developer not found' });
+      }
+
+      const existingManager = await Manager.findById(managerId);
+      const isDeveloperAssigned = existingManager.developers.some(
+        dev => dev.developerId.toString() === updates.developerId
+      );
+
+      if (isDeveloperAssigned) {
+        return res.status(400).json({
+          message: 'Developer is already assigned to this team'
+        });
+      }
+
+      existingManager.developers.push({
+        developerId: developer._id,
+        developerName: developer.username,
+        assignedOn: new Date()
+      });
+
+      existingManager.teamSize = existingManager.developers.length;
+      const updatedManager = await existingManager.save();
+
+      return res.status(200).json({
+        message: 'Developer added to team successfully',
+        manager: updatedManager
+      });
+    }
+
+    // For other profile updates
+    const updatedManager = await Manager.findByIdAndUpdate(
+      managerId,
+      { $set: updates },
+      { new: true }
+    );
+
     if (!updatedManager) {
       return res.status(404).json({ message: 'Manager not found' });
     }
-    res.status(200).json({ message: 'Manager profile updated', manager: updatedManager });
+
+    res.status(200).json({
+      message: 'Manager profile updated',
+      manager: updatedManager
+    });
+
   } catch (error) {
-    res.status(500).json({ message: 'Error updating manager profile', error });
+    console.error('Update error:', error);
+    res.status(500).json({
+      message: 'Error updating manager profile',
+      error: error.message
+    });
   }
 };
 
@@ -149,8 +241,53 @@ const  getNonVerifiedDevelopers = async (req, res) => {
   }
 };
 
+const updateManagerMedia = async (req, res) => {
+  try {
+    const managerId = req.manager.id;
+    const files = req.files;
+    const updates = {};
 
+    if (files) {
+      // Handle profile image
+      if (files.profileImage) {
+        const profileImage = files.profileImage[0];
+        const result = await uploadToCloudinary(profileImage.path, 'manager-profiles');
+        updates.image = result.secure_url;
 
+        // Delete old profile image if exists
+        const oldManager = await Manager.findById(managerId);
+        if (oldManager.image) {
+          const publicId = oldManager.image.split('/').slice(-2).join('/').split('.')[0];
+          await deleteFromCloudinary(publicId);
+        }
+      }
+
+      // Update manager document
+      const manager = await Manager.findByIdAndUpdate(
+        managerId,
+        { $set: updates },
+        { new: true }
+      );
+
+      if (!manager) {
+        return res.status(404).json({ message: 'Manager not found' });
+      }
+
+      res.status(200).json({
+        message: 'Media files updated successfully',
+        manager
+      });
+    } else {
+      res.status(400).json({ message: 'No files uploaded' });
+    }
+  } catch (error) {
+    console.error('Media update error:', error);
+    res.status(500).json({
+      message: 'Error updating media files',
+      error: error.message
+    });
+  }
+};
 
 // Export all controller functions at the end
 module.exports = {
@@ -161,5 +298,6 @@ module.exports = {
   getManagerProfile,
   updateManagerProfile,
   getAllDevelopers,
-  deleteDeveloper
+  deleteDeveloper,
+  updateManagerMedia
 };

@@ -11,6 +11,7 @@ import { UsersComponent } from './users/users.component';
 import { ChatComponent } from './chat/chat.component';
 import { ProfileComponent } from './profile/profile.component';
 import { LeaveComponent } from './leave/leave.component';
+import { NotificationsComponent } from './notifications/notifications.component';
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -27,6 +28,7 @@ const routes: Routes = [
       { path: 'chat', component: ChatComponent },
       { path: 'profile', component: ProfileComponent },
       { path: 'leave', component: LeaveComponent },
+      { path: 'notifications', component: NotificationsComponent },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   }

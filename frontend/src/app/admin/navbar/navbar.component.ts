@@ -8,10 +8,13 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { AdminService } from '../../services/admin.service';
 
 interface Notification {
-  id: number;
-  message: string;
-  time: string;
-  isRead: boolean;
+time: any;
+  _id: string;
+  content: string;
+  read: boolean;
+  type: string;
+  date: string;
+  relatedId: string;
 }
 
 interface SearchResult {
@@ -53,26 +56,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   searchResults: SearchResult[] = [];
   private searchSubject = new Subject<string>();
   
-  notifications: Notification[] = [
-    {
-      id: 1,
-      message: 'New task assigned: UI Design Review',
-      time: '5 mins ago',
-      isRead: false
-    },
-    {
-      id: 2,
-      message: 'Meeting scheduled for 2:00 PM',
-      time: '10 mins ago',
-      isRead: false
-    },
-    {
-      id: 3,
-      message: 'Project deadline updated',
-      time: '1 hour ago',
-      isRead: true
-    }
-  ];
+  notifications: Notification[] = [];
 
   mockSearchData: SearchResult[] = [
     { id: 1, type: 'task', title: 'Update Dashboard UI', description: 'Frontend task' },
@@ -89,13 +73,18 @@ export class NavbarComponent implements OnInit, OnDestroy {
     private adminService: AdminService,
     private router: Router
   ) {
-    this.unreadCount = this.notifications.filter(n => !n.isRead).length;
+    this.unreadCount = this.notifications.filter(n => !n.read).length;
   }
 
   ngOnInit() {
     this.startClock();
     this.checkScreenSize();
     this.loadUserProfile();
+    this.loadNotifications();
+    // Set up polling for notifications (every 30 seconds)
+    setInterval(() => {
+      this.loadNotifications();
+    }, 30000);
   }
 
   ngOnDestroy() {
@@ -155,19 +144,43 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   markAsRead(notification: Notification) {
-    if (!notification.isRead) {
-      notification.isRead = true;
-      this.unreadCount--;
+    if (!notification.read) {
+      this.adminService.markNotificationAsRead(notification._id).subscribe({
+        next: () => {
+          notification.read = true;
+          this.unreadCount = this.notifications.filter(n => !n.read).length;
+          
+          // Navigate based on notification type
+          switch (notification.type) {
+            case 'Holiday':
+              this.router.navigate(['/admin/leave'], { queryParams: { id: notification.relatedId }});
+              break;
+            case 'Event':
+              this.router.navigate(['/admin/calendar'], { queryParams: { eventId: notification.relatedId }});
+              break;
+            // Add more cases as needed
+          }
+        },
+        error: (error) => {
+          console.error('Error marking notification as read:', error);
+        }
+      });
     }
   }
 
   markAllAsRead() {
-    this.notifications.forEach(notification => {
-      if (!notification.isRead) {
-        notification.isRead = true;
+    this.adminService.markAllNotificationsAsRead().subscribe({
+      next: () => {
+        this.notifications.forEach(notification => {
+          notification.read = true;
+        });
+        this.unreadCount = 0;
+        this.isNotificationOpen = false; // Close the notification dropdown
+      },
+      error: (error) => {
+        console.error('Error marking all notifications as read:', error);
       }
     });
-    this.unreadCount = 0;
   }
 
   onSearchInput(event: any) {
@@ -232,6 +245,21 @@ export class NavbarComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Error loading profile:', error);
+      }
+    });
+  }
+
+  loadNotifications() {
+    this.adminService.getAllNotifications().subscribe({
+      next: (response) => {
+        this.notifications = response.notifications.map((notification: Notification) => ({
+          ...notification,
+          time: new Date(notification.date).toLocaleString()
+        }));
+        this.unreadCount = this.notifications.filter(n => !n.read).length;
+      },
+      error: (error) => {
+        console.error('Error loading notifications:', error);
       }
     });
   }

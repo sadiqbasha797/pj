@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ManagerService } from '../../services/manager.service';
+import { ManagerAuthService } from '../../services/manager-auth.service';
 import { LoaderService } from '../../services/loader.service';
 
 @Component({
@@ -18,38 +18,36 @@ export class LoginManagerComponent {
   errorMessage: string = '';
 
   constructor(
-    private managerService: ManagerService,
+    private managerAuthService: ManagerAuthService,
     private router: Router,
     private loaderService: LoaderService
   ) {
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('managerToken');
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('userId');
+    localStorage.clear();
   }
 
   onSubmit() {
     this.loaderService.show();
-    this.managerService.login({ email: this.email, password: this.password }).subscribe({
+    this.managerAuthService.login({ email: this.email, password: this.password }).subscribe({
       next: (response) => {
+        console.log('Login response:', response);
         if (response && response.token) {
-          localStorage.clear();
-          
-          localStorage.setItem('managerToken', response.token);
-          localStorage.setItem('userRole', 'manager');
-          if (response.userId) {
-            localStorage.setItem('userId', response.userId);
-          }
+          console.log('Stored Data in localStorage:');
+          console.log('Token:', localStorage.getItem('managerToken'));
+          console.log('Role:', localStorage.getItem('userRole'));
+          console.log('User ID:', localStorage.getItem('userId'));
+          console.log('Username:', localStorage.getItem('username'));
+          console.log('Email:', localStorage.getItem('email'));
           
           this.router.navigate(['/manager/dashboard']);
         } else {
+          console.error('No token received in login response');
           this.errorMessage = 'Login failed. Please try again.';
         }
         this.loaderService.hide();
       },
       error: (error) => {
         console.error('Login error:', error);
-        this.errorMessage = 'Login failed. Please check your credentials.';
+        this.errorMessage = error.error?.message || 'Login failed. Please check your credentials.';
         this.loaderService.hide();
       }
     });

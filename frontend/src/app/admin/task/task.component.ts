@@ -21,6 +21,7 @@ interface Participant {
 interface Task {
   _id: string;
   taskName: string;
+  description: string;
   startDate: string;
   endDate: string;
   projectId: Project;
@@ -29,9 +30,9 @@ interface Task {
   createdBy: string;
   createdAt: string;
   updatedAt: string;
+  relatedDocuments?: string[];
   updates?: TaskUpdate[];
   finalResult?: FinalResult;
-  relatedDocuments?: string[];
 }
 
 interface Developer {
@@ -74,11 +75,13 @@ export class TaskComponent implements OnInit {
   projects: Project[] = [];
   newTask: Omit<Task, '_id' | 'createdBy' | 'createdAt' | 'updatedAt'> = {
     taskName: '',
+    description: '',
     startDate: '',
     endDate: '',
     projectId: { _id: '', title: '' },
     participants: [],
-    status: 'Assigned'
+    status: 'Assigned',
+    relatedDocuments: []
   };
   selectedProjectId: string = '';
   showModal = false;
@@ -92,6 +95,9 @@ export class TaskComponent implements OnInit {
     description: '',
     images: []
   };
+  selectedDocuments: File[] = [];
+  deletedDocuments: string[] = [];
+  selectedFiles: File[] = [];
 
   @ViewChild('modalContent') modalContent!: ElementRef;
   @ViewChild('viewModalContent') viewModalContent!: ElementRef;
@@ -183,14 +189,18 @@ export class TaskComponent implements OnInit {
   resetTaskForm() {
     this.newTask = {
       taskName: '',
+      description: '',
       startDate: '',
       endDate: '',
       projectId: { _id: '', title: '' },
       participants: [],
-      status: 'Assigned'
+      status: 'Assigned',
+      relatedDocuments: []
     };
     this.selectedProjectId = '';
     this.assignedDevelopers = [];
+    this.selectedDocuments = [];
+    this.deletedDocuments = [];
     this.editingTask = null;
   }
 
@@ -214,14 +224,36 @@ export class TaskComponent implements OnInit {
 
   addOrUpdateTask() {
     this.loaderService.show();
-    const taskData = {
-      ...this.newTask,
-      projectId: this.selectedProjectId,
-      participants: this.newTask.participants.map(p => ({ participantId: p.participantId._id }))
-    };
+    const formData = new FormData();
+    
+    // Append basic task data
+    formData.append('taskName', this.newTask.taskName);
+    formData.append('description', this.newTask.description);
+    formData.append('startDate', this.newTask.startDate);
+    formData.append('endDate', this.newTask.endDate);
+    formData.append('projectId', this.selectedProjectId);
+    formData.append('status', this.newTask.status);
+
+    // Convert participants to array of participantId objects and append as string
+    const participants = this.newTask.participants.map(p => ({
+      participantId: p.participantId._id
+    }));
+    formData.append('participants', JSON.stringify(participants));
+
+    // Handle file uploads
+    if (this.selectedFiles && this.selectedFiles.length > 0) {
+      for (let i = 0; i < this.selectedFiles.length; i++) {
+        formData.append('relatedDocs', this.selectedFiles[i]);
+      }
+    }
+
+    // Handle deleted documents if editing
+    if (this.editingTask && this.deletedDocuments.length > 0) {
+      formData.append('deletedDocuments', JSON.stringify(this.deletedDocuments));
+    }
 
     if (this.editingTask) {
-      this.adminService.updateTask(this.editingTask._id, taskData).subscribe({
+      this.adminService.updateTask(this.editingTask._id, formData).subscribe({
         next: (response) => {
           const index = this.tasks.findIndex(t => t._id === this.editingTask!._id);
           if (index !== -1) {
@@ -238,7 +270,7 @@ export class TaskComponent implements OnInit {
         }
       });
     } else {
-      this.adminService.addTask(taskData).subscribe({
+      this.adminService.addTask(formData).subscribe({
         next: (response) => {
           this.tasks.push(response);
           this.loaderService.hide();
@@ -285,14 +317,18 @@ export class TaskComponent implements OnInit {
   resetNewTask() {
     this.newTask = {
       taskName: '',
+      description: '',
       startDate: '',
       endDate: '',
       projectId: { _id: '', title: '' },
       participants: [],
-      status: 'Assigned'
+      status: 'Assigned',
+      relatedDocuments: []
     };
     this.selectedProjectId = '';
     this.assignedDevelopers = [];
+    this.selectedDocuments = [];
+    this.deletedDocuments = [];
   }
 
   onProjectSelect() {
@@ -544,6 +580,27 @@ export class TaskComponent implements OnInit {
       } else if (this.viewingTask) {
         this.closeViewModal();
       }
+    }
+  }
+
+  onDocumentsSelected(event: any) {
+    const files = event.target.files;
+    if (files) {
+      this.selectedDocuments = Array.from(files);
+    }
+  }
+
+  removeDocument(docUrl: string) {
+    if (this.editingTask) {
+      this.editingTask.relatedDocuments = this.editingTask.relatedDocuments?.filter(doc => doc !== docUrl);
+      this.deletedDocuments.push(docUrl);
+    }
+  }
+
+  onFileSelected(event: any) {
+    const files: FileList = event.target.files;
+    if (files) {
+      this.selectedFiles = Array.from(files);
     }
   }
 }

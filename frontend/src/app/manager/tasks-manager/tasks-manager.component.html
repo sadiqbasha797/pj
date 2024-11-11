@@ -1,1 +1,373 @@
-<p>tasks-manager works!</p>
+<div class="p-6">
+  <!-- Header Section with Gradient -->
+  <div class="relative rounded-lg overflow-hidden mb-6 bg-gradient-to-r from-green-400 via-emerald-500 to-green-600 p-6">
+    <!-- Decorative shapes -->
+    <div class="absolute inset-0">
+      <div class="absolute w-32 h-32 -top-16 -right-16 bg-white opacity-10 rounded-full"></div>
+      <div class="absolute w-24 h-24 -bottom-12 -left-12 bg-white opacity-10 rounded-full"></div>
+      <div class="absolute w-20 h-20 top-8 left-1/3 bg-white opacity-5 rounded-full"></div>
+    </div>
+
+    <!-- Header content -->
+    <div class="relative">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
+            <span class="material-icons text-white">task</span>
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold text-white">Tasks</h1>
+            <p class="text-green-100">Manage and track project tasks</p>
+          </div>
+        </div>
+        <button (click)="openModal()" 
+                class="flex items-center gap-2 px-4 py-2 bg-white rounded-lg hover:bg-opacity-90 transition-all duration-300 group">
+          <span class="material-icons text-green-600 group-hover:rotate-180 transition-transform duration-500">add</span>
+          <span class="text-sm font-medium text-green-600">Add Task</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Task Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div *ngFor="let task of tasks" 
+         class="max-w-sm rounded-xl shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px] hover:shadow-[0_0_15px_rgba(34,197,94,0.5)] transition-all duration-300 hover:-translate-y-1 bg-white dark:bg-gray-800 relative"
+         (mouseenter)="setHoveredTask(task._id)"
+         (mouseleave)="setHoveredTask(null)">
+      <div class="px-6 py-4">
+        <div class="flex justify-between items-start mb-2">
+          <div class="font-bold text-xl text-gray-800 dark:text-white hover:text-green-500 transition-colors duration-300">
+            {{task.taskName}}
+          </div>
+          <span class="px-3 py-1 text-xs font-semibold rounded-full" 
+                [ngClass]="{
+                  'bg-green-100 text-green-800': task.status === 'Completed',
+                  'bg-emerald-100 text-emerald-800': task.status === 'In-Progress',
+                  'bg-blue-100 text-blue-800': task.status === 'Assigned',
+                  'bg-yellow-100 text-yellow-800': task.status === 'Testing'
+                }">
+            {{task.status}}
+          </span>
+        </div>
+        <p class="text-gray-700 dark:text-gray-300 text-base line-clamp-2 mb-4">
+          Project: {{task.projectId.title}}
+        </p>
+        <div class="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+          <div class="flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            <span>{{task.participants.length}}</span>
+          </div>
+          <div class="flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <span>{{task.startDate | date:'shortDate'}}</span>
+          </div>
+          <div class="flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <span>{{task.endDate | date:'shortDate'}}</span>
+          </div>
+        </div>
+      </div>
+      <!-- Action buttons -->
+      <div class="pb-16">
+        <div class="absolute bottom-4 right-6 flex space-x-2">
+          <button (click)="viewTask(task)" 
+                  class="px-4 py-1.5 bg-green-50 text-green-600 hover:bg-green-100 transition duration-300 text-sm rounded-lg">
+            <span class="material-icons text-sm">visibility</span>
+          </button>
+          <!-- Only show edit/delete buttons if task was created by the manager -->
+          <ng-container *ngIf="isTaskCreatedByManager(task)">
+            <button (click)="editTask(task)" 
+                    class="px-4 py-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition duration-300 text-sm rounded-lg">
+              <span class="material-icons text-sm">edit</span>
+            </button>
+            <button (click)="deleteTask(task._id, task.createdBy)" 
+                    class="px-4 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 transition duration-300 text-sm rounded-lg">
+              <span class="material-icons text-sm">delete</span>
+            </button>
+          </ng-container>
+        </div>
+        <!-- Progress indicator -->
+        <div class="h-1 bg-green-500 transition-all duration-300 ease-in-out absolute bottom-0 left-0" 
+             [ngStyle]="{'width': isTaskHovered(task._id) ? '100%' : '0%'}">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Task Modal -->
+<div *ngIf="showModal" 
+     class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50"
+     (click)="closeModalOnOutsideClick($event, modalContent)">
+  <div #modalContent class="bg-white p-6 rounded-lg shadow-xl w-full max-w-2xl animate__animated animate__fadeInDown animate__faster">
+    <h2 class="text-2xl font-bold mb-6">{{editingTask ? 'Edit' : 'Add'}} Task</h2>
+    <form (ngSubmit)="addOrUpdateTask()">
+      <div class="mb-4">
+        <label for="taskName" class="block text-gray-700 text-sm font-bold mb-2">Task Name</label>
+        <input type="text" 
+               id="taskName" 
+               name="taskName" 
+               [(ngModel)]="newTask.taskName" 
+               class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500" 
+               required>
+      </div>
+      <div class="mb-4">
+        <label for="projectId" class="block text-gray-700 text-sm font-bold mb-2">Project</label>
+        <select id="projectId" 
+                name="projectId" 
+                [(ngModel)]="selectedProjectId" 
+                (ngModelChange)="onProjectSelect()" 
+                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500" 
+                required>
+          <option value="">Select a project</option>
+          <option *ngFor="let project of projects" [value]="project._id">{{project.title}}</option>
+        </select>
+      </div>
+      <div class="mb-4">
+        <label for="startDate" class="block text-gray-700 text-sm font-bold mb-2">Start Date</label>
+        <input type="date" 
+               id="startDate" 
+               name="startDate" 
+               [(ngModel)]="newTask.startDate" 
+               class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500" 
+               required>
+      </div>
+      <div class="mb-4">
+        <label for="endDate" class="block text-gray-700 text-sm font-bold mb-2">End Date</label>
+        <input type="date" 
+               id="endDate" 
+               name="endDate" 
+               [(ngModel)]="newTask.endDate" 
+               class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500" 
+               required>
+      </div>
+      <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-bold mb-2">Participants</label>
+        <div *ngIf="assignedDevelopers.length > 0; else noDevelopers">
+          <div *ngFor="let developer of assignedDevelopers" class="flex items-center mb-2">
+            <input type="checkbox" 
+                   [id]="developer._id" 
+                   [checked]="isParticipantSelected(developer._id)" 
+                   (change)="toggleParticipant(developer)" 
+                   class="mr-2">
+            <label [for]="developer._id">{{developer.username}}</label>
+          </div>
+        </div>
+        <ng-template #noDevelopers>
+          <p>No developers assigned to this project.</p>
+        </ng-template>
+      </div>
+      <div class="mb-4">
+        <label for="status" class="block text-gray-700 text-sm font-bold mb-2">Status</label>
+        <select id="status" 
+                name="status" 
+                [(ngModel)]="newTask.status" 
+                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500" 
+                required>
+          <option value="Assigned">Assigned</option>
+          <option value="In-Progress">In-Progress</option>
+          <option value="Testing">Testing</option>
+          <option value="Completed">Completed</option>
+        </select>
+      </div>
+      <div class="mb-4">
+        <label for="description" class="block text-gray-700 text-sm font-bold mb-2">Description</label>
+        <textarea id="description" 
+                  name="description" 
+                  [(ngModel)]="newTask.description" 
+                  rows="3"
+                  class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500" 
+                  required></textarea>
+      </div>
+      <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-bold mb-2">Related Documents</label>
+        <input type="file" 
+               multiple
+               accept="image/*,.pdf,.doc,.docx"
+               (change)="onFileSelected($event)"
+               class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100">
+      </div>
+      <div class="flex justify-end space-x-2 mt-6">
+        <button type="button" 
+                (click)="closeModal()" 
+                class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">
+          Cancel
+        </button>
+        <button type="submit"
+                class="px-4 py-2 text-sm text-white bg-green-600 hover:bg-green-700 rounded-lg">
+          {{editingTask ? 'Update' : 'Create'}} Task
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- View Task Modal -->
+<div *ngIf="viewingTask" 
+     class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50"
+     (click)="closeModalOnOutsideClick($event, viewModalContent)">
+  <div #viewModalContent class="bg-white p-6 rounded-lg shadow-xl w-full max-w-4xl animate__animated animate__fadeInDown animate__faster">
+    <div class="flex justify-between items-start mb-4">
+      <h3 class="text-lg font-semibold">Task Details</h3>
+      <button (click)="closeViewModal()" class="text-gray-500 hover:text-gray-700">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+
+    <div class="space-y-4">
+      <!-- Task Header -->
+      <div class="flex justify-between items-center">
+        <h2 class="text-xl font-bold text-gray-800">{{viewingTask.taskName}}</h2>
+        <span class="px-3 py-1 text-sm font-semibold rounded-full"
+              [ngClass]="{
+                'bg-green-100 text-green-800': viewingTask.status === 'Completed',
+                'bg-emerald-100 text-emerald-800': viewingTask.status === 'In-Progress',
+                'bg-blue-100 text-blue-800': viewingTask.status === 'Assigned',
+                'bg-yellow-100 text-yellow-800': viewingTask.status === 'Testing'
+              }">
+          {{viewingTask.status}}
+        </span>
+      </div>
+
+      <!-- Task Description -->
+      <div>
+        <p class="text-sm text-gray-600">Description</p>
+        <p class="font-medium mt-1">{{viewingTask.description}}</p>
+      </div>
+
+      <!-- Related Documents -->
+      <div *ngIf="viewingTask.relatedDocuments?.length">
+        <p class="text-sm text-gray-600 mb-2">Related Documents</p>
+        <div class="flex flex-wrap gap-2">
+          <div *ngFor="let doc of viewingTask.relatedDocuments" 
+               class="relative group">
+            <img [src]="doc" 
+                 (click)="ImageViewer(doc)"
+                 class="w-16 h-16 object-cover rounded-lg cursor-pointer hover:opacity-75">
+          </div>
+        </div>
+      </div>
+
+      <!-- Task Details -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <p class="text-sm text-gray-600">Project</p>
+          <p class="font-medium">{{viewingTask.projectId.title}}</p>
+        </div>
+        <div>
+          <p class="text-sm text-gray-600">Participants</p>
+          <div class="flex flex-wrap gap-2">
+            <span *ngFor="let participant of viewingTask.participants" 
+                  class="px-2 py-1 bg-green-50 text-green-700 rounded-full text-sm">
+              {{participant.participantId.username}}
+            </span>
+          </div>
+        </div>
+        <div>
+          <p class="text-sm text-gray-600">Start Date</p>
+          <p class="font-medium">{{viewingTask.startDate | date:'mediumDate'}}</p>
+        </div>
+        <div>
+          <p class="text-sm text-gray-600">End Date</p>
+          <p class="font-medium">{{viewingTask.endDate | date:'mediumDate'}}</p>
+        </div>
+      </div>
+
+      <!-- Task Updates -->
+      <div class="mt-6">
+        <div class="flex justify-between items-center mb-4">
+          <h4 class="font-semibold">Updates</h4>
+          <button (click)="openUpdateModal()" 
+                  class="px-3 py-1.5 bg-green-50 text-green-600 hover:bg-green-100 rounded-lg text-sm">
+            Add Update
+          </button>
+        </div>
+        <div class="space-y-4">
+          <div *ngFor="let update of viewingTask.updates" 
+               class="p-4 bg-gray-50 rounded-lg">
+            <p class="text-gray-800">{{update.content}}</p>
+            <div class="mt-2 flex gap-2" *ngIf="update.relatedMedia?.length">
+              <img *ngFor="let media of update.relatedMedia" 
+                   [src]="media" 
+                   (click)="ImageViewer(media)"
+                   class="w-16 h-16 object-cover rounded-lg cursor-pointer hover:opacity-75">
+            </div>
+            <div class="mt-2 text-sm text-gray-500">
+              Updated by {{update.updatedByName}} on {{update.timestamp | date:'medium'}}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Final Result -->
+      <div class="mt-6" *ngIf="viewingTask.finalResult">
+        <h4 class="font-semibold mb-4">Final Result</h4>
+        <div class="p-4 bg-gray-50 rounded-lg">
+          <p class="text-gray-800">{{viewingTask.finalResult.description}}</p>
+          <div class="mt-2 flex gap-2" *ngIf="viewingTask.finalResult.resultImages?.length">
+            <img *ngFor="let image of viewingTask.finalResult.resultImages" 
+                 [src]="image" 
+                 (click)="ImageViewer(image)"
+                 class="w-16 h-16 object-cover rounded-lg cursor-pointer hover:opacity-75">
+          </div>
+        </div>
+      </div>
+      
+      <!-- Add Final Result Button -->
+      <div class="mt-6" *ngIf="!viewingTask.finalResult">
+        <button (click)="openFinalResultModal()" 
+                class="w-full px-4 py-2 bg-green-50 text-green-600 hover:bg-green-100 rounded-lg">
+          Add Final Result
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Update Modal -->
+<div *ngIf="showUpdateModal" 
+     class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50"
+     (click)="closeModalOnOutsideClick($event, updateModalContent)">
+  <div #updateModalContent class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md animate__animated animate__fadeInDown animate__faster">
+    <h3 class="text-lg font-semibold mb-4">Add Task Update</h3>
+    <form (ngSubmit)="submitUpdate()">
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Update Content</label>
+        <textarea [(ngModel)]="newUpdate.content" 
+                  name="content"
+                  rows="3"
+                  class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"></textarea>
+      </div>
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Related Media</label>
+        <input type="file" 
+               multiple
+               accept="image/*"
+               (change)="onUpdateMediaSelected($event)"
+               name="media"
+               class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100">
+      </div>
+      <div class="flex justify-end gap-2">
+        <button type="button" 
+                (click)="closeUpdateModal()"
+                class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">
+          Cancel
+        </button>
+        <button type="submit"
+                class="px-4 py-2 text-sm text-white bg-green-600 hover:bg-green-700 rounded-lg">
+          Submit Update
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Final Result Modal -->
+<!-- Similar structure to admin component but with green theme -->

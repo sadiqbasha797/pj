@@ -1,18 +1,18 @@
 import { Injectable } from '@angular/core';
 import { CanActivate, Router } from '@angular/router';
-import { ManagerService } from '../services/manager.service';
+import { ManagerAuthService } from '../services/manager-auth.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ManagerAuthGuard implements CanActivate {
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private managerAuthService: ManagerAuthService
+  ) {}
 
   canActivate(): boolean {
-    const token = localStorage.getItem('managerToken');
-    const role = localStorage.getItem('userRole');
-
-    if (token && role === 'manager') {
+    if (this.managerAuthService.isLoggedIn() && this.managerAuthService.getUserRole() === 'manager') {
       return true;
     }
 

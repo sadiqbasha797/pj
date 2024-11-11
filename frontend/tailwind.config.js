@@ -4,6 +4,10 @@ module.exports = {
   darkMode: false,
   theme: {
     extend: {},
+    fontFamily: {
+      exo: ['"Exo 2"', 'sans-serif'],
+      roboto: ['Roboto', 'sans-serif'],
+    },
   },
   variants: {
     extend: {},

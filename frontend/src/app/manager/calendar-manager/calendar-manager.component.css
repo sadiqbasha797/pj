@@ -1,0 +1,37 @@
+:host ::ng-deep {
+  /* Calendar header */
+  .fc .fc-toolbar-title {
+    color: #065f46; /* emerald-800 */
+  }
+
+  /* Today's date */
+  .fc .fc-day-today {
+    background: rgba(16, 185, 129, 0.05) !important; /* emerald-500 with low opacity */
+  }
+
+  /* Event colors */
+  .fc-event {
+    background-color: #10b981 !important; /* emerald-500 */
+    border-color: #059669 !important; /* emerald-600 */
+  }
+
+  /* Button states */
+  .fc .fc-button-primary {
+    background-color: #10b981 !important; /* emerald-500 */
+    border-color: #059669 !important; /* emerald-600 */
+  }
+
+  .fc .fc-button-primary:hover {
+    background-color: #059669 !important; /* emerald-600 */
+  }
+
+  .fc .fc-button-primary:disabled {
+    background-color: #34d399 !important; /* emerald-400 */
+    border-color: #10b981 !important; /* emerald-500 */
+  }
+
+  /* Selected date */
+  .fc .fc-highlight {
+    background: rgba(16, 185, 129, 0.1) !important; /* emerald-500 with low opacity */
+  }
+}

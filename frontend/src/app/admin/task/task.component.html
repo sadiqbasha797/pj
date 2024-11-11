@@ -108,7 +108,7 @@
        (click)="closeModalOnOutsideClick($event, modalContent)">
     <div #modalContent class="bg-white p-6 rounded-lg shadow-xl w-full max-w-2xl animate__animated animate__fadeInDown animate__faster">
       <h2 class="text-2xl font-bold mb-6">{{editingTask ? 'Edit' : 'Add'}} Task</h2>
-      <form (ngSubmit)="addOrUpdateTask()">
+      <form (ngSubmit)="addOrUpdateTask()" enctype="multipart/form-data">
         <div class="mb-4">
           <label for="taskName" class="block text-gray-700 text-sm font-bold mb-2">Task Name</label>
           <input type="text" id="taskName" name="taskName" [(ngModel)]="newTask.taskName" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
@@ -149,6 +149,40 @@
             <option value="Testing">Testing</option>
             <option value="Completed">Completed</option>
           </select>
+        </div>
+        <div class="mb-4">
+          <label for="description" class="block text-gray-700 text-sm font-bold mb-2">Description</label>
+          <textarea id="description" 
+                    name="description" 
+                    [(ngModel)]="newTask.description" 
+                    rows="4"
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    required></textarea>
+        </div>
+        <div class="mb-4">
+          <label class="block text-gray-700 text-sm font-bold mb-2">Related Documents</label>
+          <input type="file" 
+                 multiple
+                 accept="image/*,.pdf,.doc,.docx"
+                 (change)="onFileSelected($event)"
+                 name="relatedDocs"
+                 class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+        </div>
+        <div *ngIf="editingTask?.relatedDocuments?.length" class="mb-4">
+          <label class="block text-gray-700 text-sm font-bold mb-2">Existing Documents</label>
+          <div class="flex flex-wrap gap-2">
+            <div *ngFor="let doc of editingTask?.relatedDocuments" 
+                 class="relative group">
+              <img [src]="doc" 
+                   class="h-20 w-20 object-cover rounded-lg cursor-pointer hover:opacity-75"
+                   (click)="ImageViewer(doc)">
+              <button type="button"
+                      (click)="removeDocument(doc)"
+                      class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <span class="material-icons text-sm">close</span>
+              </button>
+            </div>
+          </div>
         </div>
         <div class="flex justify-end space-x-2 mt-6">
           <button type="button" (click)="closeModal()" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-md transition duration-300">
@@ -219,6 +253,15 @@
 
       <!-- Content Grid -->
       <div class="p-6 bg-gray-50">
+        <!-- Add Description Section -->
+        <div class="mb-6 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-all duration-300">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="material-icons text-gray-400 text-sm">description</span>
+            <h3 class="font-semibold text-gray-700 text-sm">Description</h3>
+          </div>
+          <p class="text-gray-700 text-sm whitespace-pre-line">{{viewingTask.description}}</p>
+        </div>
+
         <div class="grid grid-cols-2 gap-6">
           <!-- Left Column -->
           <div class="space-y-4">
