@@ -1,0 +1,343 @@
+<div class="min-h-screen  p-8">
+  <!-- Previous dashboard content remains unchanged until modal -->
+  <h2 class="text-3xl font-bold text-indigo-900 mb-8 border-b pb-4">My Projects Dashboard</h2>
+  
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    @for (project of projects; track project._id) {
+      <div class="bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
+        <!-- Project Header -->
+        <div class="p-6 border-b border-gray-100">
+          <div class="flex justify-between items-start">
+            <div class="flex-grow">
+              <h3 class="text-2xl font-bold text-indigo-800">{{ project.title }}</h3>
+              <p class="text-gray-600 mt-2 italic">{{ project.description }}</p>
+            </div>
+            <span [class]="'px-4 py-2 rounded-lg text-sm font-semibold shadow-sm ' + 
+              (project.status === 'In-Progress' ? 'bg-indigo-100 text-indigo-800' :
+               project.status === 'Completed' ? 'bg-emerald-100 text-emerald-800' :
+               project.status === 'Testing' ? 'bg-amber-100 text-amber-800' :
+               'bg-slate-100 text-slate-800')">
+              <i class="fas fa-circle text-xs mr-2"></i>{{ project.status }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Project Summary -->
+        <div class="p-6">
+          <div class="grid grid-cols-1 gap-6">
+            <!-- Deadline Section -->
+            <div class="flex items-center space-x-4 bg-white p-4 rounded-lg shadow-sm">
+              <div class="p-3 bg-indigo-100 rounded-full">
+                <i class="far fa-calendar-alt text-indigo-600 text-xl"></i>
+              </div>
+              <div>
+                <p class="text-sm font-medium text-gray-800">Deadline: {{ project.deadline | date:'medium' }}</p>
+                @if (getDeadlineStatus(project.deadline).isOverdue) {
+                  <p class="text-sm text-red-600 flex items-center">
+                    <i class="fas fa-exclamation-circle mr-2"></i>
+                    {{ getDeadlineStatus(project.deadline).daysLeft }} days overdue
+                  </p>
+                } @else {
+                  <p class="text-sm text-emerald-600 flex items-center">
+                    <i class="fas fa-clock mr-2"></i>
+                    {{ getDeadlineStatus(project.deadline).daysLeft }} days remaining
+                  </p>
+                }
+              </div>
+            </div>
+
+            <!-- Progress Section -->
+            <div class="flex items-center space-x-4 bg-white p-4 rounded-lg shadow-sm">
+              <div class="p-3 bg-emerald-100 rounded-full">
+                <i class="fas fa-tasks text-emerald-600 text-xl"></i>
+              </div>
+              <div class="flex-grow">
+                <div class="flex justify-between mb-2">
+                  <span class="text-sm font-medium text-gray-800">Task Progress</span>
+                  <span class="text-sm text-gray-600">{{ getTaskMetrics(project).percentage }}%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                  <div class="bg-emerald-500 h-2 rounded-full" 
+                       [style.width]="getTaskMetrics(project).percentage + '%'"></div>
+                </div>
+                <p class="text-sm text-gray-600 mt-2">
+                  {{ getTaskMetrics(project).completed }}/{{ getTaskMetrics(project).total }} tasks completed
+                </p>
+              </div>
+            </div>
+
+            <!-- Updates Counter -->
+            <div class="flex items-center space-x-4 bg-white p-4 rounded-lg shadow-sm">
+              <div class="p-3 bg-amber-100 rounded-full">
+                <i class="fas fa-bell text-amber-600 text-xl"></i>
+              </div>
+              <div>
+                <p class="text-sm font-medium text-gray-800">Total Updates</p>
+                <p class="text-2xl font-bold text-amber-600">{{ getTotalUpdates(project) }}</p>
+              </div>
+            </div>
+
+            <button 
+              (click)="openProjectModal(project)"
+              class="w-full mt-4 px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 
+                     transition-colors duration-300 flex items-center justify-center space-x-2">
+              <i class="fas fa-external-link-alt"></i>
+              <span>View Details</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    } @empty {
+      <div class="col-span-full text-center py-16 bg-white rounded-xl shadow">
+        <i class="fas fa-folder-open text-4xl text-gray-400 mb-4"></i>
+        <p class="text-gray-500 text-lg">No projects found</p>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- Modal -->
+@if (showModal) {
+  <div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-y-auto relative">
+      <!-- Modal Header with sticky positioning -->
+      <div class="sticky top-0 bg-white/95 backdrop-blur-md border-b border-gray-200 px-8 py-6 flex justify-between items-center z-10">
+        <div class="flex items-center gap-4">
+          <div class="p-3 bg-indigo-100 rounded-full">
+            <i class="fas fa-project-diagram text-2xl text-indigo-600"></i>
+          </div>
+          <div>
+            <h3 class="text-2xl font-bold text-gray-900">{{ selectedProject?.title }}</h3>
+            <p class="text-gray-600 mt-1">{{ selectedProject?.description }}</p>
+          </div>
+        </div>
+        <button 
+          (click)="closeModal()"
+          class="bg-gray-100 hover:bg-gray-200 text-gray-600 p-3 rounded-full transition-all duration-200"
+          aria-label="Close modal">
+          <i class="fas fa-times text-xl"></i>
+        </button>
+      </div>
+
+      <!-- Modal Content -->
+      <div class="px-8 py-6 bg-gray-50">
+        <!-- Project Stats Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <!-- Status Card -->
+          <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-indigo-500">
+            <div class="flex items-center gap-3">
+              <div class="p-2 bg-indigo-100 rounded-lg">
+                <i class="fas fa-chart-line text-indigo-600"></i>
+              </div>
+              <div>
+                <p class="text-sm text-gray-500">Status</p>
+                <p class="font-semibold text-gray-900">{{ selectedProject?.status }}</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Deadline Card -->
+          <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-500">
+            <div class="flex items-center gap-3">
+              <div class="p-2 bg-blue-100 rounded-lg">
+                <i class="fas fa-calendar-alt text-blue-600"></i>
+              </div>
+              <div>
+                <p class="text-sm text-gray-500">Deadline</p>
+                <p class="font-semibold text-gray-900">{{ selectedProject?.deadline | date:'shortDate' }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Team Size Card -->
+          <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-green-500">
+            <div class="flex items-center gap-3">
+              <div class="p-2 bg-green-100 rounded-lg">
+                <i class="fas fa-users text-green-600"></i>
+              </div>
+              <div>
+                <p class="text-sm text-gray-500">Team Size</p>
+                <p class="font-semibold text-gray-900">{{ selectedProject?.assignedTo?.length || 0 }} Members</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tasks Card -->
+          <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-purple-500">
+            <div class="flex items-center gap-3">
+              <div class="p-2 bg-purple-100 rounded-lg">
+                <i class="fas fa-list-check text-purple-600"></i>
+              </div>
+              <div>
+                <p class="text-sm text-gray-500">Total Tasks</p>
+                <p class="font-semibold text-gray-900">{{ selectedProject?.tasks?.length || 0 }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Team Members Section -->
+        <div class="bg-white rounded-xl p-6 shadow-sm mb-8">
+          <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <i class="fas fa-user-group text-indigo-600"></i>
+            Team Members
+          </h4>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            @for (person of selectedProject?.assignedTo; track person._id) {
+              <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-100">
+                <div class="relative">
+                  <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-user text-indigo-600"></i>
+                  </div>
+                  <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white"></div>
+                </div>
+                <div>
+                  <p class="font-medium text-gray-900">Team Member</p>
+                  <p class="text-sm text-gray-500">{{ person.email }}</p>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Tasks Section -->
+        <div class="space-y-6 mb-8">
+          <h4 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+            <i class="fas fa-clipboard-list text-indigo-600"></i>
+            Project Tasks
+          </h4>
+          
+          @for (task of selectedProject?.tasks || []; track task._id) {
+            <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+              <div class="p-6 flex items-center justify-between border-b border-gray-100">
+                <div class="flex items-center gap-4">
+                  <div [class]="'p-3 rounded-full ' + 
+                    (task.status === 'Completed' ? 'bg-green-100' :
+                     task.status === 'In-Progress' ? 'bg-blue-100' :
+                     'bg-gray-100')">
+                    <i [class]="'text-xl ' + 
+                      (task.status === 'Completed' ? 'fas fa-check text-green-600' :
+                       task.status === 'In-Progress' ? 'fas fa-spinner fa-spin text-blue-600' :
+                       'fas fa-hourglass text-gray-600')"></i>
+                  </div>
+                  <div>
+                    <h5 class="text-lg font-semibold text-gray-900">{{ task.taskName }}</h5>
+                    <p class="text-sm text-gray-500">{{ task.description }}</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-4">
+                  <div class="flex -space-x-2">
+                    @for (participant of task.participants.slice(0, 3); track participant._id) {
+                      <div class="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center border-2 border-white">
+                        <i class="fas fa-user text-indigo-600 text-xs"></i>
+                      </div>
+                    }
+                    @if (task.participants.length > 3) {
+                      <div class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center border-2 border-white">
+                        <span class="text-xs text-gray-600">+{{ task.participants.length - 3 }}</span>
+                      </div>
+                    }
+                  </div>
+                  <span [class]="'px-4 py-2 rounded-full text-sm font-medium ' + 
+                    (task.status === 'Completed' ? 'bg-green-100 text-green-800' :
+                     task.status === 'In-Progress' ? 'bg-blue-100 text-blue-800' :
+                     'bg-gray-100 text-gray-800')">
+                    {{ task.status }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="p-6 bg-gray-50">
+                <div class="grid grid-cols-3 gap-4 mb-4">
+                  <div class="flex items-center gap-2">
+                    <i class="fas fa-calendar text-gray-400"></i>
+                    <span class="text-sm text-gray-600">Start: {{ task.startDate | date:'shortDate' }}</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <i class="fas fa-flag text-gray-400"></i>
+                    <span class="text-sm text-gray-600">End: {{ task.endDate | date:'shortDate' }}</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <i class="fas fa-clock text-gray-400"></i>
+                    <span class="text-sm text-gray-600">Updated: {{ task.updatedAt | date:'shortDate' }}</span>
+                  </div>
+                </div>
+
+                @if (task.relatedDocuments.length > 0) {
+                  <div class="flex flex-wrap gap-2 mt-4">
+                    @for (doc of task.relatedDocuments; track doc) {
+                      <a [href]="doc" target="_blank" 
+                         class="flex items-center gap-2 px-3 py-2 bg-white rounded-lg border border-gray-200 
+                                hover:bg-gray-50 transition-colors">
+                        <i class="fas fa-file-alt text-indigo-500"></i>
+                        <span class="text-sm text-gray-600">{{ doc.split('/').pop() }}</span>
+                      </a>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Updates Timeline Section -->
+        <div class="bg-white rounded-xl p-6 shadow-sm">
+          <h4 class="text-xl font-bold text-gray-900 flex items-center gap-2 mb-6">
+            <i class="fas fa-history text-indigo-600"></i>
+            Updates Timeline
+          </h4>
+          
+          <div class="space-y-6">
+            @for (task of selectedProject?.tasks || []; track task._id) {
+              @if (task.updates.length > 0) {
+                <div class="relative pl-8 before:content-[''] before:absolute before:left-3 before:top-0 
+                            before:h-full before:w-0.5 before:bg-gray-200">
+                  <h5 class="text-lg font-semibold text-gray-900 mb-4">{{ task.taskName }}</h5>
+                  
+                  @for (update of task.updates; track update._id) {
+                    <div class="relative mb-8 last:mb-0">
+                      <!-- Timeline dot -->
+                      <div class="absolute -left-8 w-6 h-6 bg-indigo-100 rounded-full border-4 border-white 
+                                  flex items-center justify-center">
+                        <div class="w-2 h-2 bg-indigo-600 rounded-full"></div>
+                      </div>
+                      
+                      <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="flex justify-between items-start mb-3">
+                          <div>
+                            <p class="font-medium text-indigo-800">{{ update.updatedByName }}</p>
+                            <p class="text-xs text-gray-600">{{ update.updatedByModel }}</p>
+                            @if (update.updatedBy) {
+                              <p class="text-xs text-gray-600">{{ update.updatedBy.email }}</p>
+                            }
+                          </div>
+                          <p class="text-xs text-gray-500 flex items-center">
+                            <i class="far fa-clock mr-1"></i>
+                            {{ update.timestamp | date:'medium' }}
+                          </p>
+                        </div>
+                        
+                        <p class="text-sm text-gray-700 mb-3">{{ update.content }}</p>
+                        
+                        @if (update.relatedMedia.length > 0) {
+                          <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                            @for (media of update.relatedMedia; track media) {
+                              <img [src]="media" alt="Update media" 
+                                   class="rounded-lg w-full h-32 object-cover cursor-pointer hover:opacity-90 
+                                          transition-opacity shadow-sm"
+                                   (click)="window.open(media, '_blank')">
+                            }
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}

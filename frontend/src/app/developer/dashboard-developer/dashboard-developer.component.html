@@ -1,0 +1,213 @@
+<div class="min-h-screen p-6">
+  <!-- Header Section -->
+  <div class="mb-8">
+    <div class="flex justify-between items-center">
+      <div>
+        <h1 class="text-2xl font-bold dark:text-indigo-300 text-gray-800">Welcome back, {{ username }}</h1>
+        <div class="flex space-x-1 mt-1">
+          <div class="h-0.5 w-12 dark:bg-indigo-500/50 bg-gray-300 rounded-full"></div>
+          <div class="h-0.5 w-6 dark:bg-indigo-500/50 bg-gray-300 rounded-full"></div>
+          <div class="h-0.5 w-3 dark:bg-indigo-500/50 bg-gray-300 rounded-full"></div>
+        </div>
+        <p class="dark:text-gray-400 text-gray-600 mt-2">Here's what's happening with your projects today.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+    <!-- Total Projects -->
+    <div class="dark:bg-gray-900 bg-white p-4 rounded-xl shadow-lg dark:hover:bg-gray-800 hover:bg-gray-50 transition-all duration-300 hover:-translate-y-1">
+      <div class="flex items-center gap-3">
+        <div class="p-2 dark:bg-indigo-900 bg-gray-100 rounded-lg">
+          <span class="material-icons dark:text-indigo-300 text-gray-600">folder_special</span>
+        </div>
+        <div>
+          <p class="text-sm dark:text-gray-400 text-gray-500">Projects</p>
+          <p class="text-lg font-semibold dark:text-gray-200 text-gray-800">{{projects.length}}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Tasks -->
+    <div class="dark:bg-gray-900 bg-white p-4 rounded-xl shadow-lg dark:hover:bg-gray-800 hover:bg-gray-50 transition-all duration-300 hover:-translate-y-1">
+      <div class="flex items-center gap-3">
+        <div class="p-2 dark:bg-indigo-900 bg-gray-100 rounded-lg">
+          <span class="material-icons dark:text-indigo-300 text-gray-600">assignment_turned_in</span>
+        </div>
+        <div>
+          <p class="text-sm dark:text-gray-400 text-gray-500">Tasks</p>
+          <p class="text-lg font-semibold dark:text-gray-200 text-gray-800">{{tasks.length}}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Events -->
+    <div class="dark:bg-gray-900 bg-white p-4 rounded-xl shadow-lg dark:hover:bg-gray-800 hover:bg-gray-50 transition-all duration-300 hover:-translate-y-1">
+      <div class="flex items-center gap-3">
+        <div class="p-2 dark:bg-indigo-900 bg-gray-100 rounded-lg">
+          <span class="material-icons dark:text-indigo-300 text-gray-600">event_available</span>
+        </div>
+        <div>
+          <p class="text-sm dark:text-gray-400 text-gray-500">Events</p>
+          <p class="text-lg font-semibold dark:text-gray-200 text-gray-800">{{calendarEvents.length}}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Leaves -->
+    <div class="dark:bg-gray-900 bg-white p-4 rounded-xl shadow-lg dark:hover:bg-gray-800 hover:bg-gray-50 transition-all duration-300 hover:-translate-y-1">
+      <div class="flex items-center gap-3">
+        <div class="p-2 dark:bg-indigo-900 bg-gray-100 rounded-lg">
+          <span class="material-icons dark:text-indigo-300 text-gray-600">event_note</span>
+        </div>
+        <div>
+          <p class="text-sm dark:text-gray-400 text-gray-500">Leaves</p>
+          <p class="text-lg font-semibold dark:text-gray-200 text-gray-800">{{holidays.length}}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Row -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+    <!-- Project Chart -->
+    <div class="dark:bg-gray-900 bg-white p-6 rounded-xl shadow-lg dark:hover:bg-gray-800 hover:bg-gray-50 transition-all duration-300 hover:-translate-y-1">
+      <h2 class="text-xl font-semibold dark:text-gray-200 text-gray-800 mb-6">
+        <span class="material-icons align-middle mr-2 dark:text-indigo-300 text-gray-600">pie_chart</span>
+        Project Status Distribution
+      </h2>
+      <div class="h-[400px] relative">
+        <canvas id="projectChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Task Chart -->
+    <div class="dark:bg-gray-900 bg-white p-6 rounded-xl shadow-lg dark:hover:bg-gray-800 hover:bg-gray-50 transition-all duration-300 hover:-translate-y-1">
+      <h2 class="text-xl font-semibold dark:text-gray-200 text-gray-800 mb-6">
+        <span class="material-icons align-middle mr-2 dark:text-indigo-300 text-gray-600">bar_chart</span>
+        Task Status Overview
+      </h2>
+      <div class="h-[400px] relative">
+        <canvas id="taskChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Leaves and Tasks Row -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+    <!-- Recent Leaves -->
+    <div class="dark:bg-gray-900 bg-white p-6 rounded-xl shadow-lg dark:hover:bg-gray-800 hover:bg-gray-50 transition-all duration-300 hover:-translate-y-1">
+      <h2 class="text-xl font-semibold dark:text-gray-200 text-gray-800 mb-6">
+        <span class="material-icons align-middle mr-2 dark:text-indigo-300 text-gray-600">event_note</span>
+        Recent Leaves
+      </h2>
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b-2 dark:border-indigo-500/30 border-gray-200">
+              <th class="text-left py-4 px-4 text-sm font-medium dark:text-gray-300 text-gray-700">Start Date</th>
+              <th class="text-left py-4 px-4 text-sm font-medium dark:text-gray-300 text-gray-700">End Date</th>
+              <th class="text-left py-4 px-4 text-sm font-medium dark:text-gray-300 text-gray-700">Reason</th>
+              <th class="text-right py-4 px-4 text-sm font-medium dark:text-gray-300 text-gray-700">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let holiday of getRecentLeaves()" class="border-b dark:border-indigo-500/30 border-gray-100 dark:hover:bg-gray-800/40 hover:bg-gray-50 transition-all duration-300">
+              <td class="py-4 px-4 text-sm dark:text-gray-300 text-gray-800">{{formatDate(holiday.startDate)}}</td>
+              <td class="py-4 px-4 text-sm dark:text-gray-300 text-gray-800">{{formatDate(holiday.endDate)}}</td>
+              <td class="py-4 px-4 text-sm dark:text-gray-400 text-gray-600">{{holiday.reason}}</td>
+              <td class="py-4 px-4">
+                <span class="px-4 py-2 text-xs font-medium rounded-full float-right"
+                      [ngClass]="{
+                        'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300': holiday.status === 'Approved',
+                        'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300': holiday.status === 'Pending',
+                        'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300': holiday.status === 'Rejected'
+                      }">
+                  {{holiday.status}}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Recent Tasks -->
+    <div class="dark:bg-gray-900 bg-white p-6 rounded-xl shadow-lg dark:hover:bg-gray-800 hover:bg-gray-50 transition-all duration-300 hover:-translate-y-1">
+      <h2 class="text-xl font-semibold dark:text-gray-200 text-gray-800 mb-6">
+        <span class="material-icons align-middle mr-2 dark:text-indigo-300 text-gray-600">task_alt</span>
+        Recent Tasks
+      </h2>
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b-2 dark:border-indigo-500/30 border-gray-200">
+              <th class="text-left py-4 px-4 text-sm font-medium dark:text-gray-300 text-gray-700">Task Name</th>
+              <th class="text-left py-4 px-4 text-sm font-medium dark:text-gray-300 text-gray-700">Project</th>
+              <th class="text-left py-4 px-4 text-sm font-medium dark:text-gray-300 text-gray-700">Start Date</th>
+              <th class="text-right py-4 px-4 text-sm font-medium dark:text-gray-300 text-gray-700">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let task of getRecentTasks()" class="border-b dark:border-indigo-500/30 border-gray-100 dark:hover:bg-gray-800/40 hover:bg-gray-50 transition-all duration-300">
+              <td class="py-4 px-4 text-sm dark:text-gray-300 text-gray-800">{{task.taskName}}</td>
+              <td class="py-4 px-4 text-sm dark:text-gray-400 text-gray-600">{{task.projectId.title}}</td>
+              <td class="py-4 px-4 text-sm dark:text-gray-400 text-gray-600">{{formatDate(task.startDate)}}</td>
+              <td class="py-4 px-4">
+                <span class="px-4 py-2 text-xs font-medium rounded-full float-right"
+                      [ngClass]="{
+                        'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300': task.status === 'Assigned' || task.status === 'Started',
+                        'bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300': task.status === 'In-Progress' || task.status === 'Testing',  
+                        'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300': task.status === 'Completed'
+                      }">
+                  {{task.status}}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Events Row -->
+  <div class="grid grid-cols-1 gap-8">
+    <!-- Recent Events -->
+    <div class="dark:bg-gray-900 bg-white p-6 rounded-xl shadow-lg dark:hover:bg-gray-800 hover:bg-gray-50 transition-all duration-300 hover:-translate-y-1">
+      <h2 class="text-xl font-semibold dark:text-gray-200 text-gray-800 mb-6">
+        <span class="material-icons align-middle mr-2 dark:text-indigo-300 text-gray-600">event</span>
+        Recent Events
+      </h2>
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b-2 dark:border-indigo-500/30 border-gray-200">
+              <th class="text-left py-4 px-4 text-sm font-medium dark:text-gray-300 text-gray-700">Event</th>
+              <th class="text-left py-4 px-4 text-sm font-medium dark:text-gray-300 text-gray-700">Date</th>
+              <th class="text-left py-4 px-4 text-sm font-medium dark:text-gray-300 text-gray-700">Type</th>
+              <th class="text-right py-4 px-4 text-sm font-medium dark:text-gray-300 text-gray-700">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let event of getRecentEvents().slice(0, 12)" class="border-b dark:border-indigo-500/30 border-gray-100 dark:hover:bg-gray-800/40 hover:bg-gray-50 transition-all duration-300">
+              <td class="py-4 px-4 text-sm dark:text-gray-300 text-gray-800">{{event.title}}</td>
+              <td class="py-4 px-4 text-sm dark:text-gray-400 text-gray-600">{{formatDate(event.eventDate)}}</td>
+              <td class="py-4 px-4 text-sm dark:text-gray-400 text-gray-600">{{event.eventType}}</td>
+              <td class="py-4 px-4">
+                <span class="px-4 py-2 text-xs font-medium rounded-full float-right"
+                      [ngClass]="{
+                        'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300': event.status === 'Completed',
+                        'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300': event.status === 'Upcoming',
+                        'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300': event.status === 'Cancelled'  
+                      }">
+                  {{event.status}}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

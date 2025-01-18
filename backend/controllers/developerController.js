@@ -4,7 +4,12 @@ const jwt = require('jsonwebtoken');
 const Project = require('../models/Project');
 const CalendarEvent = require('../models/calendarEvent');
 const Holiday = require('../models/Holiday');
+const Manager = require('../models/Manager');
+const Notification = require('../models/Notification');
+
 const { createNotification,notifyCreation,notifyUpdate,leaveUpdateNotification,leaveNotification } = require('../utils/notificationHelper'); // Adjust the path as necessary
+const Task = require('../models/Task');
+const { uploadToCloudinary, deleteFromCloudinary } = require('../utils/cloudinary');
 
 const registerDeveloper = async (req, res) => {
   try {
@@ -50,8 +55,29 @@ const developerLogin = async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
+    // Find the manager assigned to this developer
+    const assignedManager = await Manager.findOne({
+      'developers.developerId': developer._id
+    });
+
     const token = jwt.sign({ id: developer._id, username: developer.username }, process.env.JWT_SECRET, { expiresIn: '1d' });
-    res.status(200).json({ message: 'Developer logged in', token, developer });
+    
+    // Include manager info in response if assigned
+    const response = {
+      message: 'Developer logged in',
+      token,
+      developer
+    };
+
+    if (assignedManager) {
+      response.manager = {
+        id: assignedManager._id,
+        username: assignedManager.username,
+        email: assignedManager.email
+      };
+    }
+
+    res.status(200).json(response);
   } catch (error) {
     console.error('Login error:', error);  
     res.status(500).json({ message: 'Login error', error: error.message });
@@ -65,7 +91,31 @@ const getDeveloperProfile = async (req, res) => {
     if (!developer) {
       return res.status(404).json({ message: 'Developer not found' });
     }
-    res.status(200).json(developer);
+
+    // Find the manager assigned to this developer
+    const assignedManager = await Manager.findOne({
+      'developers.developerId': developerId
+    });
+
+    const response = {
+      developer
+    };
+
+    if (assignedManager) {
+      response.manager = {
+        _id: assignedManager._id,
+        username: assignedManager.username,
+        email: assignedManager.email,
+        image: assignedManager.image,
+        mobile: assignedManager.mobile,
+        teamSize: assignedManager.teamSize,
+        createdAt: assignedManager.createdAt,
+        role: assignedManager.role,
+        developers: assignedManager.developers
+      };
+    }
+
+    res.status(200).json(response);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching developer profile', error });
   }
@@ -74,16 +124,48 @@ const getDeveloperProfile = async (req, res) => {
 const updateDeveloperProfile = async (req, res) => {
   try {
     const developerId = req.developer.id;
-    const updates = req.body;
-    const options = { new: true };
+    const updates = { ...req.body };
 
-    const updatedDeveloper = await Developer.findByIdAndUpdate(developerId, updates, options);
-    if (!updatedDeveloper) {
+    // Get the current developer document
+    const currentDeveloper = await Developer.findById(developerId);
+    if (!currentDeveloper) {
       return res.status(404).json({ message: 'Developer not found' });
     }
-    res.status(200).json({ message: 'Developer profile updated', developer: updatedDeveloper });
+
+    // Handle profile image upload
+    if (req.file) {
+      const file = req.file;
+      const result = await uploadToCloudinary(file.path, {
+        folder: 'developer-profiles',
+        resource_type: 'auto'
+      });
+      updates.image = result.secure_url;
+
+      // Delete old profile image if it exists
+      if (currentDeveloper.image) {
+        const publicId = currentDeveloper.image.split('/').slice(-2).join('/').split('.')[0];
+        await deleteFromCloudinary(publicId);
+      }
+    }
+
+    // Update the developer document
+    const updatedDeveloper = await Developer.findByIdAndUpdate(
+      developerId,
+      { $set: updates },
+      { new: true, runValidators: true }
+    );
+
+    res.status(200).json({ 
+      message: 'Developer profile updated successfully', 
+      developer: updatedDeveloper 
+    });
+
   } catch (error) {
-    res.status(500).json({ message: 'Error updating developer profile', error });
+    console.error('Update error:', error);
+    res.status(500).json({ 
+      message: 'Error updating developer profile', 
+      error: error.message 
+    });
   }
 };
 
@@ -230,6 +312,12 @@ const applyForHoliday = async (req, res) => {
   const developerId = req.developer._id; // Assuming req.developer is set after authentication
   const developerName = req.developer.username;
   try {
+      // Find the manager(s) assigned to this developer
+      const managers = await Manager.find({
+          'developers.developerId': developerId
+      });
+      const managerIds = managers.map(manager => manager._id);
+
       const newHoliday = new Holiday({
           developer: developerId,
           developerName: developerName,
@@ -252,7 +340,28 @@ const applyForHoliday = async (req, res) => {
           participants: [{ participantId: developerId, onModel: 'Developer' }] // In case the model expects participant details
       });
       await newEvent.save();
-      await leaveNotification(null, req.developer.username, newHoliday._id);
+
+      // Create individual notifications for admin and each manager
+      const notification = new Notification({
+        recipient: null, // For admin
+        content: `Holiday request from ${req.developer.username}`,
+        type: 'Holiday',
+        relatedId: newHoliday._id,
+        read: false
+      });
+      await notification.save();
+
+      // Create notifications for each manager
+      for (const managerId of managerIds) {
+        const managerNotification = new Notification({
+          recipient: managerId,
+          content: `Holiday request from ${req.developer.username}`,
+          type: 'Holiday',
+          relatedId: newHoliday._id,
+          read: false
+        });
+        await managerNotification.save();
+      }
 
       res.status(201).json({ message: 'Holiday request and calendar event submitted successfully', holiday: newHoliday, event: newEvent });
   } catch (error) {
@@ -303,6 +412,127 @@ const withdrawHoliday = async (req, res) => {
   }
 };
 
+const getDeveloperById = async (req, res) => {
+  try {
+    const developerId = req.params.developerId;
+    const developer = await Developer.findById(developerId);
+
+    if (!developer) {
+      return res.status(404).json({ message: 'Developer not found' });
+    }
+
+    res.status(200).json(developer);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching developer', error: error.message });
+  }
+};
+
+const getAssignedTasks = async (req, res) => {
+  try {
+    const developerId = req.developer._id;
+
+    const tasks = await Task.find({
+      'participants.participantId': developerId
+    }).populate('projectId', 'title');
+
+    if (!tasks.length) {
+      return res.status(404).json({ message: 'No tasks found assigned to you' });
+    }
+
+    res.status(200).json(tasks);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching assigned tasks', error: error.message });
+  }
+};
+
+const fetchDeveloperEvents = async (req, res) => {
+  try {
+    const developerId = req.developer._id;
+
+    // Find events where developer is either creator or participant
+    const events = await CalendarEvent.find({
+      $or: [
+        { createdBy: developerId },
+        { 'participants.participantId': developerId }
+      ]
+    });
+
+    if (events.length === 0) {
+      return res.status(404).json({ 
+        message: 'No events found where you are creator or participant' 
+      });
+    }
+
+    // Add byMe field to indicate if event was created by the developer
+    const eventsWithByMe = events.map(event => {
+      const eventObj = event.toObject();
+      eventObj.byMe = event.createdBy.toString() === developerId.toString();
+      return eventObj;
+    });
+
+    res.status(200).json(eventsWithByMe);
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Error fetching developer events', 
+      error: error.message 
+    });
+  }
+};
+
+
+const fetchDeveloperNotifications = async (req, res) => {
+  try {
+    const developerId = req.developer._id;
+
+    // Find notifications for this developer
+    const notifications = await Notification.find({
+      recipient: developerId
+    }).sort({ date: -1 }); // Sort by date descending (newest first)
+
+    if (notifications.length === 0) {
+      return res.status(404).json({
+        message: 'No notifications found'
+      });
+    }
+
+    res.status(200).json(notifications);
+  } catch (error) {
+    res.status(500).json({
+      message: 'Error fetching notifications',
+      error: error.message
+    });
+  }
+};
+
+const markAllNotificationsAsRead = async (req, res) => {
+  try {
+    const developerId = req.developer._id;
+
+    // Update all unread notifications for this developer
+    await Notification.updateMany(
+      { 
+        recipient: developerId,
+        read: false 
+      },
+      { read: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'All notifications marked as read'
+    });
+
+  } catch (error) {
+    console.error('Error marking all notifications as read:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error marking all notifications as read', 
+      error: error.message
+    });
+  }
+};
+
+
 // Export all controller functions at the end
 module.exports = {
   withdrawHoliday,
@@ -319,5 +549,10 @@ module.exports = {
   verifyDeveloper,
   developerLogin,
   getDeveloperProfile,
-  updateDeveloperProfile
+  updateDeveloperProfile,
+  getDeveloperById,
+  getAssignedTasks,
+  fetchDeveloperEvents,
+  fetchDeveloperNotifications,
+  markAllNotificationsAsRead
 };

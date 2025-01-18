@@ -17,11 +17,11 @@ const clientSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    projectId: {
+    projects: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Project',
         required: false  // Set to true if every client must be linked to a project
-    }
+    }]
 });
 
 // Pre-save hook to hash password before saving a client

@@ -7,8 +7,8 @@ const DeveloperSchema = new mongoose.Schema({
   skills: [{ type: String }],
 // verified: { type: String, default: 'no' },
   createdAt: { type: Date, default: Date.now },
-  role  : {type:String, default: "developer"}
-
+  role: { type: String, default: "developer" },
+  image: { type: String }
 });
 
 const Developer = mongoose.model('Developer', DeveloperSchema);

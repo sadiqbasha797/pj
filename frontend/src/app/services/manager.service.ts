@@ -23,9 +23,7 @@ export class ManagerService {
   getAllManagerEvents() {
     throw new Error('Method not implemented.');
   }
-  getAllManagers() {
-    throw new Error('Method not implemented.');
-  }
+
   getManagerProfile(): Observable<ManagerProfile> {
     const headers = this.getHeaders();
     return this.http.get<ManagerProfile>(`${this.apiUrl}/profile`, { headers });
@@ -92,9 +90,20 @@ export class ManagerService {
     return this.http.get(`${this.apiUrl}/projects`, { headers });
   }
 
-  updateProject(projectId: string, projectData: any): Observable<any> {
-    const headers = this.getHeaders();
-    return this.http.put(`${this.apiUrl}/project/${projectId}`, projectData, { headers });
+  updateProject(projectId: string, formData: FormData): Observable<any> {
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${localStorage.getItem('managerToken')}`);
+    
+    return this.http.put(
+      `${this.apiUrl}/project/${projectId}`, 
+      formData,
+      { headers }
+    ).pipe(
+      tap(response => console.log('Update response:', response)),
+      catchError(error => {
+        console.error('Error in updateProject:', error);
+        return throwError(() => error);
+      })
+    );
   }
 
   deleteProject(projectId: string): Observable<any> {
@@ -134,6 +143,37 @@ export class ManagerService {
   getUserEvents(): Observable<any> {
     const headers = this.getHeaders();
     return this.http.get(`${this.apiUrl}/user-events`, { headers });
+  }
+
+  // Holiday management
+  getAllHolidays(): Observable<any> {
+    const headers = this.getHeaders();
+    return this.http.get(`${this.apiUrl}/holidays`, { headers });
+  }
+
+  getHolidayById(holidayId: string): Observable<any> {
+    const headers = this.getHeaders();
+    return this.http.get(`${this.apiUrl}/holiday/${holidayId}`, { headers });
+  }
+
+  updateHoliday(holidayId: string, holidayData: any): Observable<any> {
+    const headers = this.getHeaders();
+    return this.http.put(`${this.apiUrl}/holidays/${holidayId}`, holidayData, { headers });
+  }
+
+  deleteHoliday(holidayId: string): Observable<any> {
+    const headers = this.getHeaders();
+    return this.http.delete(`${this.apiUrl}/holidays/${holidayId}`, { headers });
+  }
+
+  getDeveloperHolidays(): Observable<any> {
+    const headers = this.getHeaders();
+    return this.http.get(`${this.apiUrl}/developer-holidays`, { headers });
+  }
+
+  approveOrDenyHoliday(holidayId: string, status: string): Observable<any> {
+    const headers = this.getHeaders();
+    return this.http.put(`${this.apiUrl}/holidays/${holidayId}`, { status }, { headers });
   }
 
   // Task management
@@ -183,10 +223,39 @@ export class ManagerService {
     return this.http.get(`${this.apiUrl}/project/${projectId}`, { headers });
   }
 
+  getAllManagers(): Observable<any> {
+    const headers = this.getHeaders();
+    return this.http.get(`${this.apiUrl}/managers`, { headers });
+  }
+
+  getAllAdmins(): Observable<any> {
+    const headers = this.getHeaders();
+    return this.http.get(`${this.apiUrl}/admins`, { headers });
+  }
+
   getEventCounts(): Observable<any> {
     const headers = this.getHeaders();
     return this.http.get(`${this.apiUrl}/events/counts`, { headers });
   }
 
+  // Notifications
+  getNotifications(): Observable<any> {
+    const headers = this.getHeaders();
+    return this.http.get(`${this.apiUrl}/notifications`, { headers });
+  }
 
+  markNotificationAsRead(notificationId: string): Observable<any> {
+    const headers = this.getHeaders();
+    return this.http.put(`${this.apiUrl}/notifications/${notificationId}/read`, {}, { headers });
+  }  
+
+  markAllNotificationsAsRead(): Observable<any> {
+    const headers = this.getHeaders();
+    return this.http.put(`${this.apiUrl}/notifications/read`, {}, { headers });
+  }
+
+  getDeveloperById(developerId: string): Observable<any> {
+    const headers = this.getHeaders();
+    return this.http.get(`${this.apiUrl}/developer/${developerId}`, { headers });
+  }
 }

@@ -1,0 +1,277 @@
+<div class="tasks min-h-screen p-6 transition-colors duration-200 dark:bg-gray-800 bg-gray-50">
+    <div class="max-w-7xl mx-auto">
+      <h2 class="text-2xl font-bold dark:text-indigo-300 text-gray-900 mb-6 flex items-center gap-3">
+        <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-200">
+          <svg class="h-6 w-6 dark:text-indigo-300 text-gray-900" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+          </svg>
+        </div>
+        My Tasks
+      </h2>
+  
+      <div class="space-y-4">
+        @for (task of tasks; track task._id) {
+          <div class="dark:bg-gray-800 bg-gray-50 rounded-xl shadow-lg 
+                      hover:shadow-[0_0_15px_rgba(75,85,99,0.3)] transition-all duration-300 mb-6"
+               [class.h-[280px]]="expandedTaskId !== task._id"
+               [class.overflow-hidden]="expandedTaskId !== task._id">
+            
+            <!-- Task Header -->
+            <div class="dark:bg-indigo-900/50  
+                        bg-gray-200
+                        p-6 ">
+              <div class="flex justify-between items-start">
+                <div>
+                  <h3 class="text-xl font-semibold dark:text-indigo-300 text-gray-900 mb-2">{{task.taskName}}</h3>
+                  <p class="dark:text-gray-400 text-gray-700">{{task.description || 'No description provided'}}</p>
+                </div>
+                <span class="px-3 py-1.5 rounded-lg text-sm" 
+                      [ngClass]="{
+                        'bg-gray-100 text-gray-900': task.status === 'Assigned',
+                        'bg-gray-200 text-gray-900': task.status === 'Started',
+                        'bg-gray-300 text-gray-900': task.status === 'In-Progress',
+                        'bg-gray-400 text-gray-900': task.status === 'Completed',
+                        'bg-gray-500 text-gray-100': task.status === 'Testing'
+                      }">
+                  {{task.status}}
+                </span>
+              </div>
+            </div>
+  
+            <!-- Task Content -->
+            <div class="p-6 space-y-4">
+              <!-- Basic Info Cards -->
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Project Info -->
+                <div class="dark:bg-gray-700 bg-white rounded-lg p-4">
+                  <div class="flex items-center gap-2 mb-2">
+                    <svg class="h-5 w-5 text-gray-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                    </svg>
+                    <span class="text-sm font-medium dark:text-indigo-300 text-gray-900">Project</span>
+                  </div>
+                  <p class="dark:text-gray-300 text-gray-900">{{task.projectId.title}}</p>
+                </div>
+  
+                <!-- Timeline Info -->
+                <div class="dark:bg-gray-700 bg-white rounded-lg p-4">
+                  <div class="flex items-center gap-2 mb-2">
+                    <svg class="h-5 w-5 text-gray-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <span class="text-sm font-medium dark:text-indigo-300 text-gray-900">Timeline</span>
+                  </div>
+                  <p class="dark:text-gray-300 text-gray-900">{{task.startDate | date}} - {{task.endDate | date}}</p>
+                </div>
+  
+                <!-- Updates Info -->
+                <div class="dark:bg-gray-700 bg-white rounded-lg p-4">
+                  <div class="flex items-center gap-2 mb-2">
+                    <svg class="h-5 w-5 text-gray-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
+                    <span class="text-sm font-medium dark:text-indigo-300 text-gray-900">Updates</span>
+                  </div>
+                  <p class="dark:text-gray-300 text-gray-900">{{task.updates.length}} updates</p>
+                </div>
+              </div>
+  
+              <!-- Expandable Content -->
+              @if (expandedTaskId === task._id) {
+                <div class="space-y-4 dark:text-gray-300 text-gray-900">
+                  <div class="flex flex-wrap gap-4">
+                    <div class="flex items-center dark:bg-gray-700 bg-white px-3 py-1.5 rounded-lg">
+                      <svg class="h-5 w-5 mr-2 dark:text-indigo-300 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                      </svg>
+                      <span class="text-sm font-medium dark:text-indigo-300 text-gray-900">Project: {{task.projectId.title}}</span>
+                    </div>
+  
+                    <div class="flex items-center dark:bg-gray-700 bg-white px-3 py-1.5 rounded-lg">
+                      <svg class="h-5 w-5 mr-2 dark:text-indigo-300 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                      </svg>
+                      <span class="text-sm font-medium dark:text-indigo-300 text-gray-900">{{task.startDate | date}} - {{task.endDate | date}}</span>
+                    </div>
+                  </div>
+  
+                  @if (task.relatedDocuments.length) {
+                    <div class="mt-6 dark:bg-gray-700 bg-white p-4 rounded-xl">
+                      <h4 class="text-sm font-semibold dark:text-indigo-300 text-gray-900 mb-3">Related Documents</h4>
+                      <div class="flex flex-wrap gap-2">
+                        @for (doc of task.relatedDocuments; track doc) {
+                          <a [href]="doc" target="_blank" 
+                             class="inline-flex items-center px-3 py-1.5 dark:bg-gray-800 bg-gray-50 dark:text-indigo-300 text-gray-900 rounded-lg text-sm hover:bg-gray-100 transition-colors duration-300">
+                            <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            View Document
+                          </a>
+                        }
+                      </div>
+                    </div>
+                  }
+  
+                  <!-- Add Task Update Form -->
+                  <form [formGroup]="updateForm" (ngSubmit)="submitUpdate(task._id)" 
+                        class="mt-6 dark:bg-gray-700 bg-white p-4 rounded-xl">
+                    <h4 class="text-sm font-semibold dark:text-indigo-300 text-gray-900 mb-3">Add Update</h4>
+                    <textarea formControlName="content" 
+                              class="w-full dark:bg-gray-800 bg-gray-50 dark:text-gray-300 text-gray-900 rounded-lg p-3" 
+                              rows="3" 
+                              placeholder="Enter your update..."></textarea>
+                    <div class="mt-3">
+                      <input type="file" (change)="onFileSelect($event)" multiple class="text-sm dark:text-gray-300 text-gray-900" accept="image/*">
+                    </div>
+                    <button type="submit" class="mt-3 px-4 py-2 bg-gray-200 text-gray-900 rounded-lg hover:bg-gray-300">Submit Update</button>
+                  </form>
+  
+                  <!-- Add Final Result Form -->
+                  @if (!task.finalResult) {
+                    <form [formGroup]="finalResultForm" (ngSubmit)="submitFinalResult(task._id)" 
+                          class="mt-6 dark:bg-gray-700 bg-white p-4 rounded-xl">
+                      <h4 class="text-sm font-semibold dark:text-indigo-300 text-gray-900 mb-3">Add Final Result</h4>
+                      <textarea formControlName="description" 
+                                class="w-full dark:bg-gray-800 bg-gray-50 dark:text-gray-300 text-gray-900 rounded-lg p-3" 
+                                rows="3" 
+                                placeholder="Enter final result description..."></textarea>
+                      <div class="mt-3">
+                        <input type="file" (change)="onFinalFileSelect($event)" multiple class="text-sm dark:text-gray-300 text-gray-900" accept="image/*">
+                      </div>
+                      <button type="submit" class="mt-3 px-4 py-2 bg-gray-200 text-gray-900 rounded-lg hover:bg-gray-300">Submit Final Result</button>
+                    </form>
+                  }
+  
+                  @if (task.updates.length) {
+                    <div class="mt-8">
+                      <h4 class="text-lg font-semibold dark:text-indigo-300 text-gray-900 mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2 a2 2 0 002-2M9 5a2 2 0 012-2h2 a2 2 0 012 2m-6 9l2 2 4-4"/>
+                        </svg>
+                        Task Progress Updates
+                      </h4>
+                      <div class="relative">
+                        <div class="absolute left-4 top-0 h-full w-0.5 bg-gray-200"></div>
+                        
+                        @for (groupedUpdate of getGroupedUpdates(task.updates); track groupedUpdate.date) {
+                          <div class="mb-8">
+                            <div class="relative pl-8 mb-4">
+                              <div class="absolute left-2 top-2 w-4 h-4 rounded-full bg-gray-200 border-4 border-white dark:border-gray-800"></div>
+                              <span class="dark:text-indigo-300 text-gray-900 font-medium">{{groupedUpdate.date}}</span>
+                            </div>  
+  
+                            @for (update of groupedUpdate.updates; track update._id) {
+                              <div class="relative pl-8 mb-4 ml-4">
+                                <div class="absolute left-2 top-2 w-2 h-2 rounded-full bg-gray-200"></div>
+                                <div class="dark:bg-gray-700 bg-white rounded-xl p-6">
+                                  <div class="flex justify-between items-start mb-4">
+                                    <div class="flex items-center gap-2">
+                                      <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                                        <svg class="w-4 h-4 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                        </svg>
+                                      </div>
+                                      <div class="flex flex-col">
+                                        <span class="dark:text-indigo-300 text-gray-900 font-medium">{{update.updatedByName}}</span>
+                                        <span class="text-sm dark:text-gray-400 text-gray-700">{{update.updatedByModel}}</span>
+                                      </div>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                      <span class="text-sm dark:text-gray-400 text-gray-700">{{update.timestamp | date:'shortTime'}}</span>
+                                      @if (canDeleteUpdate(update)) {
+                                        <button (click)="deleteUpdate(task._id, update.updateId)" 
+                                                class="text-gray-900 hover:text-gray-800">
+                                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                          </svg>
+                                        </button>
+                                      }
+                                    </div>
+                                  </div>
+                                  
+                                  <p class="dark:text-gray-300 text-gray-900 mb-4 leading-relaxed">{{update.content}}</p>
+                                  
+                                  @if (update.relatedMedia.length) {
+                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                      @for (media of update.relatedMedia; track media) {
+                                        <div class="relative group rounded-xl overflow-hidden shadow-lg cursor-pointer" 
+                                             (click)="viewImage(media)">
+                                          <img [src]="media" alt="Update media" 
+                                               class="w-full h-24 object-cover transform transition-transform duration-500 group-hover:scale-110">
+                                          <div class="absolute inset-0 bg-gray-200/90 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center">
+                                            <svg class="w-8 h-8 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                            </svg>
+                                          </div>
+                                        </div>
+                                      }
+                                    </div>
+                                  }
+                                </div>
+                              </div>
+                            }
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+  
+                  @if (task.finalResult) {
+                    <div class="mt-8 dark:bg-gray-700 bg-white p-6 rounded-xl">
+                      <h4 class="text-lg font-semibold dark:text-indigo-300 text-gray-900 mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        Final Result
+                      </h4>
+                      @if (task.finalResult.description) {
+                        <p class="mb-4 dark:text-gray-300 text-gray-900">{{task.finalResult.description}}</p>
+                      }
+                      @if (task.finalResult.resultImages.length) {
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                          @for (img of task.finalResult.resultImages; track img) {
+                            <div class="relative group rounded-xl overflow-hidden shadow-lg cursor-pointer"
+                                 (click)="viewImage(img)">
+                              <img [src]="img" alt="Result image" 
+                                   class="w-full h-48 object-cover transform transition-transform duration-500 group-hover:scale-110">
+                              <div class="absolute inset-0 bg-gray-200/90 opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
+                            </div>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+  
+            <!-- Expand/Collapse Indicator -->
+            <div class="relative">
+              <div class="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t 
+                          dark:from-gray-800 from-gray-50 dark:to-transparent to-transparent"
+                   [class.hidden]="expandedTaskId === task._id"></div>
+              <div class="absolute -bottom-4 left-1/2 transform -translate-x-1/2"
+                   (click)="toggleTask(task._id)">
+                <div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center cursor-pointer hover:bg-gray-300 transition-colors">
+                  <svg class="w-5 h-5 text-gray-900 transform transition-transform duration-300"
+                       [class.rotate-180]="expandedTaskId === task._id"
+                       fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        } @empty {
+          <div class="text-center py-12 dark:text-gray-400 text-gray-900 
+                      dark:bg-gray-700 bg-white rounded-xl">
+            <svg class="w-16 h-16 mx-auto mb-4 text-gray-500/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+            </svg>
+            No tasks assigned yet
+          </div>
+        }
+      </div>
+    </div>
+  </div>  

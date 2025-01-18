@@ -1,0 +1,180 @@
+<div class="flex h-[calc(90vh-64px)]">
+  <!-- Users List -->
+  <div class="w-72 border-r dark:border-indigo-500 border-gray-200 ">
+    <div class="p-6 border-b dark:border-indigo-500/30 border-gray-200">
+      <h2 class="text-lg font-semibold dark:text-gray-200 text-gray-800">Messages</h2>
+    </div>
+    <div class="overflow-y-auto h-full">
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="p-4 text-center dark:text-gray-400 text-gray-500">
+        <svg class="animate-spin h-5 w-5 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Loading users...
+      </div>
+
+      <!-- Developers Section -->
+      <div *ngFor="let dev of developers" 
+           (click)="selectUser(dev)"
+           class="p-4 dark:hover:bg-gray-800/40 hover:bg-gray-100 cursor-pointer transition-colors duration-200"
+           [class.dark:bg-gray-800]="selectedUser?._id === dev._id"
+           [class.bg-gray-200]="selectedUser?._id === dev._id">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-full dark:bg-indigo-900 bg-gray-300 flex items-center justify-center">
+            <span class="dark:text-indigo-300 text-gray-600 font-medium">{{dev.username.charAt(0).toUpperCase()}}</span>
+          </div>
+          <div>
+            <div class="font-medium dark:text-gray-200 text-gray-900">{{dev.username}}</div>
+            <div class="text-sm dark:text-gray-400 text-gray-500">Developer</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Managers Section -->
+      <div *ngFor="let manager of managers" 
+           (click)="selectUser(manager)"
+           class="p-4 dark:hover:bg-gray-800/40 hover:bg-gray-100 cursor-pointer transition-colors duration-200"
+           [class.dark:bg-gray-800]="selectedUser?._id === manager._id"
+           [class.bg-gray-200]="selectedUser?._id === manager._id">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-full dark:bg-indigo-900 bg-gray-300 flex items-center justify-center">
+            <span class="dark:text-indigo-300 text-gray-600 font-medium">{{manager.username.charAt(0).toUpperCase()}}</span>
+          </div>
+          <div>
+            <div class="font-medium dark:text-gray-200 text-gray-900">{{manager.username}}</div>
+            <div class="text-sm dark:text-gray-400 text-gray-500">Manager</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Admins Section -->
+      <div *ngFor="let admin of admins" 
+           (click)="selectUser(admin)"
+           class="p-4 dark:hover:bg-gray-800/40 hover:bg-gray-100 cursor-pointer transition-colors duration-200"
+           [class.dark:bg-gray-800]="selectedUser?._id === admin._id"
+           [class.bg-gray-200]="selectedUser?._id === admin._id">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-full dark:bg-indigo-900 bg-gray-300 flex items-center justify-center">
+            <span class="dark:text-indigo-300 text-gray-600 font-medium">{{admin.username.charAt(0).toUpperCase()}}</span>
+          </div>
+          <div>
+            <div class="font-medium dark:text-gray-200 text-gray-900">{{admin.username}}</div>
+            <div class="text-sm dark:text-gray-400 text-gray-500">Admin</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat Area -->
+  <div class="flex-1 flex flex-col ">
+    <!-- Empty State (No Selected User) -->
+    <div *ngIf="!selectedUser" class="flex-1 flex items-center justify-center dark:text-gray-400 text-gray-500">
+      <div class="text-center">
+        <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+        </svg>
+        <p>Select a user to start chatting</p>
+      </div>
+    </div>
+
+    <!-- Chat Content -->
+    <ng-container *ngIf="selectedUser">
+      <!-- Chat Header -->
+      <div class="p-4 border-b dark:border-indigo-500/30 border-gray-200 dark:bg-gray-800 bg-white">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-full dark:bg-indigo-900 bg-gray-300 flex items-center justify-center">
+            <span class="dark:text-indigo-300 text-gray-600 font-medium">{{selectedUser.username.charAt(0).toUpperCase()}}</span>
+          </div>
+          <div>
+            <div class="font-medium dark:text-gray-200 text-gray-900">{{selectedUser.username}}</div>
+            <div class="text-sm dark:text-gray-400 text-gray-500">{{selectedUser.role}}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Messages Section -->
+      <div class="flex-1 overflow-y-auto p-4 space-y-4 dark:bg-gray-900 bg-gray-50">
+        <div *ngFor="let message of messages" 
+             class="w-full flex"
+             [ngClass]="{
+               'justify-end': isMessageFromCurrentUser(message),
+               'justify-start': !isMessageFromCurrentUser(message)
+             }">
+          
+          <!-- Received Messages (Left side) -->
+          <div *ngIf="!isMessageFromCurrentUser(message)"
+               class="max-w-[70%] flex flex-col items-start animate-fade-in">
+            <div class="flex flex-col items-start">
+              <div class="text-xs dark:text-gray-400 text-gray-500 mb-1">{{selectedUser.username}}</div>
+              <div class="dark:bg-gray-800 bg-white dark:text-gray-200 text-gray-800 px-4 py-2 rounded-xl rounded-tl-none shadow-md dark:border-indigo-500/30 border border-gray-200">
+                {{message.content}}
+              </div>
+            </div>
+            <span class="text-xs dark:text-gray-400 text-gray-500 mt-1">
+              {{message.createdAt | date:'shortTime'}}
+            </span>
+          </div>
+
+          <!-- Sent Messages (Right side) -->
+          <div *ngIf="isMessageFromCurrentUser(message)" 
+               class="max-w-[70%] flex flex-col items-end animate-fade-in">
+            <div class="flex flex-col items-end">
+              <div class="text-xs dark:text-gray-400 text-gray-500 mb-1">You</div>
+              <div class="dark:bg-indigo-900 bg-gray-800 text-white px-4 py-2 rounded-xl rounded-tr-none shadow-md dark:hover:bg-indigo-800 hover:bg-gray-700 transition-colors">
+                {{message.content}}
+              </div>
+            </div>
+            <div class="flex items-center gap-1 mt-1">
+              <span class="text-xs dark:text-gray-400 text-gray-500">
+                {{message.createdAt | date:'shortTime'}}
+              </span>
+              <!-- Read/Unread indicators -->
+              <svg *ngIf="message.read" class="w-4 h-4 dark:text-gray-400 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <svg *ngIf="!message.read" class="w-4 h-4 dark:text-gray-500 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Message Input Section -->
+      <div class="p-4 border-t dark:border-indigo-500/30 border-gray-200 dark:bg-gray-800 bg-white">
+        <div class="flex items-center space-x-2">
+          <!-- Attachment Button -->
+          <button class="p-2 dark:text-gray-400 text-gray-500 dark:hover:text-gray-300 hover:text-gray-600 rounded-full dark:hover:bg-gray-700 hover:bg-gray-100 transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+            </svg>
+          </button>
+
+          <!-- Message Input -->
+          <input type="text" 
+                 [(ngModel)]="newMessage"
+                 (keyup.enter)="sendMessage()"
+                 placeholder="Type a message..."
+                 class="flex-1 rounded-full dark:bg-gray-700 border dark:border-indigo-500/30 border-gray-300 px-4 py-2 dark:text-gray-200 focus:outline-none dark:focus:border-indigo-500 focus:border-gray-500 focus:ring-1 dark:focus:ring-indigo-500 focus:ring-gray-500">
+
+          <!-- Send Button -->
+          <button (click)="sendMessage()"
+                  [disabled]="!newMessage.trim() || isSending"
+                  class="p-2 dark:bg-indigo-900 bg-gray-800 text-white rounded-full dark:hover:bg-indigo-800 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+            <!-- Loading spinner when sending -->
+            <svg *ngIf="isSending" class="w-5 h-5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <!-- Send icon when not sending -->
+            <svg *ngIf="!isSending" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+</div>

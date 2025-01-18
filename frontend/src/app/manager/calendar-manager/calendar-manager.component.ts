@@ -249,29 +249,46 @@ throw new Error('Method not implemented.');
   openCreateModal() {
     this.closeAllModals();
     this.showCreateModal = true;
+    
+    // Get current date and time
+    const now = new Date();
+    const currentDateTime = this.formatDateForInput(now);
+    
     this.eventForm.reset({
       title: '',
       description: '',
-      eventType: '',
+      eventType: 'Meeting',
       location: '',
-      eventDate: new Date().toISOString().slice(0, 16),
+      eventDate: currentDateTime,
       status: 'Active'
     });
+
+    this.newEvent = {
+      participants: []
+    };
   }
 
   openEditModal(event: any) {
     this.closeAllModals();
     this.showEditModal = true;
     this.viewingEvent = event;
+    
+    // Convert dates to proper format for form
+    const eventDate = new Date(event.eventDate || event.start);
+    const endDate = event.endDate ? new Date(event.endDate) : null;
+
     this.eventForm.patchValue({
       title: event.title,
-      description: event.description,
-      eventType: event.eventType,
-      location: event.location,
-      eventDate: new Date(event.eventDate).toISOString().slice(0, 16),
-      status: event.status
+      description: event.extendedProps?.description || event.description,
+      eventType: event.extendedProps?.eventType || event.eventType,
+      location: event.extendedProps?.location || event.location,
+      eventDate: eventDate.toISOString().slice(0, 16),
+      endDate: endDate ? endDate.toISOString().slice(0, 16) : null,
+      status: event.extendedProps?.status || event.status || 'Active'
     });
-    this.newEvent.participants = [...event.participants];
+
+    // Set participants
+    this.newEvent.participants = [...(event.extendedProps?.participants || event.participants || [])];
   }
 
   openFilterModal() {
@@ -283,26 +300,24 @@ throw new Error('Method not implemented.');
   openCreateModalFromList() {
     this.closeAllModals();
     this.showCreateModal = true;
-    const defaultTime = new Date().toLocaleTimeString('en-US', { hour12: false }).slice(0, 5);
     
-    this.newEvent = {
-      title: '',
-      description: '',
-      eventType: '',
-      location: '',
-      participants: [],
-      eventDate: defaultTime,
-      status: 'Active'
-    };
-
+    // Format the selected date for the form
+    const selectedDateTime = this.selectedDate ? this.formatDateForInput(this.selectedDate) : '';
+    
+    // Reset the form with the selected date
     this.eventForm.reset({
       title: '',
       description: '',
-      eventType: '',
+      eventType: 'Meeting', // or whatever default you prefer
       location: '',
-      eventDate: defaultTime,
+      eventDate: selectedDateTime,
       status: 'Active'
     });
+
+    // Reset participants
+    this.newEvent = {
+      participants: []
+    };
   }
 
   viewEvent(event: CalendarEvent) {
@@ -361,19 +376,7 @@ throw new Error('Method not implemented.');
     });
   }
 
-  updateEvent(eventId: string, eventData: any) {
-    this.managerService.updateEvent(eventId, eventData).subscribe({
-      next: () => {
-        this.loadEvents();
-        this.closeEditModal();
-        this.showSuccessAlert('Event updated successfully');
-      },
-      error: (error) => {
-        console.error('Error updating event:', error);
-        this.showErrorAlert('Failed to update event');
-      }
-    });
-  }
+
 
   deleteEvent(eventId: string) {
     Swal.fire({
@@ -545,32 +548,25 @@ throw new Error('Method not implemented.');
     }
 
     // Handle create/update based on modal state
-    if (this.showEditModal) {
-      const eventId = this.viewingEvent._id;
-      this.managerService.updateEvent(eventId, eventData).subscribe({
-        next: () => {
-          this.loadEvents();
-          this.closeEditModal();
-          this.showSuccessAlert('Event updated successfully');
-        },
-        error: (error) => {
-          console.error('Error updating event:', error);
-          this.showErrorAlert('Failed to update event');
-        }
-      });
+    if (this.showEditModal && this.viewingEvent) {
+      this.updateEvent(this.viewingEvent._id, eventData);
     } else {
-      this.managerService.addEvent(eventData).subscribe({
-        next: () => {
-          this.loadEvents();
-          this.closeCreateModal();
-          this.showSuccessAlert('Event created successfully');
-        },
-        error: (error) => {
-          console.error('Error creating event:', error);
-          this.showErrorAlert('Failed to create event');
-        }
-      });
+      this.addEvent(eventData);
     }
+  }
+
+  updateEvent(eventId: string, eventData: any) {
+    this.managerService.updateEvent(eventId, eventData).subscribe({
+      next: () => {
+        this.loadEvents();
+        this.closeEditModal();
+        this.showSuccessAlert('Event updated successfully');
+      },
+      error: (error) => {
+        console.error('Error updating event:', error);
+        this.showErrorAlert('Failed to update event');
+      }
+    });
   }
 
   private handleDayCellMount(arg: any): void {
@@ -616,5 +612,16 @@ throw new Error('Method not implemented.');
   // Add this method to check if the current manager created the event
   canManageEvent(event: any): boolean {
     return event.createdBy === this.managerId && event.onModel === 'Manager';
+  }
+
+  // Helper method to format date for datetime-local input
+  private formatDateForInput(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
   }
 }

@@ -1,0 +1,279 @@
+<div class="container mx-auto px-4 py-8">
+  <!-- Task Details Header -->
+  @if (task) {
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+      <div class="flex justify-between items-start">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-800">{{task.taskName}}</h1>
+          <p class="text-gray-600 mt-1">{{task.projectId?.title}}</p>
+        </div>
+        <span class="px-3 py-1 text-sm rounded-full" 
+              [ngClass]="{
+                'bg-yellow-100 text-yellow-800': task.status === 'in-progress',
+                'bg-green-100 text-green-800': task.status === 'completed',
+                'bg-blue-100 text-blue-800': task.status === 'pending'
+              }">
+          {{task.status}}
+        </span>
+      </div>
+    </div>
+  }
+
+  <!-- Updates Table -->
+  <div class="bg-white rounded-lg shadow-md overflow-hidden">
+    <div class="p-6 border-b border-gray-200">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-semibold text-gray-800">Task Updates</h2>
+        <button (click)="isFilterVisible = !isFilterVisible" 
+                class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">
+          <span class="material-icons text-lg mr-2">filter_list</span>
+          {{ isFilterVisible ? 'Hide Filters' : 'Show Filters' }}
+        </button>
+      </div>
+      
+      <!-- Redesigned filters section -->
+      @if (isFilterVisible) {
+        <div class="bg-gray-50 p-4 rounded-lg mb-6 border border-gray-200">
+          <!-- First Row: Filters -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <!-- Date Range Filter -->
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-700">Date Range</label>
+              <div class="flex space-x-2">
+                <div class="flex-1">
+                  <input type="date" 
+                         [(ngModel)]="filterDateFrom" 
+                         (ngModelChange)="applyFilters()"
+                         class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <div class="flex items-center text-gray-400">→</div>
+                <div class="flex-1">
+                  <input type="date" 
+                         [(ngModel)]="filterDateTo" 
+                         (ngModelChange)="applyFilters()"
+                         class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+              </div>
+            </div>
+
+            <!-- Updated By Filter -->
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-700">Updated By</label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <span class="material-icons text-gray-400 text-sm">person</span>
+                </span>
+                <input type="text" 
+                       [(ngModel)]="filterUpdatedBy" 
+                       (ngModelChange)="applyFilters()"
+                       placeholder="Search by name"
+                       class="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              </div>
+            </div>
+
+            <!-- Description Filter -->
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-700">Description</label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <span class="material-icons text-gray-400 text-sm">search</span>
+                </span>
+                <input type="text" 
+                       [(ngModel)]="filterDescription" 
+                       (ngModelChange)="applyFilters()"
+                       placeholder="Search in description"
+                       class="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              </div>
+            </div>
+          </div>
+
+          <!-- Second Row: Active Filters and Actions -->
+          <div class="flex justify-between items-start border-t border-gray-200 pt-4">
+            <!-- Active Filters Summary -->
+            <div class="flex-1">
+              <label class="block text-sm font-medium text-gray-700 mb-2">Active Filters</label>
+              <div class="flex flex-wrap gap-2">
+                @if (hasActiveFilters()) {
+                  @if (filterDateFrom || filterDateTo) {
+                    <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                      Date Range
+                      <button (click)="clearDateFilters()" class="ml-1 focus:outline-none">
+                        <span class="material-icons text-xs">close</span>
+                      </button>
+                    </span>
+                  }
+                  @if (filterUpdatedBy) {
+                    <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                      Updated By: {{filterUpdatedBy}}
+                      <button (click)="filterUpdatedBy = ''; applyFilters()" class="ml-1 focus:outline-none">
+                        <span class="material-icons text-xs">close</span>
+                      </button>
+                    </span>
+                  }
+                  @if (filterDescription) {
+                    <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                      Description: {{filterDescription}}
+                      <button (click)="filterDescription = ''; applyFilters()" class="ml-1 focus:outline-none">
+                        <span class="material-icons text-xs">close</span>
+                      </button>
+                    </span>
+                  }
+                } @else {
+                  <span class="text-sm text-gray-500">No active filters</span>
+                }
+              </div>
+            </div>
+
+            <!-- Clear Filters Button -->
+            <div class="ml-4">
+              <button (click)="clearFilters()" 
+                      [disabled]="!hasActiveFilters()"
+                      [ngClass]="{'opacity-50 cursor-not-allowed': !hasActiveFilters()}"
+                      class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">
+                <span class="material-icons text-sm mr-2">clear_all</span>
+                Clear All Filters
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Table -->
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Date
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Updated By
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Description
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Timeline
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Attachments
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            @for (update of filteredTaskUpdates; track update._id) {
+              <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {{ formatDate(update.createdAt) }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm font-medium text-gray-900">{{ update.updatedBy.name }}</div>
+                </td>
+                <td class="px-6 py-4">
+                  <div class="text-sm text-gray-900">{{ update.description }}</div>
+                  @if (update.leadsInfo?.length) {
+                    <div class="mt-2">
+                      <button (click)="toggleLeadsInfo(update._id)" 
+                              class="text-xs text-blue-600 hover:text-blue-800">
+                        {{ showLeadsInfo[update._id] ? 'Hide' : 'Show' }} {{ update.leadsInfo.length }} Leads
+                      </button>
+                      @if (showLeadsInfo[update._id]) {
+                        <div class="mt-2 space-y-2">
+                          @for (lead of update.leadsInfo; track lead._id) {
+                            <div class="text-xs bg-gray-50 p-2 rounded">
+                              <div class="font-medium">{{ lead.name }}</div>
+                              <div class="text-gray-600">{{ lead.description }}</div>
+                              <div class="text-gray-600">Contact: {{ lead.contact }}</div>
+                            </div>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {{ formatDate(update.startDate) }} → {{ formatDate(update.endDate) }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  @if (update.attachments?.length) {
+                    <div class="flex flex-wrap gap-2">
+                      @for (attachment of update.attachments; track attachment) {
+                        <a [href]="attachment" 
+                           target="_blank" 
+                           class="inline-flex items-center px-2.5 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50">
+                          <span class="material-icons text-sm mr-1">attachment</span>
+                          View
+                        </a>
+                      }
+                    </div>
+                  }
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <button (click)="toggleComments(update._id)"
+                          class="text-blue-600 hover:text-blue-800 mr-3">
+                    {{ showComments[update._id] ? 'Hide' : 'Show' }} Comments
+                  </button>
+                </td>
+              </tr>
+              <!-- Comments Section -->
+              @if (showComments[update._id]) {
+                <tr>
+                  <td colspan="6" class="px-6 py-4 bg-gray-50">
+                    <!-- Existing Comments -->
+                    @if (update.comments?.length) {
+                      <div class="space-y-3 mb-4">
+                        @for (comment of update.comments; track comment._id) {
+                          <div class="flex justify-between items-start bg-white p-3 rounded shadow-sm">
+                            <div>
+                              <p class="text-sm text-gray-800">{{ comment.text }}</p>
+                              <p class="text-xs text-gray-600 mt-1">
+                                {{ comment.name }} ({{ comment.role }}) • 
+                                {{ formatDate(comment.createdAt) }}
+                              </p>
+                            </div>
+                            <button (click)="deleteComment(update._id, comment._id)"
+                                    class="text-red-600 hover:text-red-800 text-sm">
+                              Delete
+                            </button>
+                          </div>
+                        }
+                      </div>
+                    }
+
+                    <!-- Add Comment Form -->
+                    @if (selectedUpdateId === update._id) {
+                      <div class="mt-3">
+                        <textarea [(ngModel)]="newComment"
+                                  class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  rows="2"
+                                  placeholder="Write a comment..."></textarea>
+                        <div class="flex justify-end gap-2 mt-2">
+                          <button (click)="selectedUpdateId = ''"
+                                  class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">
+                            Cancel
+                          </button>
+                          <button (click)="addComment(update._id)"
+                                  class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
+                            Add Comment
+                          </button>
+                        </div>
+                      </div>
+                    } @else {
+                      <button (click)="selectedUpdateId = update._id"
+                              class="text-blue-600 hover:text-blue-800 text-sm">
+                        Add Comment
+                      </button>
+                    }
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

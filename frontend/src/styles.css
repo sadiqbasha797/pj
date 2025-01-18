@@ -2,6 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --bg-primary: #f3f4f6;
+  --text-primary: #111827;
+}
+
+:root.dark {
+  --bg-primary: #1f2937;
+  --text-primary: #f3f4f6;
+}
+
+/* Add smooth transitions for theme changes */
+* {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
 body, html {
     font-family: 'Exo 2', sans-serif;
   }

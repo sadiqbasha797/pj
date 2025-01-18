@@ -1,6 +1,6 @@
 <div class="sidebar bg-gradient-to-br from-white via-white/90 to-white/80 h-screen fixed left-0 top-0 transition-all duration-300 ease-in-out flex flex-col shadow-lg"
      [ngClass]="{'w-72': !isCollapsed, 'w-20': isCollapsed, 'hidden': isCollapsed && isMobile}">
-  <div class="flex-grow overflow-y-auto" [ngClass]="{'items-center': isCollapsed}">
+  <div class="flex-grow overflow-y-auto hide-scrollbar" [ngClass]="{'items-center': isCollapsed}">
     <div class="p-4 bg-white relative overflow-hidden border-b border-gray-100">
       <!-- Decorative corner elements -->
       <div class="absolute inset-0">
@@ -89,6 +89,48 @@
               </svg>
             </div>
             <span [ngClass]="{'hidden': isCollapsed, 'ml-3 font-medium': !isCollapsed}">Calendar</span>
+          </a>
+        </li>
+
+        <!-- Add this after the Calendar section -->
+        <li>
+          <a routerLink="/manager/users" routerLinkActive="bg-gradient-to-r from-green-100/50 to-emerald-100/50 text-green-700"
+             class="group flex items-center py-2.5 px-4 rounded-xl hover:bg-green-50/40 transition-all duration-300 hover:shadow-[0_0_15px_rgba(16,185,129,0.5)] hover:border-emerald-400 border border-transparent"
+             [title]="isCollapsed ? 'Team Members' : ''">
+            <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-100 to-green-50 group-hover:from-emerald-200 group-hover:to-green-100 transition-colors duration-300">
+              <svg class="h-5 w-5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            </div>
+            <span [ngClass]="{'hidden': isCollapsed, 'ml-3 font-medium': !isCollapsed}">Team Members</span>
+          </a>
+        </li>
+
+        <!-- Add this after the Team Members section -->
+        <li>
+          <a routerLink="/manager/chat" routerLinkActive="bg-gradient-to-r from-green-100/50 to-emerald-100/50 text-green-700"
+             class="group flex items-center py-2.5 px-4 rounded-xl hover:bg-green-50/40 transition-all duration-300 hover:shadow-[0_0_15px_rgba(16,185,129,0.5)] hover:border-emerald-400 border border-transparent"
+             [title]="isCollapsed ? 'Chat' : ''">
+            <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-100 to-green-50 group-hover:from-emerald-200 group-hover:to-green-100 transition-colors duration-300">
+              <svg class="h-5 w-5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+            </div>
+            <span [ngClass]="{'hidden': isCollapsed, 'ml-3 font-medium': !isCollapsed}">Chat</span>
+          </a>
+        </li>
+
+        <!-- Add this after the Chat section and before the closing </ul> tag -->
+        <li>
+          <a routerLink="/manager/leave" routerLinkActive="bg-gradient-to-r from-green-100/50 to-emerald-100/50 text-green-700"
+             class="group flex items-center py-2.5 px-4 rounded-xl hover:bg-green-50/40 transition-all duration-300 hover:shadow-[0_0_15px_rgba(16,185,129,0.5)] hover:border-emerald-400 border border-transparent"
+             [title]="isCollapsed ? 'Leave Management' : ''">
+            <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-100 to-green-50 group-hover:from-emerald-200 group-hover:to-green-100 transition-colors duration-300">
+              <svg class="h-5 w-5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <span [ngClass]="{'hidden': isCollapsed, 'ml-3 font-medium': !isCollapsed}">Leave Management</span>
           </a>
         </li>
       </ul>

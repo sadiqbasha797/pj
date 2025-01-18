@@ -405,9 +405,10 @@
           <div class="space-y-2">
             <label class="flex items-center gap-2 text-sm font-medium text-gray-700">
               <span class="material-icons text-orange-300">schedule</span>
-              Time
+              Date and Time
             </label>
-            <input type="time" formControlName="eventDate"
+            <input type="datetime-local" 
+                   formControlName="eventDate"
                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
           </div>
 
@@ -437,6 +438,18 @@
                 <option *ngFor="let manager of managers" [value]="manager._id">{{manager.username}}</option>
               </select>
               <button type="button" (click)="addParticipant(managerSelect.value, 'Manager')"
+                      class="bg-blue-500 hover:bg-blue-600 text-white px-4 rounded-lg">
+                Add
+              </button>
+            </div>
+
+            <!-- Add Clients section -->
+            <div class="flex gap-2">
+              <select #clientSelect class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg">
+                <option value="">Select Client</option>
+                <option *ngFor="let client of clients" [value]="client._id">{{client.clientName}}</option>
+              </select>
+              <button type="button" (click)="addParticipant(clientSelect.value, 'Client')"
                       class="bg-blue-500 hover:bg-blue-600 text-white px-4 rounded-lg">
                 Add
               </button>

@@ -6,8 +6,11 @@ const Project = require('../models/Project');
 const nodemailer = require('nodemailer');
 const Holiday = require('../models/Holiday');
 const CalendarEvent = require('../models/calendarEvent');
+const Notification = require('../models/Notification');
 const { createNotification,notifyCreation,notifyUpdate,leaveUpdateNotification,leaveNotification } = require('../utils/notificationHelper'); // Adjust the path as necessary
 const { uploadToCloudinary, deleteFromCloudinary } = require('../utils/cloudinary');
+const DigitalMarketingRole = require('../models/digitalMarketingRole');
+const ContentCreator = require('../models/contentCreator');
 
 // Email configuration
 const transporter = nodemailer.createTransport({
@@ -44,17 +47,77 @@ ${relatedDocsLinks}` // Adding related documents links to the email body
 
 const registerManager = async (req, res) => {
   try {
-    const { username, password, email } = req.body;
+    const { 
+      username, 
+      password, 
+      email, 
+      developers = [], 
+      digitalMarketingRoles = [], 
+      contentCreators = [] 
+    } = req.body;
+
     const hashedPassword = await bcrypt.hash(password, 8);
+
+    // Calculate initial team size
+    const totalTeamSize = developers.length + digitalMarketingRoles.length + contentCreators.length;
+
+    // Process developers
+    const processedDevelopers = await Promise.all(developers.map(async (devId) => {
+      const developer = await Developer.findById(devId);
+      if (developer) {
+        return {
+          developerId: developer._id,
+          developerName: developer.username,
+          assignedOn: new Date()
+        };
+      }
+    })).then(results => results.filter(Boolean));
+
+    // Process digital marketing roles
+    const processedMarketingRoles = await Promise.all(digitalMarketingRoles.map(async (roleId) => {
+      const role = await DigitalMarketingRole.findById(roleId);
+      if (role) {
+        return {
+          roleId: role._id,
+          roleName: role.name,
+          assignedOn: new Date()
+        };
+      }
+    })).then(results => results.filter(Boolean));
+
+    // Process content creators
+    const processedContentCreators = await Promise.all(contentCreators.map(async (creatorId) => {
+      const creator = await ContentCreator.findById(creatorId);
+      if (creator) {
+        return {
+          roleId: creator._id,
+          roleName: creator.name,
+          assignedOn: new Date()
+        };
+      }
+    })).then(results => results.filter(Boolean));
+
     const newManager = new Manager({
       username,
       email,
-      password: hashedPassword
+      password: hashedPassword,
+      teamSize: totalTeamSize,
+      developers: processedDevelopers,
+      digitalMarketingRoles: processedMarketingRoles,
+      contentCreators: processedContentCreators
     });
+
     await newManager.save();
-    res.status(201).json({ message: 'Manager registered successfully', manager: newManager });
+    res.status(201).json({ 
+      message: 'Manager registered successfully', 
+      manager: newManager 
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Error registering manager', error });
+    console.error('Registration error:', error);
+    res.status(500).json({ 
+      message: 'Error registering manager', 
+      error: error.message 
+    });
   }
 };
 
@@ -69,7 +132,7 @@ const managerLogin = async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
-    const token = jwt.sign({ id: manager._id, username: manager.username }, process.env.JWT_SECRET, { expiresIn: '1d' });
+    const token = jwt.sign({ id: manager._id, username: manager.username, role: manager.role }, process.env.JWT_SECRET, { expiresIn: '1d' });
     res.status(200).json({ message: 'Manager logged in', token, manager });
   } catch (error) {
     res.status(500).json({ message: 'Login error', error });
@@ -288,6 +351,38 @@ const updateManagerMedia = async (req, res) => {
     });
   }
 };
+const getManagerNotifications = async (req, res) => {
+  try {
+    const managerId = req.manager.id;
+
+    const notifications = await Notification.find({
+      recipient: managerId
+    })
+    .sort({ date: -1 }); // Sort by date descending (newest first)
+
+    res.status(200).json({
+      message: 'Notifications fetched successfully',
+      notifications
+    });
+
+  } catch (error) {
+    console.error('Error fetching notifications:', error);
+    res.status(500).json({
+      message: 'Error fetching notifications',
+      error: error.message
+    });
+  }
+};
+
+const markAllNotificationsAsRead = async (req, res) => {
+  try {
+    const managerId = req.manager.id;
+    await Notification.updateMany({ recipient: managerId, read: false }, { read: true });
+    res.status(200).json({ message: 'All notifications marked as read' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error marking all notifications as read', error: error.message });
+  }
+};
 
 // Export all controller functions at the end
 module.exports = {
@@ -299,5 +394,7 @@ module.exports = {
   updateManagerProfile,
   getAllDevelopers,
   deleteDeveloper,
-  updateManagerMedia
+  updateManagerMedia,
+  getManagerNotifications,
+  markAllNotificationsAsRead
 };

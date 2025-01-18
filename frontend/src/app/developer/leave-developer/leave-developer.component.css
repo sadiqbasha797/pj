@@ -1,0 +1,10 @@
+/* Hide scrollbar while maintaining functionality */
+.leave-history-container {
+  scrollbar-width: none !important; /* Firefox */
+  -ms-overflow-style: none !important; /* IE and Edge */
+}
+
+.leave-history-container::-webkit-scrollbar {
+  width: 0 !important;
+  display: none !important; /* Chrome, Safari and Opera */
+}

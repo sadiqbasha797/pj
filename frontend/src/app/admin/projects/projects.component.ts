@@ -49,7 +49,7 @@ interface Participant {
 @Component({
   selector: 'app-projects',
   standalone: true,
-  imports: [CommonModule, FormsModule, TaskComponent],
+  imports: [CommonModule, FormsModule],
   templateUrl: './projects.component.html',
   styleUrl: './projects.component.css'
 })
@@ -279,15 +279,22 @@ createProject() {
 }
 
 updateProject() {
-  console.log('Updating project with data:', this.newProject);
-  const updatedProject = {
-    title: this.newProject.title,
-    description: this.newProject.description,
-    deadline: this.newProject.deadline,
-    assignedTo: this.newProject.assignedTo,
-    status: this.newProject.status
-  };
-  this.adminService.updateProject(this.editingProject!._id, updatedProject).subscribe({
+  this.loaderService.show();
+  const formData = new FormData();
+  
+  // Append basic project details
+  formData.append('title', this.newProject.title);
+  formData.append('description', this.newProject.description);
+  formData.append('deadline', this.newProject.deadline);
+  formData.append('assignedTo', JSON.stringify(this.newProject.assignedTo));
+  formData.append('status', this.newProject.status);
+  
+  // Append new files if any are selected
+  this.selectedFiles.forEach((file) => {
+    formData.append('relatedDocs', file, file.name);
+  });
+
+  this.adminService.updateProject(this.editingProject!._id, formData).subscribe({
     next: (response) => {
       const index = this.projects.findIndex(p => p._id === this.editingProject!._id);
       if (index !== -1) {

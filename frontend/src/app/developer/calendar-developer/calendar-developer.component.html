@@ -1,0 +1,405 @@
+<div class="min-h-screen dark:bg-gray-900 bg-gray-50 p-6">
+  <!-- Header Section -->
+  <div class="mb-8">
+    <!-- Header Section with Gradient -->
+    <div class="relative rounded-lg overflow-hidden mb-6 dark:bg-gray-800 bg-gray-100 p-6">
+      <!-- Decorative shapes -->
+      <div class="absolute inset-0">
+        <div class="absolute w-32 h-32 -top-16 -right-16 dark:bg-gray-700 bg-gray-200 opacity-10 rounded-full"></div>
+        <div class="absolute w-24 h-24 -bottom-12 -left-12 dark:bg-gray-700 bg-gray-200 opacity-10 rounded-full"></div>
+        <div class="absolute w-20 h-20 top-8 left-1/3 dark:bg-gray-700 bg-gray-200 opacity-5 rounded-full"></div>
+      </div>
+
+      <!-- Header content -->
+      <div class="relative flex justify-between items-center">
+        <div class="flex items-center gap-3">
+          <div class="dark:bg-gray-800 bg-gray-100 p-2 rounded-lg">
+            <span class="material-icons dark:text-gray-400 text-gray-600">calendar_today</span>
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold dark:text-gray-200 text-gray-800">Calendar</h1>
+            <p class="dark:text-gray-400 text-gray-600">View your schedule</p>
+          </div>
+        </div>
+
+        <div class="flex gap-3">
+          <button (click)="loadEvents()" 
+                  class="flex items-center gap-2 px-4 py-2 dark:bg-gray-800 bg-gray-100 rounded-lg dark:hover:bg-gray-700 hover:bg-gray-200 transition-all duration-300 group">
+            <span class="material-icons dark:text-gray-400 text-gray-600 group-hover:rotate-180 transition-transform duration-500">refresh</span>
+            <span class="text-sm font-medium dark:text-gray-400 text-gray-600">Refresh</span>
+          </button>
+          <button pButton type="button" label="Add Event" (click)="openAddEventDialog()" class="p-button-secondary"></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Calendar Section -->
+  <div class="dark:bg-gray-800 bg-white rounded-2xl dark:border-gray-700 border-gray-200 border shadow-xl dark:shadow-none overflow-hidden">
+    <full-calendar [options]="calendarOptions" class="p-6"></full-calendar>
+  </div>
+</div>
+
+<!-- Events List Modal -->
+<div *ngIf="showEventDialog" 
+     class="fixed inset-0 dark:bg-gray-900/50 bg-gray-600/50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
+  <div class="dark:bg-gray-800 bg-white rounded-lg shadow-xl w-full max-w-2xl animate__animated animate__fadeInDown animate__faster">
+    <!-- Header -->
+    <div class="flex justify-between items-center p-6 dark:border-gray-700 border-gray-200 border-b">
+      <div class="flex items-center gap-3">
+        <div class="dark:bg-gray-700 bg-gray-100 p-2 rounded-lg">
+          <span class="material-icons dark:text-gray-400 text-gray-600">event</span>
+        </div>
+        <div>
+          <h2 class="text-xl font-semibold dark:text-gray-200 text-gray-800">
+            Events for {{selectedDate | date}}
+          </h2>
+        </div>
+      </div>
+      <button (click)="openAddEventDialog()" 
+              class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all">
+        Create Event
+      </button>
+    </div>
+
+    <!-- Content -->
+    <div class="p-6">
+      <div *ngIf="selectedDateEvents.length === 0" 
+           class="text-center py-8 dark:text-gray-400 text-gray-600">
+        No events scheduled for this date
+      </div>
+      
+      <div *ngIf="selectedDateEvents.length > 0" class="space-y-4">
+        <div *ngFor="let event of selectedDateEvents" 
+             class="bg-white dark:bg-gray-700 p-4 rounded-lg shadow hover:shadow-md transition-all">
+          <div class="flex justify-between items-start">
+            <div>
+              <h3 class="font-semibold dark:text-gray-200 text-gray-800">{{event.title}}</h3>
+              <p class="text-sm dark:text-gray-400 text-gray-600">{{event.description}}</p>
+              <span [class]="'inline-block px-2 py-1 text-xs rounded-full mt-2 ' + getEventTypeClass(event.eventType)">
+                {{event.eventType}}
+              </span>
+            </div>
+            <div class="flex items-center gap-2">
+              <button (click)="viewEventDetails(event)" 
+                      class="p-2 text-blue-600 hover:bg-blue-100 rounded-full transition-all"
+                      title="View Details">
+                <span class="material-icons text-sm">visibility</span>
+              </button>
+              <button *ngIf="event.byMe" 
+                      (click)="editEvent(event)"
+                      class="p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-all"
+                      title="Edit Event">
+                <span class="material-icons text-sm">edit</span>
+              </button>
+              <button *ngIf="event.byMe"
+                      (click)="deleteEvent(event.id)"
+                      class="p-2 text-red-600 hover:bg-red-100 rounded-full transition-all"
+                      title="Delete Event">
+                <span class="material-icons text-sm">delete</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="flex justify-end gap-3 p-6 dark:border-gray-700 border-gray-200 border-t">
+      <button (click)="closeEventDialog()"
+              class="px-6 py-2.5 dark:bg-gray-700 bg-gray-100 dark:text-gray-300 text-gray-600 rounded-lg dark:hover:bg-gray-600 hover:bg-gray-200">
+        Close
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Event Dialog -->
+<div *ngIf="showAddEventDialog" 
+     class="fixed inset-0 dark:bg-gray-900/50 bg-gray-600/50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
+  <div class="dark:bg-gray-800 bg-white rounded-lg shadow-xl w-full max-w-2xl animate__animated animate__fadeInDown animate__faster">
+    <!-- Dialog Header -->
+    <div class="flex justify-between items-center p-6 border-b dark:border-gray-700">
+      <div class="flex items-center gap-3">
+        <div class="dark:bg-gray-700 bg-gray-100 p-2 rounded-lg">
+          <span class="material-icons dark:text-gray-400 text-gray-600">event_note</span>
+        </div>
+        <h2 class="text-xl font-semibold dark:text-white text-gray-900">Add New Event</h2>
+      </div>
+      <button (click)="closeAddEventDialog()" 
+              class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+
+    <!-- Form Content -->
+    <form [formGroup]="eventForm" (ngSubmit)="handleEventSubmit()" class="p-6 space-y-6">
+      <!-- Title -->
+      <div class="space-y-2">
+        <label for="title" class="block text-sm font-medium dark:text-gray-300 text-gray-700">
+          Event Title <span class="text-red-500">*</span>
+        </label>
+        <input id="title" 
+               type="text" 
+               formControlName="title"
+               class="w-full px-4 py-2.5 rounded-lg border dark:border-gray-600 dark:bg-gray-700 
+                      dark:text-gray-300 focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 
+                      focus:border-transparent transition-colors duration-200"
+               placeholder="Enter event title">
+        <div *ngIf="eventForm.get('title')?.touched && eventForm.get('title')?.invalid" 
+             class="text-red-500 text-sm mt-1">
+          Title is required
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="space-y-2">
+        <label for="description" class="block text-sm font-medium dark:text-gray-300 text-gray-700">
+          Description
+        </label>
+        <textarea id="description" 
+                  formControlName="description"
+                  rows="3"
+                  class="w-full px-4 py-2.5 rounded-lg border dark:border-gray-600 dark:bg-gray-700 
+                         dark:text-gray-300 focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 
+                         focus:border-transparent transition-colors duration-200"
+                  placeholder="Enter event description"></textarea>
+      </div>
+
+      <!-- Event Type -->
+      <div class="space-y-2">
+        <label for="eventType" class="block text-sm font-medium dark:text-gray-300 text-gray-700">
+          Event Type <span class="text-red-500">*</span>
+        </label>
+        <select id="eventType" 
+                formControlName="eventType"
+                class="w-full px-4 py-2.5 rounded-lg border dark:border-gray-600 dark:bg-gray-700 
+                       dark:text-gray-300 focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 
+                       focus:border-transparent transition-colors duration-200">
+          <option value="" disabled selected>Select event type</option>
+          <option value="Work">Work</option>
+          <option value="Reminder">Reminder</option>
+          <option value="Other">Other</option>
+        </select>
+        <div *ngIf="eventForm.get('eventType')?.touched && eventForm.get('eventType')?.invalid" 
+             class="text-red-500 text-sm mt-1">
+          Event type is required
+        </div>
+      </div>
+
+      <!-- Location -->
+      <div class="space-y-2">
+        <label for="location" class="block text-sm font-medium dark:text-gray-300 text-gray-700">
+          Location
+        </label>
+        <input id="location" 
+               type="text" 
+               formControlName="location"
+               class="w-full px-4 py-2.5 rounded-lg border dark:border-gray-600 dark:bg-gray-700 
+                      dark:text-gray-300 focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 
+                      focus:border-transparent transition-colors duration-200"
+               placeholder="Enter location">
+      </div>
+
+      <!-- Event Date -->
+      <div class="space-y-2">
+        <label for="eventDate" class="block text-sm font-medium dark:text-gray-300 text-gray-700">
+          Event Date <span class="text-red-500">*</span>
+        </label>
+        <input id="eventDate" 
+               type="datetime-local" 
+               formControlName="eventDate"
+               class="w-full px-4 py-2.5 rounded-lg border dark:border-gray-600 dark:bg-gray-700 
+                      dark:text-gray-300 focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 
+                      focus:border-transparent transition-colors duration-200">
+        <div *ngIf="eventForm.get('eventDate')?.touched && eventForm.get('eventDate')?.invalid" 
+             class="text-red-500 text-sm mt-1">
+          Event date is required
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="flex justify-end gap-3 pt-4 border-t dark:border-gray-700">
+        <button type="button"
+                class="px-4 py-2 text-sm font-medium rounded-lg dark:bg-gray-700 dark:text-gray-300 
+                       dark:hover:bg-gray-600 bg-gray-100 text-gray-700 hover:bg-gray-200 
+                       transition-colors duration-200"
+                (click)="closeAddEventDialog()">
+          Cancel
+        </button>
+        <button type="submit"
+                [disabled]="!eventForm.valid"
+                [ngClass]="{'opacity-50 cursor-not-allowed': !eventForm.valid}"
+                class="px-4 py-2 text-sm font-medium rounded-lg bg-gray-600 text-white 
+                       hover:bg-gray-700 dark:bg-gray-500 dark:hover:bg-gray-600 
+                       transition-colors duration-200">
+          Create Event
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- View Event Modal -->
+<div *ngIf="viewingEvent" 
+     class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
+  <div class="bg-white rounded-lg shadow-xl w-full max-w-5xl animate__animated animate__fadeInDown animate__faster">
+    <!-- Header with gradient design -->
+    <div class="relative rounded-t-lg overflow-hidden">
+      <!-- Gradient background -->
+      <div class="absolute inset-0 bg-gradient-to-r from-gray-600 via-gray-700 to-gray-800"></div>
+      
+      <!-- Decorative shapes -->
+      <div class="absolute inset-0">
+        <div class="absolute w-32 h-32 -top-16 -right-16 bg-white opacity-10 rounded-full"></div>
+        <div class="absolute w-24 h-24 -bottom-12 -left-12 bg-white opacity-10 rounded-full"></div>
+        <div class="absolute w-20 h-20 top-8 left-1/3 bg-white opacity-5 rounded-full"></div>
+      </div>
+
+      <!-- Header content -->
+      <div class="relative p-6">
+        <div class="flex justify-between items-center">
+          <div class="flex items-center gap-3">
+            <div class="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
+              <span class="material-icons text-white text-xl">event</span>
+            </div>
+            <div>
+              <h2 class="text-lg font-bold text-white">{{viewingEvent.title}}</h2>
+              <p class="text-blue-100 text-xs mt-0.5">Event Details</p>
+            </div>
+          </div>
+          <button (click)="closeViewModal()" 
+                  class="bg-white/10 hover:bg-white/20 p-1.5 rounded-full backdrop-blur-sm transition-all duration-300">
+            <span class="material-icons text-white text-sm">close</span>
+          </button>
+        </div>
+
+        <!-- Quick stats -->
+        <div class="flex gap-4 mt-4">
+          <div class="bg-white/10 px-3 py-1.5 rounded-lg backdrop-blur-sm">
+            <p class="text-blue-100 text-xs">Type</p>
+            <p class="text-white text-sm font-medium">{{viewingEvent.extendedProps?.eventType}}</p>
+          </div>
+          <div class="bg-white/10 px-3 py-1.5 rounded-lg backdrop-blur-sm">
+            <p class="text-blue-100 text-xs">Status</p>
+            <p class="text-white text-sm font-medium">{{viewingEvent.extendedProps?.status}}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="p-6 bg-gray-50">
+      <div class="grid grid-cols-2 gap-6">
+        <!-- Left Column -->
+        <div class="space-y-4">
+          <!-- Participants -->
+          <div *ngIf="viewingEvent.participants?.length > 0" 
+               class="bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-all duration-300">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="material-icons text-blue-400 text-sm">people</span>
+              <h3 class="font-semibold text-gray-700 text-sm">Participants</h3>
+            </div>
+            <div class="space-y-2">
+              <div *ngFor="let participant of viewingEvent.extendedProps?.participants" 
+                   class="flex items-center gap-2">
+                <div class="bg-blue-100 p-1 rounded-lg">
+                  <span class="material-icons text-blue-500 text-xs">
+                    {{participant.type === 'Developer' ? 'code' : 'manage_accounts'}}
+                  </span>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500">{{participant.type}}</p>
+                  <p class="text-gray-700 text-sm">{{participant.name}}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Description -->
+          <div class="bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-all duration-300">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="material-icons text-purple-400 text-sm">description</span>
+              <h3 class="font-semibold text-gray-700 text-sm">Description</h3>
+            </div>
+            <p class="text-gray-600 text-sm">{{viewingEvent.description || 'No description provided'}}</p>
+          </div>
+
+          <!-- Location -->
+          <div class="bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-all duration-300">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="material-icons text-blue-400 text-sm">location_on</span>
+              <h3 class="font-semibold text-gray-700 text-sm">Location</h3>
+            </div>
+            <p class="text-gray-600 text-sm">{{viewingEvent.extendedProps?.location || 'No location specified'}}</p>
+          </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="space-y-4">
+          <!-- Timeline -->
+          <div class="bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-all duration-300">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="material-icons text-green-400 text-sm">timeline</span>
+              <h3 class="font-semibold text-gray-700 text-sm">Timeline</h3>
+            </div>
+            <div class="space-y-2">
+              <div class="flex items-center gap-2">
+                <div class="bg-green-100 p-1 rounded-lg">
+                  <span class="material-icons text-green-500 text-xs">start</span>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500">Start Date</p>
+                  <p class="text-gray-700 text-sm">{{formatDate(viewingEvent.start)}}</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <div class="bg-purple-100 p-1 rounded-lg">
+                  <span class="material-icons text-purple-500 text-xs">event</span>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500">End Date</p>
+                  <p class="text-gray-700 text-sm">{{formatDate(viewingEvent.end)}}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Additional Details -->
+          <div class="bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-all duration-300">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="material-icons text-orange-400 text-sm">info</span>
+              <h3 class="font-semibold text-gray-700 text-sm">Additional Details</h3>
+            </div>
+            <div class="space-y-2">
+              <div class="flex items-center gap-2">
+                <div class="bg-orange-100 p-1 rounded-lg">
+                  <span class="material-icons text-orange-500 text-xs">category</span>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500">Category</p>
+                  <p class="text-gray-700 text-sm">{{viewingEvent.extendedProps?.eventType || 'Not specified'}}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="bg-gradient-to-r from-gray-50 to-gray-100 p-4 rounded-b-lg border-t border-gray-200">
+      <div class="flex justify-end gap-3">
+        <button *ngIf="viewingEvent.byMe" 
+                (click)="deleteEvent({id: viewingEvent.id})"
+                class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all">
+          Delete Event
+        </button>
+        <button (click)="closeViewModal()"
+                class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

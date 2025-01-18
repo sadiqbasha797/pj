@@ -23,7 +23,7 @@ interface Message {
 })
 export class MessageService {
   private socket: Socket;
-  private apiUrl = 'http://localhost:3000/api/message';
+  private apiUrl = 'https://pj-backend-y82g.onrender.com/api/message';
   private unreadCount = new BehaviorSubject<number>(0);
   private newMessage = new BehaviorSubject<Message | null>(null);
 
@@ -41,7 +41,15 @@ export class MessageService {
   }
 
   private getHeaders(): HttpHeaders {
-    const token = localStorage.getItem('adminToken');
+    const token = 
+      localStorage.getItem('managerToken') || 
+      localStorage.getItem('adminToken') || 
+      localStorage.getItem('developerToken');
+    
+    if (!token) {
+      console.warn('No authentication token found');
+    }
+    
     return new HttpHeaders()
       .set('Authorization', `Bearer ${token}`)
       .set('Content-Type', 'application/json');

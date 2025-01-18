@@ -1,4 +1,5 @@
 <div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 p-6">
+  <!-- Previous sections remain unchanged until Bottom Row -->
   <!-- Header Section -->
   <div class="mb-8">
     <div class="flex justify-between items-center">
@@ -154,60 +155,101 @@
   <!-- Bottom Row -->
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
     <!-- Upcoming Events -->
-    <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px] hover:shadow-[rgba(0,_0,_0,_0.2)_0px_10px_20px] transition-all duration-300 hover:-translate-y-1">
+    <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px] hover:shadow-[rgba(0,_0,_0,_0.2)_0px_10px_20px] transition-all duration-300 hover:-translate-y-1">
       <h2 class="text-xl font-semibold text-gray-800 mb-6">
         <span class="material-icons align-middle mr-2 text-amber-500">event_upcoming</span>
         Upcoming Events
       </h2>
-      <div class="space-y-4">
-        <div *ngFor="let event of upcomingEvents" class="p-6 bg-gray-50 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
-          <div class="flex justify-between items-start">
-            <div>
-              <h3 class="text-xl text-gray-800">{{event.title}}</h3>
-              <p class="text-sm text-gray-600 mt-2 flex items-center">
-                <span class="material-icons text-emerald-500 mr-1 text-base">calendar_today</span>
-                {{formatDate(event.eventDate)}}
-              </p>
+      <div class="h-[300px] overflow-y-auto scrollbar-hide">
+        <div class="space-y-4 pr-2">
+          <div *ngFor="let event of upcomingEvents" class="group cursor-pointer">
+            <div class="flex items-center p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg hover:from-amber-100 hover:to-orange-100 transition-all duration-300">
+              <div class="flex-shrink-0 w-14 h-14 bg-amber-200 rounded-full flex items-center justify-center mr-4 group-hover:bg-amber-300 transition-all duration-300">
+                <span class="material-icons text-amber-700 text-2xl">event</span>
+              </div>
+              <div class="flex-grow">
+                <h3 class="text-sm font-medium text-amber-900 group-hover:text-amber-950">{{event.title}}</h3>
+                <p class="text-xs text-amber-700 mt-1">{{formatDate(event.eventDate)}}</p>
+                <span class="inline-block mt-2 text-xs px-3 py-1 bg-amber-200 text-amber-800 rounded-full">
+                  {{event.eventType}}
+                </span>
+              </div>
             </div>
-            <span class="px-4 py-2 text-xs font-medium rounded-full bg-emerald-100 text-emerald-700">
-              {{event.eventType}}
-            </span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Summary Stats -->
-    <div class="bg-white p-6 rounded-xl shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px] hover:shadow-[rgba(0,_0,_0,_0.2)_0px_10px_20px] transition-all duration-300 hover:-translate-y-1">
+    <!-- Team Members -->
+    <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px] hover:shadow-[rgba(0,_0,_0,_0.2)_0px_10px_20px] transition-all duration-300 hover:-translate-y-1">
       <h2 class="text-xl font-semibold text-gray-800 mb-6">
-        <span class="material-icons align-middle mr-2 text-pink-500">analytics</span>
-        Quick Summary
+        <span class="material-icons align-middle mr-2 text-pink-500">people</span>
+        Team Members
       </h2>
-      <div class="grid grid-cols-2 gap-4">
-        <div class="p-4 bg-blue-300 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
-          <p class="text-sm font-medium text-blue-700">Active Projects</p>
-          <p class="text-2xl font-semibold text-blue-900 mt-2">
-            {{projectStatus.inProgress}}
-          </p>
-        </div>
-        <div class="p-4 bg-indigo-300 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
-          <p class="text-sm font-medium text-indigo-700">Active Tasks</p>
-          <p class="text-2xl font-semibold text-indigo-900 mt-2">
-            {{taskStatus.inProgress}}
-          </p>
-        </div>
-        <div class="p-4 bg-emerald-300 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
-          <p class="text-sm font-medium text-emerald-700">Completed</p>
-          <p class="text-2xl font-semibold text-emerald-900 mt-2">
-            {{projectStatus.completed}}
-          </p>
-        </div>
-        <div class="p-4 bg-amber-300 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
-          <p class="text-sm font-medium text-amber-700">Pending</p>
-          <p class="text-2xl font-semibold text-amber-900 mt-2">
-            {{projectStatus.assigned}}
-          </p>
-        </div>
+      
+      <div class="h-[300px] overflow-y-auto scrollbar-hide">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50 sticky top-0">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Member</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <!-- Developers -->
+            <tr *ngFor="let dev of developers" class="hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0 h-10 w-10">
+                    <img src="{{dev.image}}" class="h-10 w-10 rounded-full object-cover" alt="Developer profile">
+                  </div>
+                  <div class="ml-4">
+                    <div class="text-sm font-medium text-gray-900">{{dev.username}}</div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-500">{{dev.email}}</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">Developer</span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0 h-2.5 w-2.5 rounded-full bg-green-400 mr-2"></div>
+                  <span class="text-xs text-gray-500">Active</span>
+                </div>
+              </td>
+            </tr>
+            <!-- Managers -->
+            <tr *ngFor="let mgr of managers" class="hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0 h-10 w-10">
+                    <img src="{{mgr.image}}" class="h-10 w-10 rounded-full object-cover" alt="Manager profile">
+                  </div>
+                  <div class="ml-4">
+                    <div class="text-sm font-medium text-gray-900">{{mgr.username}}</div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-500">{{mgr.email}}</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-pink-100 text-pink-800">Manager</span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0 h-2.5 w-2.5 rounded-full bg-green-400 mr-2"></div>
+                  <span class="text-xs text-gray-500">Active</span>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>

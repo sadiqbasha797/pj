@@ -1,0 +1,159 @@
+<div class="sidebar h-screen fixed left-0 top-0 transition-all duration-300 ease-in-out flex flex-col shadow-lg
+            dark:bg-gray-900 bg-white"
+     [ngClass]="{'w-72': !collapsed, 'w-20': collapsed, 'hidden': collapsed && isMobile}">
+  <div class="flex-grow overflow-y-auto" [ngClass]="{'items-center': collapsed}">
+    <!-- Header Section -->
+    <div class="p-3.5 relative overflow-hidden border-b dark:border-indigo-500/30 border-gray-200
+                dark:bg-gray-800 bg-gray-50">
+      <div class="flex justify-between items-center relative z-10">
+        <div class="flex items-center gap-2">
+          <div class="px-2 rounded-xl backdrop-blur-sm border dark:border-indigo-500/30 border-gray-200 hover:shadow-xl transition-all duration-300">
+            <img src="https://img.freepik.com/free-vector/abstract-logo-made-with-rounded-squares_1043-52.jpg" 
+                 alt="Logo" 
+                 class="h-8 w-8 transform hover:scale-110 transition-transform duration-300" 
+                 [ngClass]="{'mx-auto': collapsed}">
+          </div>
+          <div class="space-y-1" [ngClass]="{'hidden': collapsed}">
+            <h2 class="text-[20px] font-black dark:text-indigo-300 text-gray-800">Dev Portal</h2>
+            <div class="flex space-x-1">
+              <div class="h-0.5 w-12 dark:bg-indigo-500/50 bg-gray-300 rounded-full"></div>
+              <div class="h-0.5 w-6 dark:bg-indigo-500/50 bg-gray-300 rounded-full"></div>
+              <div class="h-0.5 w-3 dark:bg-indigo-500/50 bg-gray-300 rounded-full"></div>
+            </div>
+          </div>
+        </div>
+        <button *ngIf="isMobile" (click)="onCloseSidebar()" 
+                class="dark:text-indigo-400 text-gray-600 dark:hover:text-indigo-300 hover:text-gray-800">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M18 6L6 18M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Navigation Menu -->
+    <nav class="p-6">
+      <ul class="space-y-1.5" [ngClass]="{'flex flex-col items-center': collapsed}">
+        <!-- Dashboard -->
+        <li>
+          <a routerLink="/developer/dashboard" routerLinkActive="dark:bg-indigo-900/50 bg-gray-100 dark:text-indigo-300 text-gray-800" 
+             class="group flex items-center py-2.5 px-4 rounded-xl dark:hover:bg-gray-800/40 hover:bg-gray-50 transition-all duration-300 
+                    hover:shadow-[0_0_15px_rgba(75,85,99,0.3)] dark:hover:border-indigo-500/30 hover:border-gray-200 border border-transparent"
+             [title]="collapsed ? 'Dashboard' : ''">
+            <div class="flex items-center justify-center w-9 h-9 rounded-lg dark:bg-indigo-900 bg-gray-100 
+                        group-hover:bg-gray-200 dark:group-hover:bg-indigo-800 transition-colors duration-300">
+              <svg class="h-5 w-5 dark:text-indigo-300 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5zM14 5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V5zM4 16a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3zM14 13a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1v-6z"/>
+              </svg>
+            </div>
+            <span [ngClass]="{'hidden': collapsed, 'ml-3 font-medium dark:text-gray-200 text-gray-700': !collapsed}">Dashboard</span>
+          </a>
+        </li>
+
+        <!-- Projects -->
+        <li>
+          <a routerLink="/developer/projects" routerLinkActive="dark:bg-indigo-900/50 bg-gray-100 dark:text-indigo-300 text-gray-800" 
+             class="group flex items-center py-2.5 px-4 rounded-xl dark:hover:bg-gray-800/40 hover:bg-gray-50 transition-all duration-300 
+                    hover:shadow-[0_0_15px_rgba(75,85,99,0.3)] dark:hover:border-indigo-500/30 hover:border-gray-200 border border-transparent"
+             [title]="collapsed ? 'Projects' : ''">
+            <div class="flex items-center justify-center w-9 h-9 rounded-lg dark:bg-indigo-900 bg-gray-100 
+                        group-hover:bg-gray-200 dark:group-hover:bg-indigo-800 transition-colors duration-300">
+              <svg class="h-5 w-5 dark:text-indigo-300 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+              </svg>
+            </div>
+            <span [ngClass]="{'hidden': collapsed, 'ml-3 font-medium dark:text-gray-200 text-gray-700': !collapsed}">Projects</span>
+          </a>
+        </li>
+
+        <!-- Tasks -->
+        <li>
+          <a routerLink="/developer/tasks" routerLinkActive="dark:bg-indigo-900/50 bg-gray-100 dark:text-indigo-300 text-gray-800" 
+             class="group flex items-center py-2.5 px-4 rounded-xl dark:hover:bg-gray-800/40 hover:bg-gray-50 transition-all duration-300 
+                    hover:shadow-[0_0_15px_rgba(75,85,99,0.3)] dark:hover:border-indigo-500/30 hover:border-gray-200 border border-transparent"
+             [title]="collapsed ? 'Tasks' : ''">
+            <div class="flex items-center justify-center w-9 h-9 rounded-lg dark:bg-indigo-900 bg-gray-100 
+                        group-hover:bg-gray-200 dark:group-hover:bg-indigo-800 transition-colors duration-300">
+              <svg class="h-5 w-5 dark:text-indigo-300 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+              </svg>
+            </div>
+            <span [ngClass]="{'hidden': collapsed, 'ml-3 font-medium dark:text-gray-200 text-gray-700': !collapsed}">Tasks</span>
+          </a>
+        </li>
+
+        <!-- Calendar -->
+        <li>
+          <a routerLink="/developer/calendar" routerLinkActive="dark:bg-indigo-900/50 bg-gray-100 dark:text-indigo-300 text-gray-800" 
+             class="group flex items-center py-2.5 px-4 rounded-xl dark:hover:bg-gray-800/40 hover:bg-gray-50 transition-all duration-300 
+                    hover:shadow-[0_0_15px_rgba(75,85,99,0.3)] dark:hover:border-indigo-500/30 hover:border-gray-200 border border-transparent"
+             [title]="collapsed ? 'Calendar' : ''">
+            <div class="flex items-center justify-center w-9 h-9 rounded-lg dark:bg-indigo-900 bg-gray-100 
+                        group-hover:bg-gray-200 dark:group-hover:bg-indigo-800 transition-colors duration-300">
+              <svg class="h-5 w-5 dark:text-indigo-300 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+            </div>
+            <span [ngClass]="{'hidden': collapsed, 'ml-3 font-medium dark:text-gray-200 text-gray-700': !collapsed}">Calendar</span>
+          </a>
+        </li>
+
+        <!-- Chat -->
+        <li>
+          <a routerLink="/developer/chat" routerLinkActive="dark:bg-indigo-900/50 bg-gray-100 dark:text-indigo-300 text-gray-800" 
+             class="group flex items-center py-2.5 px-4 rounded-xl dark:hover:bg-gray-800/40 hover:bg-gray-50 transition-all duration-300 
+                    hover:shadow-[0_0_15px_rgba(75,85,99,0.3)] dark:hover:border-indigo-500/30 hover:border-gray-200 border border-transparent"
+             [title]="collapsed ? 'Chat' : ''">
+            <div class="flex items-center justify-center w-9 h-9 rounded-lg dark:bg-indigo-900 bg-gray-100 
+                        group-hover:bg-gray-200 dark:group-hover:bg-indigo-800 transition-colors duration-300">
+              <svg class="h-5 w-5 dark:text-indigo-300 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+              </svg>
+            </div>
+            <span [ngClass]="{'hidden': collapsed, 'ml-3 font-medium dark:text-gray-200 text-gray-700': !collapsed}">Chat</span>
+          </a>
+        </li>
+
+        <!-- Leave -->
+        <li>
+          <a routerLink="/developer/leave" routerLinkActive="dark:bg-indigo-900/50 bg-gray-100 dark:text-indigo-300 text-gray-800" 
+             class="group flex items-center py-2.5 px-4 rounded-xl dark:hover:bg-gray-800/40 hover:bg-gray-50 transition-all duration-300 
+                    hover:shadow-[0_0_15px_rgba(75,85,99,0.3)] dark:hover:border-indigo-500/30 hover:border-gray-200 border border-transparent"
+             [title]="collapsed ? 'Leave' : ''">
+            <div class="flex items-center justify-center w-9 h-9 rounded-lg dark:bg-indigo-900 bg-gray-100 
+                        group-hover:bg-gray-200 dark:group-hover:bg-indigo-800 transition-colors duration-300">
+              <svg class="h-5 w-5 dark:text-indigo-300 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M8 11V7a4 4 0 118 0m-4 8v3m-6-3h12"/>
+              </svg>
+            </div>
+            <span [ngClass]="{'hidden': collapsed, 'ml-3 font-medium dark:text-gray-200 text-gray-700': !collapsed}">Leave</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+
+  <!-- Footer -->
+  <div class="mt-auto border-t dark:border-indigo-500/30 border-gray-200">
+    <div class="p-4" [ngClass]="{'text-center': collapsed}">
+      <!-- Developer Info -->
+      <div class="flex items-center gap-3 p-2 rounded-lg dark:hover:bg-gray-800/50 hover:bg-gray-50 transition-all duration-300" 
+           [ngClass]="{'justify-center': collapsed}">
+        <div class="w-8 h-8 rounded-full dark:bg-indigo-900 bg-gray-100 flex items-center justify-center 
+                    dark:text-white text-gray-600 text-sm font-medium">
+          D
+        </div>
+        <div class="flex-grow" *ngIf="!collapsed">
+          <div class="text-sm font-medium dark:text-gray-300 text-gray-700">Developer</div>
+          <div class="text-xs dark:text-gray-500 text-gray-500">dev.example.com</div>
+        </div>
+      </div>
+
+      <!-- Version Info -->
+      <div class="mt-2 text-xs dark:text-gray-600 text-gray-500 text-center">
+        <span *ngIf="!collapsed">Version 1.0.0</span>
+        <span *ngIf="collapsed">v1.0</span>
+      </div>
+    </div>
+  </div>
+</div>

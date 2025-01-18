@@ -18,7 +18,7 @@ interface Participant {
   };
 }
 
-interface Task {
+export interface Task {
   _id: string;
   taskName: string;
   description: string;

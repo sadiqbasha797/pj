@@ -7,6 +7,7 @@ const Project = require('../models/Project');
 const nodemailer = require('nodemailer');
 const CalendarEvent = require('../models/calendarEvent');
 const Holiday = require('../models/Holiday');
+const Notification = require('../models/Notification');
 const { createNotification,notifyCreation,notifyUpdate,leaveUpdateNotification,leaveNotification } = require('../utils/notificationHelper'); // Adjust the path as necessary
 const { uploadToCloudinary, deleteFromCloudinary } = require('../utils/cloudinary');
 // Email configuration
@@ -102,9 +103,24 @@ const addProject = async (req, res) => {
             projectId: newProject._id
         });
         await newEvent.save();
+
+        // Get all managers who manage any of the assigned developers
+        const managers = await Manager.find({
+            'developers.developerId': { $in: assignedTo }
+        }).select('_id');
+        const managerIds = managers.map(manager => manager._id);
   
-        const participantIds = assignedTo.map(id => id);
-        await notifyCreation(participantIds, 'Project', title, newProject._id);
+        // Create individual notifications for each recipient
+        const allRecipients = [...assignedTo, ...managerIds];
+        for (const recipientId of allRecipients) {
+            const notification = new Notification({
+                recipient: recipientId,
+                content: `New Project created: ${title}`,
+                type: 'Project',
+                relatedId: newProject._id
+            });
+            await notification.save();
+        }
   
         const developerEmails = await Developer.find({ '_id': { $in: assignedTo } }).select('email');
         await sendEmailToDevelopers(developerEmails.map(dev => dev.email), newProject);
@@ -114,8 +130,8 @@ const addProject = async (req, res) => {
         console.error("Failed to add project or create event:", error);
         res.status(500).json({ message: 'Error adding project and creating event', error: error.message });
     }
-  };
-  
+};
+
   
   // Fetch all projects
   const fetchProjects = async (req, res) => {
@@ -126,59 +142,103 @@ const addProject = async (req, res) => {
       res.status(500).json({ message: 'Error fetching projects', error });
     }
   };
-  const updateProject = async (req, res) => {
-    try {
-      const projectId = req.params.projectId;
-      const updates = req.body;
-      const oldProject = await Project.findById(projectId);
 
-      if (!oldProject) {
-        return res.status(404).json({ message: 'Project not found' });
-      }
+const updateProject = async (req, res) => {
+  try {
+    const projectId = req.params.projectId;
+    const updates = req.body;
+    const oldProject = await Project.findById(projectId);
 
-      // Handle file uploads
-      if (req.files && req.files.length > 0) {
-        // Delete old documents from Cloudinary
-        for (const docUrl of oldProject.relatedDocs) {
-          await deleteFromCloudinary(docUrl);
-        }
-
-        // Upload new documents
-        const uploadedDocs = [];
-        for (const file of req.files) {
-          const result = await uploadToCloudinary(file.path, 'projects');
-          uploadedDocs.push(result.secure_url);
-        }
-        updates.relatedDocs = uploadedDocs;
-      }
-
-      const updatedProject = await Project.findByIdAndUpdate(projectId, updates, { new: true });
-
-      const updatedEvent = await CalendarEvent.findOneAndUpdate(
-        { projectId: projectId },
-        {
-          title: `Project Assigned: ${updates.title || updatedProject.title}`,
-          description: updates.description || updatedProject.description,
-          eventDate: updates.deadline || updatedProject.deadline
-        },
-        { new: true }
-      );
-
-      if (!updatedEvent) {
-        return res.status(404).json({ message: 'Related calendar event not found' });
-      }
-
-      // Notify developers about the project update
-      const assignedTo = updatedProject.assignedTo;
-      const participantIds = assignedTo.map(id => id);
-      await notifyUpdate(participantIds, 'Project', updatedProject.title, updatedProject._id);
-
-      res.status(200).json({ message: 'Project and related event updated successfully', project: updatedProject, event: updatedEvent });
-    } catch (error) {
-      res.status(500).json({ message: 'Error updating project and event', error });
+    if (!oldProject) {
+      return res.status(404).json({ message: 'Project not found' });
     }
-  };
-  
+
+    // Convert assignedTo back to array if it's a JSON string
+    if (typeof updates.assignedTo === 'string') {
+      updates.assignedTo = JSON.parse(updates.assignedTo);
+    }
+
+    // Handle file uploads if there are new files
+    if (req.files && req.files.length > 0) {
+      const uploadedDocs = [];
+      
+      // Upload new documents
+      for (const file of req.files) {
+        const result = await uploadToCloudinary(file.path, 'projects');
+        uploadedDocs.push(result.secure_url);
+      }
+      
+      // Combine new uploads with existing docs if needed
+      updates.relatedDocs = uploadedDocs;
+    }
+
+    const updatedProject = await Project.findByIdAndUpdate(
+      projectId, 
+      updates,
+      { new: true }
+    );
+
+    const updatedEvent = await CalendarEvent.findOneAndUpdate(
+      { projectId: projectId },
+      {
+        title: `Project Assigned: ${updates.title || updatedProject.title}`,
+        description: updates.description || updatedProject.description,
+        eventDate: updates.deadline || updatedProject.deadline
+      },
+      { new: true }
+    );
+
+    if (!updatedEvent) {
+      return res.status(404).json({ message: 'Related calendar event not found' });
+    }
+
+    // Get assigned developers
+    const assignedTo = updatedProject.assignedTo;
+
+    // Find all managers who manage any of the assigned developers
+    const managers = await Manager.find({
+      'developers.developerId': { $in: assignedTo }
+    }).select('_id');
+    const managerIds = managers.map(manager => manager._id);
+
+    // Combine developer IDs and manager IDs for notifications
+    const notificationRecipients = [...assignedTo, ...managerIds];
+
+    // Create individual notifications for each recipient including null recipient
+    // First create notification for specific recipients
+    for (const recipientId of notificationRecipients) {
+      const notification = new Notification({
+        recipient: recipientId,
+        content: `Project updated: ${updatedProject.title}`,
+        read: false,
+        relatedId: updatedProject._id,
+        type: 'Project',
+        date: new Date()
+      });
+      await notification.save();
+    }
+
+    // Create an additional notification with null recipient
+    const nullNotification = new Notification({
+      recipient: null,
+      content: `Project updated: ${updatedProject.title}`,
+      read: false,
+      relatedId: updatedProject._id,
+      type: 'Project',
+      date: new Date()
+    });
+    await nullNotification.save();
+
+    res.status(200).json({ 
+      message: 'Project and related event updated successfully', 
+      project: updatedProject, 
+      event: updatedEvent 
+    });
+  } catch (error) {
+    console.error('Error updating project:', error);
+    res.status(500).json({ message: 'Error updating project and event', error });
+  }
+};
   
   const deleteProject = async (req, res) => {
     try {
@@ -193,6 +253,60 @@ const addProject = async (req, res) => {
       for (const docUrl of deletedProject.relatedDocs) {
         await deleteFromCloudinary(docUrl);
       }
+
+      // Get assigned developers and their managers
+      const assignedDevelopers = await Developer.find({ '_id': { $in: deletedProject.assignedTo } }).select('email');
+      const managers = await Manager.find({
+        'developers.developerId': { $in: deletedProject.assignedTo }
+      }).select('email _id');
+
+      const developerEmails = assignedDevelopers.map(dev => dev.email);
+      const managerEmails = managers.map(manager => manager.email);
+      const allEmails = [...developerEmails, ...managerEmails];
+
+      // Send email notification about project deletion to both developers and managers
+      const mailOptions = {
+        from: 'khanbasha7777777@gmail.com',
+        to: allEmails.join(", "),
+        subject: `Project Deleted: ${deletedProject.title}`,
+        text: `The project "${deletedProject.title}" has been deleted.
+Project Details:
+Title: ${deletedProject.title}
+Description: ${deletedProject.description}
+
+Note: For managers - This project involved developers under your management.`
+      };
+
+      transporter.sendMail(mailOptions, function(error, info) {
+        if (error) {
+          console.log('Error sending deletion email:', error);
+        } else {
+          console.log('Deletion email sent: ' + info.response);
+        }
+      });
+
+      // Create notifications for developers and managers
+      const notificationRecipients = [...deletedProject.assignedTo, ...managers.map(m => m._id)];
+      for (const recipientId of notificationRecipients) {
+        const notification = new Notification({
+          recipient: recipientId,
+          content: `Project deleted: ${deletedProject.title}`,
+          read: false,
+          type: 'Project',
+          date: new Date()
+        });
+        await notification.save();
+      }
+
+      // Create notification with null recipient
+      const nullNotification = new Notification({
+        recipient: null,
+        content: `Project deleted: ${deletedProject.title}`,
+        read: false,
+        type: 'Project',
+        date: new Date()
+      });
+      await nullNotification.save();
 
       await Project.findByIdAndDelete(projectId);
 

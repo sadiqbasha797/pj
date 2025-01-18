@@ -88,9 +88,15 @@ export class AdminService {
     return this.http.get(`${this.apiUrl}/projects`, { headers: this.getHeaders() });
   }
 
-  updateProject(projectId: string, projectData: any): Observable<any> {
-    console.log('Sending update request for project:', projectId, 'with data:', projectData);
-    return this.http.put(`${this.apiUrl}/project/${projectId}`, projectData, { headers: this.getHeaders() }).pipe(
+  updateProject(projectId: string, formData: FormData): Observable<any> {
+    // Remove content-type header to let browser set it with boundary
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${localStorage.getItem('adminToken')}`);
+    
+    return this.http.put(
+      `${this.apiUrl}/project/${projectId}`, 
+      formData,
+      { headers }
+    ).pipe(
       tap(response => console.log('Update response:', response)),
       catchError(error => {
         console.error('Error in updateProject:', error);
@@ -291,5 +297,112 @@ export class AdminService {
         return throwError(() => error);
       })
     );
+  }
+
+  //client apis
+  getAllClients(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/clients`, { headers: this.getHeaders() });
+  }    
+  registerClient(clientData: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/register-client`, clientData, { headers: this.getHeaders() });
+  }
+
+  deleteClient(clientId: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/delete-client/${clientId}`, { headers: this.getHeaders() });
+  }
+
+  updateClient(clientId: string, clientData: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/update-client/${clientId}`, clientData, { headers: this.getHeaders() });
+  }
+
+  // Marketing Task APIs
+  createMarketingTask(formData: FormData): Observable<any> {
+    return this.http.post(`${this.apiUrl}/marketing-task`, formData, { headers: this.getHeaders() });
+  }
+
+  updateMarketingTask(taskId: string, formData: FormData): Observable<any> {
+    return this.http.put(`${this.apiUrl}/marketing-task/${taskId}`, formData, { headers: this.getHeaders() });
+  }
+
+  getAllMarketingTasks(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/marketing-tasks`, { headers: this.getHeaders() });
+  }
+
+  getMarketingTaskById(taskId: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/marketing-task/${taskId}`, { headers: this.getHeaders() });
+  }
+
+  getMarketingTasksByProject(projectId: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/project/${projectId}/marketing-tasks`, { headers: this.getHeaders() });
+  }
+
+  deleteMarketingTask(taskId: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/marketing-task/${taskId}`, { headers: this.getHeaders() });
+  }
+
+  updateLeadsCount(taskId: string, data: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/marketing-task/${taskId}/leads`, data, { headers: this.getHeaders() });
+  }
+
+  // Comment APIs
+  addComment(updateId: string, commentData: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/comment/${updateId}`, commentData, { headers: this.getHeaders() });
+  }
+
+  deleteComment(updateId: string, commentId: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/comment/${updateId}/${commentId}`, { headers: this.getHeaders() });
+  }
+
+  // Revenue APIs
+  createRevenue(revenueData: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/revenue`, revenueData, { headers: this.getHeaders() });
+  }
+
+  deleteRevenue(revenueId: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/revenue/${revenueId}`, { headers: this.getHeaders() });
+  }
+
+  updateRevenue(revenueId: string, revenueData: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/revenue/${revenueId}`, revenueData, { headers: this.getHeaders() });
+  }
+
+  getAllDigitalMarketingMembers(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/digital-marketing-members`, { headers: this.getHeaders() });
+  }
+
+  getAllContentCreatorMembers(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/content-creator-members`, { headers: this.getHeaders() });
+  }
+
+  getTaskUpdates(taskId: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/task-updates/${taskId}`, { headers: this.getHeaders() });
+  }
+
+  getRevenueByProject(projectId: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/revenue/${projectId}`, { headers: this.getHeaders() });
+  }
+
+  getAllRevenue(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/revenue`, { headers: this.getHeaders() });
+  }
+
+  adminDeleteUser(userId: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/digital-marketing-user/${userId}`, { headers: this.getHeaders() });
+  }
+
+  registerDigitalMarketingUser(userData: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/digital-marketing-user`, userData, { headers: this.getHeaders() });
+  }
+
+  adminDeleteContentCreator(userId: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/content-creator/${userId}`, { headers: this.getHeaders() });
+  }  
+
+  registerContentCreator(userData: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/content-creator`, userData, { headers: this.getHeaders() });
+  }
+
+  getTasksByUserId(userId: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/marketing-user-task/${userId}`, { headers: this.getHeaders() });
   }
 }

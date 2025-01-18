@@ -62,6 +62,7 @@ export class CalendarComponent implements OnInit {
   filterForm: FormGroup;
   filteredEvents: any[] = [];
   showFilterModal = false;
+  clients: any[] = [];
 
   constructor(
     private adminService: AdminService,
@@ -89,6 +90,7 @@ export class CalendarComponent implements OnInit {
     this.fetchEvents();
     this.fetchDevelopers();
     this.fetchManagers();
+    this.fetchClients();
     this.updateEventCounts();
   }
 
@@ -296,6 +298,9 @@ export class CalendarComponent implements OnInit {
     } else if (participant.onModel === 'Manager') {
       const manager = this.managers.find(mgr => mgr._id === participant.participantId);
       return manager?.username || 'Unknown Manager';
+    } else if (participant.onModel === 'Client') {
+      const client = this.clients.find(cl => cl._id === participant.participantId);
+      return client?.clientName || 'Unknown Client';
     }
     return 'Unknown';
   }
@@ -332,7 +337,15 @@ export class CalendarComponent implements OnInit {
   editEvent(eventId: string): void {
     const event = this.allEvents.find(e => e.id === eventId);
     if (event) {
-      this.newEvent = { ...event }; // Create a copy of the event object
+      // Format the date for the datetime-local input
+      const eventDate = new Date(event.start as string);
+      const formattedDate = eventDate.toISOString().slice(0, 16); // Format: "YYYY-MM-DDThh:mm"
+
+      this.newEvent = { 
+        ...event,
+        eventDate: formattedDate // Store the formatted date
+      };
+
       Swal.fire({
         title: 'Edit Event',
         html: `
@@ -354,7 +367,7 @@ export class CalendarComponent implements OnInit {
             </select>
             <button type="button" id="add-manager-btn" class="swal2-confirm swal2-styled">Add Manager</button>
           </div>
-          <input id="swal-input7" class="swal2-input" type="datetime-local" value="${new Date(event.start as string).toISOString().slice(0, 16)}">
+          <input id="swal-input7" class="swal2-input" type="datetime-local" value="${formattedDate}">
           <select id="swal-input8" class="swal2-select">
             <option value="Active" ${event.extendedProps?.['status'] === 'Active' ? 'selected' : ''}>Active</option>
             <option value="Not-Active" ${event.extendedProps?.['status'] === 'Not-Active' ? 'selected' : ''}>Not Active</option>
@@ -538,8 +551,14 @@ export class CalendarComponent implements OnInit {
   }
 
   updateEvent(eventId: string, eventData: any): void {
+    // Ensure we're sending the correct date format
+    const updatedEventData = {
+      ...eventData,
+      eventDate: new Date(eventData.eventDate).toISOString() // Convert to ISO string
+    };
+
     this.loaderService.show();
-    this.adminService.updateEvent(eventId, eventData).subscribe({
+    this.adminService.updateEvent(eventId, updatedEventData).subscribe({
       next: (response) => {
         this.fetchEvents();
         this.loaderService.hide();
@@ -652,18 +671,31 @@ export class CalendarComponent implements OnInit {
   }
 
   openEditModal(event: any): void {
-    this.editingEvent = event;
-    this.eventForm.patchValue({
-      title: event.title,
-      description: event.extendedProps?.description || '',
-      eventType: event.extendedProps?.eventType || '',
-      location: event.extendedProps?.location || '',
-      eventDate: new Date(event.start as string).toISOString().slice(0, 16),
-      status: event.extendedProps?.status || 'Active'
-    });
-    this.newEvent.participants = [...(event.extendedProps?.participants || [])];
-    this.showEditModal = true;
-    this.showEventListModal = false;
+    if (event) {
+      // Format the date for the datetime-local input
+      const eventDate = new Date(event.start);
+      const formattedDate = eventDate.toISOString().slice(0, 16); // Format: "YYYY-MM-DDThh:mm"
+
+      this.showEditModal = true;
+      this.showEventListModal = false;
+      
+      // Set the form values
+      this.eventForm.patchValue({
+        title: event.title,
+        description: event.extendedProps?.description || '',
+        eventType: event.extendedProps?.eventType || '',
+        location: event.extendedProps?.location || '',
+        eventDate: formattedDate, // Use the formatted date
+        status: event.extendedProps?.status || 'Active'
+      });
+
+      // Store the event ID for updating
+      this.editingEvent = event;
+      this.newEvent = {
+        ...event,
+        participants: event.extendedProps?.participants || []
+      };
+    }
   }
 
   closeEventListModal(): void {
@@ -700,27 +732,26 @@ export class CalendarComponent implements OnInit {
   }
 
   handleEventSubmit(): void {
-    const formValue = this.eventForm.value;
-    const selectedTime = formValue.eventDate; // This will be just the time
-    
-    // Combine selected date with time
-    const eventDate = new Date(this.selectedDate!);
-    const [hours, minutes] = selectedTime.split(':');
-    eventDate.setHours(parseInt(hours), parseInt(minutes), 0);
+    if (this.eventForm.valid) {
+      const formData = this.eventForm.value;
+      
+      // Ensure the date is properly formatted
+      const eventDate = new Date(formData.eventDate).toISOString();
+      
+      const eventData = {
+        ...formData,
+        eventDate: eventDate,
+        participants: this.newEvent.participants
+      };
 
-    const formData = {
-      ...formValue,
-      eventDate: eventDate.toISOString(),
-      status: 'Active', // Set default status
-      participants: this.newEvent.participants
-    };
-    
-    if (this.showEditModal) {
-      this.updateEvent(this.editingEvent.id, formData);
-    } else {
-      this.addEvent(formData);
+      if (this.showEditModal && this.editingEvent) {
+        // Update existing event
+        this.updateEvent(this.editingEvent.id, eventData);
+      } else {
+        // Create new event
+        this.addEvent(eventData);
+      }
     }
-    this.closeEditCreateModal();
   }
 
   onEventTypeChange(event: any): void {
@@ -731,7 +762,7 @@ export class CalendarComponent implements OnInit {
     }
   }
 
-  addParticipant(id: string, type: 'Developer' | 'Manager'): void {
+  addParticipant(id: string, type: 'Developer' | 'Manager' | 'Client'): void {
     if (!id || this.newEvent.participants.some((p: any) => p.participantId === id)) {
       return;
     }
@@ -811,6 +842,17 @@ export class CalendarComponent implements OnInit {
       }
 
       return matchesType && matchesDateRange;
+    });
+  }
+
+  fetchClients(): void {
+    this.adminService.getAllClients().subscribe({
+      next: (response) => {
+        this.clients = response.clients;
+      },
+      error: (error) => {
+        console.error('Error fetching clients:', error);
+      }
     });
   }
 }

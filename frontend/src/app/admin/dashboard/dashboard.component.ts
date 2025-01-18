@@ -26,6 +26,8 @@ export class DashboardComponent implements OnInit {
   totalEvents: number = 0;
   recentTasks: any[] = [];
   upcomingEvents: any[] = [];
+  developers: any[] = [];
+  managers: any[] = [];
   projectStatus: any = {
     assigned: 0,
     started: 0,
@@ -90,6 +92,15 @@ export class DashboardComponent implements OnInit {
       new Promise<void>((resolve) => {
         this.adminService.getAllDevelopers().subscribe({
           next: (developers) => {
+            this.developers = developers.map((dev: { _id: any; username: any; email: any; skills: any; verified: any; role: any; createdAt: any; }) => ({
+              id: dev._id,
+              username: dev.username,
+              email: dev.email,
+              skills: dev.skills,
+              verified: dev.verified,
+              role: dev.role,
+              createdAt: dev.createdAt
+            }));
             this.totalDevelopers = developers.length;
             resolve();
           },
@@ -102,6 +113,17 @@ export class DashboardComponent implements OnInit {
       new Promise<void>((resolve) => {
         this.adminService.getAllManagers().subscribe({
           next: (managers) => {
+            this.managers = managers.map((mgr: { _id: any; username: any; email: any; teamSize: any; role: any; createdAt: any; developers: any; mobile: any; image: any; }) => ({
+              id: mgr._id,
+              username: mgr.username,
+              email: mgr.email,
+              teamSize: mgr.teamSize,
+              role: mgr.role,
+              createdAt: mgr.createdAt,
+              developers: mgr.developers,
+              mobile: mgr.mobile,
+              image: mgr.image
+            }));
             this.totalManagers = managers.length;
             resolve();
           },

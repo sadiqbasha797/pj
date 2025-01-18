@@ -43,7 +43,7 @@ export class UsersComponent implements OnInit {
   showDeveloperForm = false;
   showManagerForm = false;
   hidePassword = true;
-  activeTab: 'developers' | 'managers' = 'developers';
+  activeTab: 'developers' | 'managers' | 'digitalMarketing' | 'contentCreators' = 'developers';
   selectedDeveloper: any = null;
   developerProjects: any[] = [];
   developerTasks: any[] = [];
@@ -51,6 +51,18 @@ export class UsersComponent implements OnInit {
   upcomingMeetings: any[] = [];
   pastMeetings: any[] = [];
   activeEventTab: 'upcoming' | 'past' = 'upcoming';
+  digitalMarketingUsers: any[] = [];
+  contentCreators: any[] = [];
+  digitalMarketingColumns: string[] = ['username', 'email', 'skills', 'actions'];
+  contentCreatorColumns: string[] = ['username', 'email', 'skills', 'actions'];
+  selectedDigitalMarketingUser: any = null;
+  selectedContentCreator: any = null;
+  digitalMarketingTasks: any[] = [];
+  contentCreatorTasks: any[] = [];
+  digitalMarketingForm: FormGroup;
+  contentCreatorForm: FormGroup;
+  showDigitalMarketingForm = false;
+  showContentCreatorForm = false;
 
   constructor(
     private adminService: AdminService,
@@ -71,11 +83,27 @@ export class UsersComponent implements OnInit {
       password: ['', Validators.required],
       teamSize: [0, [Validators.required, Validators.min(0)]]
     });
+
+    this.digitalMarketingForm = this.fb.group({
+      username: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', Validators.required],
+      skills: ['']
+    });
+
+    this.contentCreatorForm = this.fb.group({
+      username: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', Validators.required],
+      skills: ['']
+    });
   }
 
   ngOnInit() {
     this.loadDevelopers();
     this.loadManagers();
+    this.loadDigitalMarketingUsers();
+    this.loadContentCreators();
   }
 
   loadDevelopers() {
@@ -287,5 +315,133 @@ export class UsersComponent implements OnInit {
       'Blocked': 'bg-red-100 text-red-800'
     };
     return statusClasses[status] || 'bg-gray-100 text-gray-800';
+  }
+
+  loadDigitalMarketingUsers() {
+    this.adminService.getAllDigitalMarketingMembers().subscribe({
+      next: (response) => {
+        this.digitalMarketingUsers = response.data;
+      },
+      error: (error) => {
+        this.showMessage('Error loading digital marketing users');
+        console.error(error);
+      }
+    });
+  }
+
+  loadContentCreators() {
+    this.adminService.getAllContentCreatorMembers().subscribe({
+      next: (response) => {
+        this.contentCreators = response.data;
+      },
+      error: (error) => {
+        this.showMessage('Error loading content creators');
+        console.error(error);
+      }
+    });
+  }
+
+  deleteDigitalMarketingUser(id: string) {
+    if (confirm('Are you sure you want to delete this digital marketing user?')) {
+      this.adminService.adminDeleteUser(id).subscribe({
+        next: () => {
+          this.showMessage('Digital marketing user deleted successfully');
+          this.loadDigitalMarketingUsers();
+        },
+        error: (error) => {
+          this.showMessage('Error deleting digital marketing user');
+          console.error(error);
+        }
+      });
+    }
+  }
+
+  deleteContentCreator(id: string) {
+    if (confirm('Are you sure you want to delete this content creator?')) {
+      this.adminService.adminDeleteContentCreator(id).subscribe({
+        next: () => {
+          this.showMessage('Content creator deleted successfully');
+          this.loadContentCreators();
+        },
+        error: (error) => {
+          this.showMessage('Error deleting content creator');
+          console.error(error);
+        }
+      });
+    }
+  }
+
+  viewDigitalMarketingUserDetails(user: any) {
+    this.selectedDigitalMarketingUser = user;
+    this.loadDigitalMarketingUserTasks(user._id);
+  }
+
+  viewContentCreatorDetails(user: any) {
+    this.selectedContentCreator = user;
+    this.loadContentCreatorTasks(user._id);
+  }
+
+  loadDigitalMarketingUserTasks(userId: string) {
+    this.adminService.getTasksByUserId(userId).subscribe({
+      next: (response) => {
+        this.digitalMarketingTasks = response.tasks;
+      },
+      error: (error) => {
+        this.showMessage('Error loading tasks');
+        console.error(error);
+      }
+    });
+  }
+
+  loadContentCreatorTasks(userId: string) {
+    this.adminService.getTasksByUserId(userId).subscribe({
+      next: (response) => {
+        this.contentCreatorTasks = response.tasks;
+      },
+      error: (error) => {
+        this.showMessage('Error loading tasks');
+        console.error(error);
+      }
+    });
+  }
+
+  addDigitalMarketingUser() {
+    if (this.digitalMarketingForm.valid) {
+      const formData = this.digitalMarketingForm.value;
+      formData.skills = formData.skills.split(',').map((skill: string) => skill.trim());
+      
+      this.adminService.registerDigitalMarketingUser(formData).subscribe({
+        next: (response) => {
+          this.showMessage('Digital Marketing user added successfully');
+          this.loadDigitalMarketingUsers();
+          this.showDigitalMarketingForm = false;
+          this.digitalMarketingForm.reset();
+        },
+        error: (error) => {
+          this.showMessage('Error adding Digital Marketing user');
+          console.error(error);
+        }
+      });
+    }
+  }
+
+  addContentCreator() {
+    if (this.contentCreatorForm.valid) {
+      const formData = this.contentCreatorForm.value;
+      formData.skills = formData.skills.split(',').map((skill: string) => skill.trim());
+      
+      this.adminService.registerContentCreator(formData).subscribe({
+        next: (response) => {
+          this.showMessage('Content Creator added successfully');
+          this.loadContentCreators();
+          this.showContentCreatorForm = false;
+          this.contentCreatorForm.reset();
+        },
+        error: (error) => {
+          this.showMessage('Error adding Content Creator');
+          console.error(error);
+        }
+      });
+    }
   }
 }

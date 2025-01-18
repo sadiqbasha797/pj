@@ -1,0 +1,101 @@
+<div class="p-6 max-w-4xl mx-auto">
+  <!-- Header -->
+  <div class="mb-6">
+    <h1 class="text-2xl font-semibold text-gray-900">Notifications</h1>
+    <p class="mt-2 text-sm text-gray-600">Stay updated with your latest notifications</p>
+  </div>
+
+  <!-- Actions -->
+  <div class="mb-6 flex justify-between items-center">
+    <div class="flex space-x-4">
+      <button (click)="markAllAsRead()" 
+              class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+        Mark All as Read
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="text-center py-8">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
+    <p class="mt-4 text-gray-600">Loading notifications...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error" class="bg-red-50 p-4 rounded-md mb-6">
+    <div class="flex">
+      <div class="flex-shrink-0">
+        <svg class="h-5 w-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <div class="ml-3">
+        <h3 class="text-sm font-medium text-red-800">Error</h3>
+        <div class="mt-2 text-sm text-red-700">
+          <p>{{error}}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notifications List -->
+  <div class="space-y-4">
+    <div *ngFor="let notification of notifications" 
+         (click)="handleNotificationClick(notification)"
+         class="bg-white shadow rounded-lg overflow-hidden transition duration-150 hover:shadow-md cursor-pointer"
+         [class.bg-green-50]="!notification.read">
+      <div class="p-6">
+        <div class="flex items-start space-x-4">
+          <!-- Icon -->
+          <div class="flex-shrink-0">
+            <span [ngSwitch]="notification.type">
+              <svg *ngSwitchCase="'Holiday'" class="h-8 w-8 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <svg *ngSwitchCase="'Event'" class="h-8 w-8 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <!-- Default icon for unknown types -->
+              <svg *ngSwitchDefault class="h-8 w-8 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+            </span>
+          </div>
+
+          <!-- Content -->
+          <div class="flex-1">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-2">
+                <p class="text-sm font-medium text-gray-900">{{notification.type}}</p>
+                <span *ngIf="!notification.read" 
+                      class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                  New
+                </span>
+              </div>
+              <p class="text-sm text-gray-500">{{notification.time}}</p>
+            </div>
+            <p class="mt-1 text-sm text-gray-600">{{notification.content}}</p>
+          </div>
+
+          <!-- Read indicator -->
+          <div *ngIf="!notification.read" class="flex-shrink-0">
+            <div class="h-2 w-2 bg-green-500 rounded-full"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && !error && notifications.length === 0" 
+       class="text-center py-12 bg-white rounded-lg shadow">
+    <svg class="mx-auto h-12 w-12 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+    </svg>
+    <h3 class="mt-2 text-sm font-medium text-gray-900">No notifications</h3>
+    <p class="mt-1 text-sm text-gray-500">You're all caught up! Check back later for new notifications.</p>
+  </div>
+</div>

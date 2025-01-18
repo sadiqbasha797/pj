@@ -1,0 +1,20 @@
+/* Hide the scrollbar */
+::-webkit-scrollbar {
+  width: 0;
+  background: transparent;
+}
+
+/* Optional: Customize the scrollbar track */
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Optional: Customize the scrollbar thumb */
+::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
+/* Optional: Customize the scrollbar corner */
+::-webkit-scrollbar-corner {
+  background: transparent;
+}

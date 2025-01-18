@@ -123,6 +123,20 @@
           </a>
         </li>
 
+        <!-- Clients -->
+        <li>
+          <a routerLink="/admin/clients" routerLinkActive="bg-gradient-to-r from-blue-100/50 to-indigo-100/50 text-blue-700"
+             class="group flex items-center py-2.5 px-4 rounded-xl hover:bg-blue-50/40 transition-all duration-300 hover:shadow-[0_0_15px_rgba(234,179,8,0.5)] hover:border-yellow-400 border border-transparent"
+             [title]="isCollapsed ? 'Clients' : ''">
+            <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-yellow-100 to-amber-50 group-hover:from-yellow-200 group-hover:to-amber-100 transition-colors duration-300">
+              <svg class="h-5 w-5 text-yellow-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+              </svg>
+            </div>
+            <span [ngClass]="{'hidden': isCollapsed, 'ml-3 font-medium': !isCollapsed}">Clients</span>
+          </a>
+        </li>
+
         <!-- Chat -->
         <li>
           <a routerLink="/admin/chat" routerLinkActive="bg-gradient-to-r from-blue-100/50 to-indigo-100/50 text-blue-700"
@@ -148,6 +162,28 @@
               </svg>
             </div>
             <span [ngClass]="{'hidden': isCollapsed, 'ml-3 font-medium': !isCollapsed}">Leave</span>
+          </a>
+        </li>
+
+        <!-- Marketing -->
+        <li>
+          <a routerLink="/admin/marketing" routerLinkActive="bg-gradient-to-r from-blue-100/50 to-indigo-100/50 text-blue-700"
+             class="group flex items-center py-2.5 px-4 rounded-xl hover:bg-blue-50/40 transition-all duration-300 hover:shadow-[0_0_15px_rgba(219,39,119,0.5)] hover:border-pink-500 border border-transparent"
+             [title]="isCollapsed ? 'Marketing' : ''">  
+            <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-pink-100 to-rose-50 group-hover:from-pink-200 group-hover:to-rose-100 transition-colors duration-300">
+              <svg class="h-5 w-5 text-pink-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/>
+                <path d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/>
+                <path d="M3 13.5a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zM14 13.5a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0z"/>
+                <path d="M4.5 8a2.5 2.5 0 110 5 2.5 2.5 0 010-5z"/>
+                <path d="M15.5 8a2.5 2.5 0 110 5 2.5 2.5 0 010-5z"/>
+              </svg>
+            </div>
+            <span [ngClass]="{'hidden': isCollapsed, 'ml-3 font-medium': !isCollapsed}">Marketing</span>
+            
+            <!-- Optional: Add a badge or notification indicator -->
+            <span class="ml-auto bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xs px-2 py-0.5 rounded-full" 
+                  *ngIf="!isCollapsed">New</span>
           </a>
         </li>
       </ul>

@@ -1,0 +1,77 @@
+<div class="p-6">
+  <h2 class="text-2xl font-bold mb-6 text-gray-800">My Meetings</h2>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="flex justify-center items-center p-8">
+    <div class="text-gray-600">
+      <svg class="animate-spin h-8 w-8 mr-3" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      <span>Loading meetings...</span>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+    <span class="block sm:inline">{{ error }}</span>
+  </div>
+
+  <!-- Meetings List -->
+  <div *ngIf="!loading && !error" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+    <div *ngFor="let meeting of meetings" class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+      <!-- Meeting Header -->
+      <div class="p-6 border-b border-gray-200">
+        <h3 class="text-xl font-semibold text-gray-800">{{ meeting.title }}</h3>
+        <p class="mt-2 text-gray-600">{{ meeting.description }}</p>
+      </div>
+
+      <!-- Meeting Details -->
+      <div class="p-6 space-y-4">
+        <!-- Date and Time -->
+        <div class="flex items-start">
+          <svg class="w-5 h-5 text-gray-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <div>
+            <p class="text-gray-700">
+              {{ formatDate(meeting.eventDate) }}
+              <span *ngIf="meeting.isAllDay" class="ml-2 text-sm bg-blue-100 text-blue-800 px-2 py-0.5 rounded">All Day</span>
+            </p>
+          </div>
+        </div>
+
+        <!-- Location -->
+        <div class="flex items-start">
+          <svg class="w-5 h-5 text-gray-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <p class="text-gray-700">{{ meeting.location }}</p>
+        </div>
+
+        <!-- Participants -->
+        <div class="space-y-2">
+          <h4 class="text-sm font-semibold text-gray-600 uppercase tracking-wider">Participants</h4>
+          <div class="space-y-1">
+            <div *ngFor="let participant of meeting.participants" 
+                 class="flex items-center text-sm">
+              <span class="w-2 h-2 rounded-full bg-green-400 mr-2"></span>
+              <span class="text-gray-700">{{ participant.name || participant.email }}</span>
+              <span class="ml-2 text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">{{ participant.role }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Creator -->
+        <div class="mt-4 pt-4 border-t border-gray-100">
+          <p class="text-sm text-gray-600">
+            <span class="font-medium">Created by:</span>
+            <span class="ml-1">{{ meeting.creator.email }}</span>
+            <span class="ml-2 text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">{{ meeting.creator.role }}</span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

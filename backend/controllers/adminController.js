@@ -423,7 +423,10 @@ const updateAdminMedia = async (req, res) => {
 const getAllNotifications = async (req, res) => {
   try {
     const notifications = await Notification.find({
-      recipient: null
+      $or: [
+        { recipient: null },
+        { type: 'holiday' }
+      ]
     }).sort({ date: -1 });
 
     res.status(200).json({
@@ -496,6 +499,27 @@ const markAllNotificationsAsRead = async (req, res) => {
     });
   }
 };
+// Get all admins
+const getAllAdmins = async (req, res) => {
+  try {
+    const admins = await Admin.find({}, {
+      password: 0,
+      resetPasswordOTP: 0
+    });
+
+    res.status(200).json({
+      admins
+    });
+
+  } catch (error) {
+    console.error('Error fetching admins:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching admins',
+      error: error.message
+    });
+  }
+};
 
 // Export all functions
 module.exports = {
@@ -519,5 +543,6 @@ module.exports = {
   updateAdminMedia,
   getAllNotifications,
   markNotificationAsRead,
-  markAllNotificationsAsRead
+  markAllNotificationsAsRead,
+  getAllAdmins
 };

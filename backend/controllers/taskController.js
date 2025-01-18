@@ -6,6 +6,7 @@ const { createNotification,notifyCreation,notifyUpdate,leaveUpdateNotification,l
 const CalendarEvent = require('../models/calendarEvent');
 const { uploadToCloudinary, deleteFromCloudinary } = require('../utils/cloudinary');
 const mongoose = require('mongoose');
+const Notification = require('../models/Notification');
 
 // Email configuration
 const transporter = nodemailer.createTransport({
@@ -98,8 +99,17 @@ const addTask = async (req, res) => {
         });
         await newEvent.save();
 
+        // Create individual notifications for each participant
         const participantIds = parsedParticipants.map(p => p.participantId);
-        await notifyCreation(participantIds, 'Task', taskName, newTask._id);
+        for (const recipientId of participantIds) {
+            const notification = new Notification({
+                recipient: recipientId,
+                content: `New Task created: ${taskName}`,
+                type: 'Task',
+                relatedId: newTask._id
+            });
+            await notification.save();
+        }
 
         await sendEmailToParticipants(participantIds, newTask);
 
@@ -172,9 +182,17 @@ const updateTask = async (req, res) => {
         ).populate('participants.participantId', 'username email')
          .populate('projectId', 'title');
 
-        // Notify participants about the update
+        // Create individual notifications for each participant
         const participantIds = updatedTask.participants.map(p => p.participantId._id);
-        await notifyUpdate(participantIds, 'Task', updatedTask.taskName, updatedTask._id);
+        for (const recipientId of participantIds) {
+            const notification = new Notification({
+                recipient: recipientId,
+                content: `Task updated: ${updatedTask.taskName}`,
+                type: 'Task',
+                relatedId: updatedTask._id
+            });
+            await notification.save();
+        }
 
         res.status(200).json({ 
             message: 'Task updated successfully', 
@@ -208,10 +226,24 @@ const deleteTask = async (req, res) => {
     try {
         const taskId = req.params.taskId;
 
-        const deletedTask = await Task.findByIdAndDelete(taskId);
-        if (!deletedTask) {
+        const task = await Task.findById(taskId);
+        if (!task) {
             return res.status(404).json({ message: 'Task not found' });
         }
+
+        // Create individual notifications for each participant about task deletion
+        const participantIds = task.participants.map(p => p.participantId);
+        for (const recipientId of participantIds) {
+            const notification = new Notification({
+                recipient: recipientId,
+                content: `Task deleted: ${task.taskName}`,
+                type: 'Task',
+                relatedId: task._id
+            });
+            await notification.save();
+        }
+
+        await Task.findByIdAndDelete(taskId);
 
         res.status(200).json({ message: 'Task deleted successfully' });
     } catch (error) {
@@ -321,6 +353,18 @@ const addTaskUpdate = async (req, res) => {
             });
         }
 
+        // Create individual notifications for each participant about the update
+        const participantIds = task.participants.map(p => p.participantId);
+        for (const recipientId of participantIds) {
+            const notification = new Notification({
+                recipient: recipientId,
+                content: `Task update added: ${task.taskName}`,
+                type: 'Task',
+                relatedId: task._id
+            });
+            await notification.save();
+        }
+
         res.status(200).json({ 
             message: 'Update added successfully', 
             task 
@@ -402,9 +446,17 @@ const addFinalResult = async (req, res) => {
             });
         }
 
-        // Notify participants about the final result
+        // Create individual notifications for each participant about the final result
         const participantIds = task.participants.map(p => p.participantId);
-        await notifyUpdate(participantIds, 'Task', `Final result added for ${task.taskName}`, task._id);
+        for (const recipientId of participantIds) {
+            const notification = new Notification({
+                recipient: recipientId,
+                content: `Final result added for task: ${task.taskName}`,
+                type: 'Task',
+                relatedId: task._id
+            });
+            await notification.save();
+        }
 
         res.status(200).json({ 
             message: 'Final result added successfully', 
@@ -458,6 +510,18 @@ const deleteTaskUpdate = async (req, res) => {
             { _id: taskId },
             { $pull: { updates: { updateId: new mongoose.Types.ObjectId(updateId) } } }
         );
+
+        // Create individual notifications for each participant about the update deletion
+        const participantIds = task.participants.map(p => p.participantId);
+        for (const recipientId of participantIds) {
+            const notification = new Notification({
+                recipient: recipientId,
+                content: `Task update deleted: ${task.taskName}`,
+                type: 'Task',
+                relatedId: task._id
+            });
+            await notification.save();
+        }
 
         res.status(200).json({ 
             message: 'Update deleted successfully'

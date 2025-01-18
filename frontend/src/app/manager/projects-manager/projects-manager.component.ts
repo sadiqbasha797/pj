@@ -227,10 +227,7 @@ projectStats: ProjectStats = {
   }
 
   onFileSelected(event: any) {
-    const files: FileList = event.target.files;
-    if (files) {
-      this.selectedFiles = Array.from(files);
-    }
+    this.selectedFiles = event.target.files;
   }
 
   submitProject() {
@@ -268,15 +265,24 @@ projectStats: ProjectStats = {
   }
 
   updateProject() {
-    const updatedProject = {
-      title: this.newProject.title,
-      description: this.newProject.description,
-      deadline: this.newProject.deadline,
-      assignedTo: this.newProject.assignedTo,
-      status: this.newProject.status
-    };
+    this.loaderService.show();
+    const formData = new FormData();
+    
+    // Append basic project details
+    formData.append('title', this.newProject.title);
+    formData.append('description', this.newProject.description);
+    formData.append('deadline', this.newProject.deadline);
+    formData.append('assignedTo', JSON.stringify(this.newProject.assignedTo));
+    formData.append('status', this.newProject.status);
+    
+    // Append new files if any are selected
+    if (this.selectedFiles) {
+      for (const file of this.selectedFiles) {
+        formData.append('relatedDocs', file);
+      }
+    }
 
-    this.managerService.updateProject(this.editingProject!._id, updatedProject).subscribe({
+    this.managerService.updateProject(this.editingProject!._id, formData).subscribe({
       next: (response) => {
         const index = this.projects.findIndex(p => p._id === this.editingProject!._id);
         if (index !== -1) {
