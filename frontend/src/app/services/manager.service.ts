@@ -14,6 +14,27 @@ interface ManagerProfile {
     assignedOn: string;
     _id: string;
   }[];
+  digitalMarketingRoles: {
+    roleId: string;
+    assignedOn: string;
+    _id: string;
+  }[];
+  contentCreators: {
+    roleId: string;
+    assignedOn: string;
+    _id: string;
+  }[];
+  createdAt: string;
+}
+
+interface TeamMember {
+  _id: string;
+  username: string;
+  email: string;
+  skills: string[];
+  role: string;
+  image: string | null;
+  createdAt: string;
 }
 
 @Injectable({
@@ -257,5 +278,97 @@ export class ManagerService {
   getDeveloperById(developerId: string): Observable<any> {
     const headers = this.getHeaders();
     return this.http.get(`${this.apiUrl}/developer/${developerId}`, { headers });
+  }
+
+  // Marketing Task Routes
+  createMarketingTask(taskData: FormData): Observable<any> {
+    const headers = this.getHeaders();
+    return this.http.post(`${this.apiUrl}/marketing-task`, taskData, { headers });
+  }
+
+  updateMarketingTask(taskId: string, taskData: FormData): Observable<any> {
+    const headers = this.getHeaders();
+    return this.http.put(`${this.apiUrl}/marketing-task/${taskId}`, taskData, { headers });
+  }
+
+  getAllMarketingTasks(): Observable<any> {
+    const headers = this.getHeaders();
+    return this.http.get(`${this.apiUrl}/marketing-tasks`, { headers });
+  }
+
+  getMarketingTaskById(taskId: string): Observable<any> {
+    const headers = this.getHeaders();
+    return this.http.get(`${this.apiUrl}/marketing-task/${taskId}`, { headers });
+  }
+
+  getMarketingTasksByProject(projectId: string): Observable<any> {
+    const headers = this.getHeaders();
+    return this.http.get(`${this.apiUrl}/project/${projectId}/marketing-tasks`, { headers });
+  }
+
+  deleteMarketingTask(taskId: string): Observable<any> {
+    const headers = this.getHeaders();
+    return this.http.delete(`${this.apiUrl}/marketing-task/${taskId}`, { headers });
+  }
+
+  updateLeadsCount(taskId: string, data: any): Observable<any> {
+    const headers = this.getHeaders();
+    return this.http.put(`${this.apiUrl}/marketing-task/${taskId}/leads`, data, { headers });
+  }
+
+  // Comments
+  addComment(updateId: string, commentData: any): Observable<any> {
+    const headers = this.getHeaders();
+    return this.http.post(`${this.apiUrl}/comment/${updateId}`, commentData, { headers });
+  }
+
+  deleteComment(updateId: string, commentId: string): Observable<any> {
+    const headers = this.getHeaders();
+    return this.http.delete(`${this.apiUrl}/comment/${updateId}/${commentId}`, { headers });
+  }
+
+  // Revenue
+  createRevenue(revenueData: any): Observable<any> {
+    const headers = this.getHeaders();
+    return this.http.post(`${this.apiUrl}/revenue`, revenueData, { headers });
+  }
+
+  deleteRevenue(revenueId: string): Observable<any> {
+    const headers = this.getHeaders();
+    return this.http.delete(`${this.apiUrl}/revenue/${revenueId}`, { headers });
+  }
+
+  updateRevenue(revenueId: string, revenueData: any): Observable<any> {
+    const headers = this.getHeaders();
+    return this.http.put(`${this.apiUrl}/revenue/${revenueId}`, revenueData, { headers });
+  }
+
+  // Digital Marketing
+  getAllDigitalMarketingMembers(): Observable<{ success: boolean; data: TeamMember[] }> {
+    const headers = this.getHeaders();
+    return this.http.get<{ success: boolean; data: TeamMember[] }>(
+      `${this.apiUrl}/digital-marketing-members`, 
+      { headers }
+    );
+  }
+
+  // Content Creator
+  getAllContentCreatorMembers(): Observable<{ success: boolean; data: TeamMember[] }> {
+    const headers = this.getHeaders();
+    return this.http.get<{ success: boolean; data: TeamMember[] }>(
+      `${this.apiUrl}/content-creator-members`, 
+      { headers }
+    );
+  }
+
+  // Task Updates
+  getTaskUpdates(taskId: string): Observable<any> {
+    const headers = this.getHeaders();
+    return this.http.get(`${this.apiUrl}/task-updates/${taskId}`, { headers });
+  }
+
+  getProjectTaskUpdates(projectId: string): Observable<any> {
+    const headers = this.getHeaders();
+    return this.http.get(`${this.apiUrl}/project-task-updates/${projectId}`, { headers });
   }
 }

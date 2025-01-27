@@ -39,7 +39,7 @@ export class LoginComponent {
           console.log('Token:', localStorage.getItem('marketerToken'));
           console.log('User:', localStorage.getItem('marketerUser'));
           
-          this.router.navigate(['/marketer/dashboard']);
+          this.router.navigate(['/marketer/tasks']);
         } else {
           console.error('No token received in login response');
           this.errorMessage = 'Login failed. Please try again.';

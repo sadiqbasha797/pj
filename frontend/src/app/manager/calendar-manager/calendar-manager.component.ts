@@ -30,15 +30,20 @@ interface CalendarEvent {
 @Component({
   selector: 'app-calendar-manager',
   standalone: true,
-  imports: [CommonModule, FullCalendarModule, FormsModule, ReactiveFormsModule],
+  imports: [
+    CommonModule, 
+    FullCalendarModule, 
+    FormsModule, 
+    ReactiveFormsModule
+  ],
   templateUrl: './calendar-manager.component.html',
   styleUrl: './calendar-manager.component.css'
 })
 export class CalendarManagerComponent implements OnInit {
-participants: any;
-formatDate(arg0: any) {
-throw new Error('Method not implemented.');
-}
+  participants: any;
+  formatDate(arg0: any) {
+    throw new Error('Method not implemented.');
+  }
   closeEventListModal() {
     const modalElement = document.querySelector('.animate__fadeInDown');
     modalElement?.classList.remove('animate__fadeInDown');
@@ -104,6 +109,10 @@ throw new Error('Method not implemented.');
   filteredEvents: any[] = [];
   eventTypes = ['Meeting', 'Project Deadline', 'Reminder', 'Work', 'Holiday', 'Task'];
 
+  // Add new properties
+  digitalMarketingMembers: any[] = [];
+  contentCreatorMembers: any[] = [];
+
   constructor(
     private managerService: ManagerService,
     private fb: FormBuilder
@@ -125,10 +134,23 @@ throw new Error('Method not implemented.');
   }
 
   ngOnInit() {
+    // Add console logs to debug
+    console.log('Component initialized');
     this.initializeForms();
     this.loadManagerProfile();
-    this.fetchDevelopers();
-    this.fetchManagers();
+    
+    // Fetch all team members
+    Promise.all([
+      this.fetchDevelopers(),
+      this.fetchDigitalMarketingMembers(),
+      this.fetchContentCreatorMembers()
+    ]).then(() => {
+      console.log('All team members loaded:', {
+        developers: this.developers,
+        marketingMembers: this.digitalMarketingMembers,
+        contentCreators: this.contentCreatorMembers
+      });
+    });
     
     setTimeout(() => {
       this.colorEventDates();
@@ -376,8 +398,6 @@ throw new Error('Method not implemented.');
     });
   }
 
-
-
   deleteEvent(eventId: string) {
     Swal.fire({
       title: 'Are you sure?',
@@ -403,15 +423,31 @@ throw new Error('Method not implemented.');
   }
 
   // Participant Management
-  addParticipant(developerId: string, onModel: 'Developer' | 'Manager') {
-    if (!developerId || this.newEvent.participants.some((p: { participantId: string; }) => p.participantId === developerId)) {
+  addParticipant(participantId: string, onModel: string) {
+    console.log('Adding participant:', { participantId, onModel });
+    
+    if (!participantId) {
+      console.warn('No participant ID provided');
       return;
     }
 
+    // Check if participant already exists
+    const exists = this.newEvent.participants.some(
+      (p: { participantId: string; }) => p.participantId === participantId
+    );
+
+    if (exists) {
+      console.warn('Participant already added');
+      return;
+    }
+
+    // Add new participant
     this.newEvent.participants.push({
-      participantId: developerId,
+      participantId: participantId,
       onModel: onModel
     });
+
+    console.log('Updated participants:', this.newEvent.participants);
   }
 
   removeParticipant(participant: any) {
@@ -524,8 +560,27 @@ throw new Error('Method not implemented.');
   }
 
   getParticipantName(participant: any): string {
-    const dev = this.developers.find(d => d._id === participant.participantId);
-    return dev ? dev.username : 'Unknown';
+    console.log('Getting name for participant:', participant);
+    
+    switch (participant.onModel) {
+      case 'Developer':
+        const dev = this.developers.find(d => d._id === participant.participantId);
+        return dev ? dev.username : 'Unknown Developer';
+      
+      case 'digital-marketing':
+        const dm = this.digitalMarketingMembers.find(d => d._id === participant.participantId);
+        console.log('Found marketing member:', dm);
+        return dm ? dm.username : 'Unknown Marketing Member';
+      
+      case 'content-creator':
+        const cc = this.contentCreatorMembers.find(d => d._id === participant.participantId);
+        console.log('Found content creator:', cc);
+        return cc ? cc.username : 'Unknown Content Creator';
+      
+      default:
+        console.warn('Unknown participant type:', participant.onModel);
+        return 'Unknown';
+    }
   }
 
   handleEventSubmit() {
@@ -623,5 +678,48 @@ throw new Error('Method not implemented.');
     const minutes = String(date.getMinutes()).padStart(2, '0');
     
     return `${year}-${month}-${day}T${hours}:${minutes}`;
+  }
+
+  // Add these new methods
+  private fetchDigitalMarketingMembers() {
+    console.log('Fetching digital marketing members...');
+    return new Promise((resolve) => {
+      this.managerService.getAllDigitalMarketingMembers().subscribe({
+        next: (response) => {
+          console.log('Digital marketing response:', response);
+          if (response.success) {
+            this.digitalMarketingMembers = response.data;
+            console.log('Digital marketing members loaded:', this.digitalMarketingMembers);
+          }
+          resolve(true);
+        },
+        error: (error) => {
+          console.error('Error fetching digital marketing members:', error);
+          this.showErrorAlert('Failed to load digital marketing members');
+          resolve(false);
+        }
+      });
+    });
+  }
+
+  private fetchContentCreatorMembers() {
+    console.log('Fetching content creators...');
+    return new Promise((resolve) => {
+      this.managerService.getAllContentCreatorMembers().subscribe({
+        next: (response) => {
+          console.log('Content creators response:', response);
+          if (response.success) {
+            this.contentCreatorMembers = response.data;
+            console.log('Content creators loaded:', this.contentCreatorMembers);
+          }
+          resolve(true);
+        },
+        error: (error) => {
+          console.error('Error fetching content creators:', error);
+          this.showErrorAlert('Failed to load content creators');
+          resolve(false);
+        }
+      });
+    });
   }
 }

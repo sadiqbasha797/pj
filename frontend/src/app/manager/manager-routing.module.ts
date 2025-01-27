@@ -12,6 +12,8 @@ import { LeaveManagerComponent } from './leave-manager/leave-manager.component';
 import { ProfileManagerComponent } from './profile-manager/profile-manager.component';
 import { ManagerAuthGuard } from '../guards/manager-auth.guard';
 import { NotificationsManagerComponent } from './notifications-manager/notifications-manager.component';
+import { MarketingManagerComponent } from './marketing-manager/marketing-manager.component';
+import { UpdatesManagerComponent } from './updates-manager/updates-manager.component';
 const routes: Routes = [
   { path: 'login', component: LoginManagerComponent },
   {
@@ -28,6 +30,8 @@ const routes: Routes = [
       { path: 'leave', component: LeaveManagerComponent },
       { path: 'profile', component: ProfileManagerComponent },
       { path: 'notifications', component: NotificationsManagerComponent },
+      { path: 'marketing', component: MarketingManagerComponent },
+      { path: 'updates', component: UpdatesManagerComponent },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   }

@@ -12,6 +12,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatMenuModule } from '@angular/material/menu';
 import { CacheService } from '../../services/cache.service';
+import { MatSelectModule } from '@angular/material/select';
+import { MatOptionModule } from '@angular/material/core';
 
 @Component({
   selector: 'app-users',
@@ -28,7 +30,9 @@ import { CacheService } from '../../services/cache.service';
     MatFormFieldModule,
     MatInputModule,
     MatChipsModule,
-    MatMenuModule
+    MatMenuModule,
+    MatSelectModule,
+    MatOptionModule
   ],
   templateUrl: './users.component.html',
   styleUrl: './users.component.css'
@@ -63,6 +67,9 @@ export class UsersComponent implements OnInit {
   contentCreatorForm: FormGroup;
   showDigitalMarketingForm = false;
   showContentCreatorForm = false;
+  availableDevelopers: any[] = [];
+  availableDigitalMarketingUsers: any[] = [];
+  availableContentCreators: any[] = [];
 
   constructor(
     private adminService: AdminService,
@@ -81,7 +88,10 @@ export class UsersComponent implements OnInit {
       username: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       password: ['', Validators.required],
-      teamSize: [0, [Validators.required, Validators.min(0)]]
+      teamSize: [0, [Validators.required, Validators.min(0)]],
+      developers: [[]],
+      digitalMarketingRoles: [[]],
+      contentCreators: [[]]
     });
 
     this.digitalMarketingForm = this.fb.group({
@@ -104,6 +114,7 @@ export class UsersComponent implements OnInit {
     this.loadManagers();
     this.loadDigitalMarketingUsers();
     this.loadContentCreators();
+    this.loadAvailableUsers();
   }
 
   loadDevelopers() {
@@ -443,5 +454,37 @@ export class UsersComponent implements OnInit {
         }
       });
     }
+  }
+
+  loadAvailableUsers() {
+    this.adminService.getAllDevelopers().subscribe({
+      next: (data) => {
+        this.availableDevelopers = data;
+      },
+      error: (error) => {
+        this.showMessage('Error loading developers');
+        console.error(error);
+      }
+    });
+
+    this.adminService.getAllDigitalMarketingMembers().subscribe({
+      next: (response) => {
+        this.availableDigitalMarketingUsers = response.data;
+      },
+      error: (error) => {
+        this.showMessage('Error loading digital marketing users');
+        console.error(error);
+      }
+    });
+
+    this.adminService.getAllContentCreatorMembers().subscribe({
+      next: (response) => {
+        this.availableContentCreators = response.data;
+      },
+      error: (error) => {
+        this.showMessage('Error loading content creators');
+        console.error(error);
+      }
+    });
   }
 }

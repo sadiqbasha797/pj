@@ -61,8 +61,10 @@ const {
     deleteMarketingTask,
     updateLeadsCount
 } = require('../controllers/marketingTaskController');
-const {addComment, deleteComment} = require('../controllers/taskUpdateController');
+const {addComment, deleteComment, getProjectTaskUpdates,getTaskUpdates} = require('../controllers/taskUpdateController');
 const {createRevenue, deleteRevenue, updateRevenue} = require('../controllers/revenueController');
+const {getAllMembers} = require('../controllers/digitalMarketingController');
+const {getAllContentCreatorMembers} = require('../controllers/contentCreatorController');
 // Register a new manager
 router.post('/register', verifyAdminToken, registerManager);
 router.post('/register-dev', verifyAdminToken, registerDeveloper);
@@ -191,4 +193,11 @@ router.delete('/comment/:updateId/:commentId', verifyManagerToken, deleteComment
 router.post('/revenue', verifyManagerToken, createRevenue);
 router.delete('/revenue/:revenueId', verifyManagerToken, deleteRevenue);
 router.put('/revenue/:revenueId', verifyManagerToken, updateRevenue);
+//digital marketing
+router.get('/digital-marketing-members', verifyManagerToken, getAllMembers);
+//content creator
+router.get('/content-creator-members', verifyManagerToken, getAllContentCreatorMembers);  
+//task updates
+router.get('/task-updates/:taskId', verifyManagerToken, getTaskUpdates);
+router.get('/project-task-updates/:projectId', verifyManagerToken, getProjectTaskUpdates);
 module.exports = router;

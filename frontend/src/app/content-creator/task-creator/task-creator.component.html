@@ -1,0 +1,97 @@
+<div class="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-6xl mx-auto">
+    <div class="bg-white shadow-md rounded-lg p-6">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">Assigned Tasks</h2>
+
+      <!-- Error Message -->
+      <div *ngIf="errorMessage" class="mb-4 p-4 bg-red-100 text-red-700 rounded-md">
+        {{ errorMessage }}
+      </div>
+
+      <!-- Loading Spinner -->
+      <div *ngIf="loading" class="flex justify-center items-center py-8">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      </div>
+
+      <!-- No Tasks Message -->
+      <div *ngIf="!loading && tasks.length === 0" class="text-center py-8 text-gray-500">
+        No tasks assigned yet.
+      </div>
+
+      <!-- Tasks List -->
+      <div *ngIf="!loading && tasks.length > 0" class="space-y-4">
+        <div *ngFor="let task of tasks" class="border rounded-lg p-4 hover:shadow-md transition-shadow">
+          <div class="flex justify-between items-start">
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900">{{ task.taskName }}</h3>
+              <p class="mt-1 text-sm text-gray-600">{{ task.taskDescription }}</p>
+            </div>
+            <div class="flex items-center space-x-4">
+              <span [class]="'px-3 py-1 rounded-full text-sm font-medium ' + getStatusColor(task.status)">
+                {{ task.status }}
+              </span>
+              <button 
+                (click)="viewUpdates(task._id)"
+                class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                View Updates
+              </button>
+            </div>
+          </div>
+
+          <div class="mt-4 grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <p class="text-gray-600">Project:</p>
+              <p class="font-medium">{{ task.projectId?.title || 'N/A' }}</p>
+            </div>
+            <div>
+              <p class="text-gray-600">Priority:</p>
+              <p class="font-medium capitalize">{{ task.priority }}</p>
+            </div>
+            <div>
+              <p class="text-gray-600">Start Date:</p>
+              <p class="font-medium">{{ formatDate(task.startDate) }}</p>
+            </div>
+            <div>
+              <p class="text-gray-600">End Date:</p>
+              <p class="font-medium">{{ formatDate(task.endDate) }}</p>
+            </div>
+          </div>
+
+          <!-- Related Documents -->
+          <div *ngIf="task.relatedDocs?.length > 0" class="mt-4">
+            <p class="text-gray-600 mb-2">Related Documents:</p>
+            <div class="flex flex-wrap gap-2">
+              <a *ngFor="let doc of task.relatedDocs" 
+                 [href]="doc" 
+                 target="_blank"
+                 class="inline-flex items-center px-3 py-1 rounded-md text-sm text-indigo-600 bg-indigo-50 hover:bg-indigo-100">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                </svg>
+                View Document
+              </a>
+            </div>
+          </div>
+
+          <!-- Assigned Team Members -->
+          <div *ngIf="task.assignedTo?.length > 0" class="mt-4">
+            <p class="text-gray-600 mb-2">Team Members:</p>
+            <div class="flex flex-wrap gap-2">
+              <div *ngFor="let member of task.assignedTo" 
+                   class="inline-flex items-center px-3 py-1 rounded-md text-sm bg-gray-100">
+                <span *ngIf="member.userDetails?.username">{{ member.userDetails.username }}</span>
+                <span *ngIf="!member.userDetails?.username">{{ member.id }}</span>
+                <span class="ml-1 text-gray-500">({{ member.role }})</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

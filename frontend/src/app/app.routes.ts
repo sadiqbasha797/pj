@@ -24,5 +24,9 @@ export const routes: Routes = [
     path: 'marketer', 
     loadChildren: () => import('./marketer/marketer-routing.module').then(m => m.MarketerRoutingModule)
   },
+  { 
+    path: 'content-creator', 
+    loadChildren: () => import('./content-creator/creator-routing.module').then(m => m.CreatorRoutingModule)
+  },
   { path: '', redirectTo: '/welcome', pathMatch: 'full' },
 ];

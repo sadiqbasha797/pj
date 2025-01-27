@@ -1,0 +1,49 @@
+<div class="max-w-4xl mx-auto p-6">
+  <div class="flex justify-between items-center mb-6">
+    <h2 class="text-2xl font-semibold text-gray-800">Notifications</h2>
+    <button 
+      (click)="markAllAsRead()" 
+      class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+    >
+      Mark all as read
+    </button>
+  </div>
+
+  <div class="space-y-2">
+    <div *ngFor="let notification of notifications" 
+         class="p-4 rounded-lg transition-colors duration-200"
+         [class.bg-blue-50]="!notification.read"
+         [class.bg-white]="notification.read"
+         [class.border]="notification.read"
+         [class.border-gray-200]="notification.read"
+    >
+      <div class="flex justify-between items-start gap-4">
+        <div class="flex-1">
+          <p class="text-gray-800" [class.font-medium]="!notification.read">
+            {{ notification.content }}
+          </p>
+          <div class="flex items-center gap-2 mt-2">
+            <span class="text-sm text-gray-500">
+              {{ formatDate(notification.createdAt) }}
+            </span>
+            <span 
+              class="px-2 py-1 text-xs rounded-full"
+              [class.bg-blue-100]="!notification.read"
+              [class.text-blue-800]="!notification.read"
+              [class.bg-gray-100]="notification.read"
+              [class.text-gray-800]="notification.read"
+            >
+              {{ notification.type }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty state -->
+    <div *ngIf="notifications.length === 0" 
+         class="text-center py-12 bg-gray-50 rounded-lg">
+      <p class="text-gray-500">No notifications yet</p>
+    </div>
+  </div>
+</div>

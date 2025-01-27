@@ -73,6 +73,108 @@
         }
       </div>
     </div>
+
+    <!-- Digital Marketing Team Section -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mt-6">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="bg-purple-100 p-2 rounded-lg">
+          <mat-icon class="text-purple-600">campaign</mat-icon>
+        </div>
+        <h2 class="text-xl font-bold text-gray-800">Digital Marketing Team</h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        @for (member of digitalMarketingMembers; track member._id) {
+          <div class="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-lg transition-all duration-300">
+            <div class="p-6">
+              <div class="flex items-center gap-4">
+                @if (member.image) {
+                  <img [src]="member.image" 
+                       [alt]="member.username" 
+                       class="h-12 w-12 rounded-full object-cover">
+                } @else {
+                  <div class="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
+                    <mat-icon class="text-purple-600">person</mat-icon>
+                  </div>
+                }
+                <div>
+                  <h3 class="text-lg font-semibold text-gray-900">{{ member.username }}</h3>
+                  <p class="text-sm text-gray-500">{{ member.email }}</p>
+                </div>
+              </div>
+              
+              <div class="mt-4">
+                <div class="flex flex-wrap gap-2">
+                  @for (skill of member.skills; track skill) {
+                    <span class="px-3 py-1 text-sm bg-purple-50 text-purple-700 rounded-full">
+                      {{ skill }}
+                    </span>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+
+        @if (digitalMarketingMembers.length === 0) {
+          <div class="col-span-full text-center py-12">
+            <mat-icon class="text-gray-400 text-6xl">campaign_off</mat-icon>
+            <p class="mt-4 text-gray-500">No digital marketing team members assigned</p>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Content Creator Team Section -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mt-6">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="bg-indigo-100 p-2 rounded-lg">
+          <mat-icon class="text-indigo-600">create</mat-icon>
+        </div>
+        <h2 class="text-xl font-bold text-gray-800">Content Creator Team</h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        @for (member of contentCreatorMembers; track member._id) {
+          <div class="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-lg transition-all duration-300">
+            <div class="p-6">
+              <div class="flex items-center gap-4">
+                @if (member.image) {
+                  <img [src]="member.image" 
+                       [alt]="member.username" 
+                       class="h-12 w-12 rounded-full object-cover">
+                } @else {
+                  <div class="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center">
+                    <mat-icon class="text-indigo-600">person</mat-icon>
+                  </div>
+                }
+                <div>
+                  <h3 class="text-lg font-semibold text-gray-900">{{ member.username }}</h3>
+                  <p class="text-sm text-gray-500">{{ member.email }}</p>
+                </div>
+              </div>
+              
+              <div class="mt-4">
+                <div class="flex flex-wrap gap-2">
+                  @for (skill of member.skills; track skill) {
+                    <span class="px-3 py-1 text-sm bg-indigo-50 text-indigo-700 rounded-full">
+                      {{ skill }}
+                    </span>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+
+        @if (contentCreatorMembers.length === 0) {
+          <div class="col-span-full text-center py-12">
+            <mat-icon class="text-gray-400 text-6xl">create_off</mat-icon>
+            <p class="mt-4 text-gray-500">No content creator team members assigned</p>
+          </div>
+        }
+      </div>
+    </div>
   }
 
   <!-- Developer Details Modal -->

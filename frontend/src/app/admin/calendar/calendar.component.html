@@ -341,7 +341,7 @@
 <!-- Edit/Create Event Modal -->
 <div *ngIf="showEditModal || showCreateModal" 
      class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
-  <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-2xl animate__animated animate__fadeInDown animate__faster">
+  <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-5xl animate__animated animate__fadeInDown animate__faster">
     <div class="flex justify-between items-center mb-6">
       <h2 class="text-2xl font-bold text-gray-900">{{showEditModal ? 'Edit Event' : 'Create Event'}}</h2>
       <button (click)="closeEditCreateModal()" class="text-gray-500 hover:text-gray-700">
@@ -438,6 +438,30 @@
                 <option *ngFor="let manager of managers" [value]="manager._id">{{manager.username}}</option>
               </select>
               <button type="button" (click)="addParticipant(managerSelect.value, 'Manager')"
+                      class="bg-blue-500 hover:bg-blue-600 text-white px-4 rounded-lg">
+                Add
+              </button>
+            </div>
+
+            <!-- Digital Marketing Members -->
+            <div class="flex gap-2">
+              <select #marketingSelect class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg">
+                <option value="">Select Digital Marketing Member</option>
+                <option *ngFor="let member of marketingMembers" [value]="member._id">{{member.username}}</option>
+              </select>
+              <button type="button" (click)="addParticipant(marketingSelect.value, 'DigitalMarketingRole')"
+                      class="bg-blue-500 hover:bg-blue-600 text-white px-4 rounded-lg">
+                Add
+              </button>
+            </div>
+
+            <!-- Content Creators -->
+            <div class="flex gap-2">
+              <select #creatorSelect class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg">
+                <option value="">Select Content Creator</option>
+                <option *ngFor="let creator of contentCreators" [value]="creator._id">{{creator.username}}</option>
+              </select>
+              <button type="button" (click)="addParticipant(creatorSelect.value, 'ContentCreator')"
                       class="bg-blue-500 hover:bg-blue-600 text-white px-4 rounded-lg">
                 Add
               </button>

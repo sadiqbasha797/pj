@@ -325,7 +325,7 @@
                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
           </div>
 
-          <!-- Participants (for Meeting type) -->
+          <!-- Participant Selection -->
           <div *ngIf="eventForm.get('eventType')?.value === 'Meeting'" class="space-y-4">
             <label class="flex items-center gap-2 text-sm font-medium text-gray-700">
               <span class="material-icons text-indigo-300">group</span>
@@ -336,7 +336,7 @@
             <div class="flex gap-2">
               <select #developerSelect class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg">
                 <option value="">Select Developer</option>
-                <option *ngFor="let dev of developers" [value]="dev._id">{{dev.username}}</option>
+                <option *ngFor="let dev of developers" [value]="dev._id">{{dev.username}} (Developer)</option>
               </select>
               <button type="button" (click)="addParticipant(developerSelect.value, 'Developer')"
                       class="bg-blue-500 hover:bg-blue-600 text-white px-4 rounded-lg">
@@ -344,13 +344,43 @@
               </button>
             </div>
 
-            <!-- Selected Participants -->
+            <!-- Digital Marketing Selection -->
+            <div class="flex gap-2">
+              <select #marketingSelect class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg">
+                <option value="">Select Digital Marketing Member</option>
+                <option *ngFor="let member of digitalMarketingMembers" [value]="member._id">
+                  {{member.username}} (Marketing)
+                </option>
+              </select>
+              <button type="button" 
+                      (click)="addParticipant(marketingSelect.value, 'digital-marketing')"
+                      class="bg-blue-500 hover:bg-blue-600 text-white px-4 rounded-lg">
+                Add
+              </button>
+            </div>
+
+            <!-- Content Creator Selection -->
+            <div class="flex gap-2">
+              <select #contentSelect class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg">
+                <option value="">Select Content Creator</option>
+                <option *ngFor="let member of contentCreatorMembers" [value]="member._id">
+                  {{member.username}} (Content)
+                </option>
+              </select>
+              <button type="button" 
+                      (click)="addParticipant(contentSelect.value, 'content-creator')"
+                      class="bg-blue-500 hover:bg-blue-600 text-white px-4 rounded-lg">
+                Add
+              </button>
+            </div>
+
+            <!-- Selected Participants List -->
             <div class="mt-4">
               <h4 class="text-sm font-medium text-gray-700 mb-2">Selected Participants</h4>
               <div class="space-y-2">
                 <div *ngFor="let participant of newEvent.participants" 
                      class="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
-                  <span>{{getParticipantName(participant)}}</span>
+                  <span>{{getParticipantName(participant)}} ({{participant.onModel}})</span>
                   <button type="button" (click)="removeParticipant(participant)"
                           class="text-red-600 hover:text-red-700">
                     <span class="material-icons">remove_circle</span>

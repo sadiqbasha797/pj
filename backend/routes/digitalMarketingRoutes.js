@@ -10,7 +10,8 @@ const {
     getProfile,
     deleteProfile,
     fetchNotifications,
-    markAllNotificationsAsRead
+    markAllNotificationsAsRead,
+    getParticipatingMeetings
 } = require('../controllers/digitalMarketingController');
 
 const {createTaskUpdate, getTaskUpdates, addComment, deleteTaskUpdate, updateTaskUpdate, getProjectTaskUpdates} = require('../controllers/taskUpdateController');
@@ -92,5 +93,8 @@ router.get('/projects', verifyMarketingToken, fetchProjects);
 // Notifications API's
 router.get('/notifications', verifyMarketingToken, fetchNotifications);
 router.put('/notifications/mark-all-as-read', verifyMarketingToken, markAllNotificationsAsRead);
+
+// Get participating meetings
+router.get('/participating-meetings', verifyMarketingToken, getParticipatingMeetings);
 
 module.exports = router;

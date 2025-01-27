@@ -3,6 +3,7 @@ const { uploadToCloudinary, deleteFromCloudinary } = require('../utils/cloudinar
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Notification = require('../models/Notification');
+const CalendarEvent = require('../models/calendarEvent');
 
 // Register a new content creator
 const registerContentCreator = async (req, res) => {
@@ -342,6 +343,51 @@ const adminDeleteContentCreator = async (req, res) => {
     }
 };
 
+// Fetch meetings where the content creator is a participant
+const getParticipatingMeetings = async (req, res) => {
+    try {
+        const userId = req.contentCreator._id;
+
+        const meetings = await CalendarEvent.find({
+            'participants': {
+                $elemMatch: {
+                    participantId: userId,
+                    onModel: 'ContentCreator'
+                }
+            }
+        })
+        .populate({
+            path: 'createdBy',
+            select: 'username email -_id',
+            refPath: 'onModel'
+        })
+        .populate({
+            path: 'participants.participantId',
+            select: 'username email -_id',
+            refPath: 'participants.onModel'
+        })
+        .sort({ eventDate: 1 }); // Sort by date ascending
+
+        if (meetings.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'No meetings found'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: meetings
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching meetings',
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     registerContentCreator,
     login,
@@ -351,5 +397,6 @@ module.exports = {
     fetchNotifications,
     markAllNotificationsAsRead,
     getAllContentCreatorMembers,
-    adminDeleteContentCreator
+    adminDeleteContentCreator,
+    getParticipatingMeetings
 };

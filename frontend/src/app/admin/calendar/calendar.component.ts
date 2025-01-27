@@ -9,6 +9,10 @@ import { CommonModule } from '@angular/common';
 import { FullCalendarModule } from '@fullcalendar/angular';
 import { FormsModule } from '@angular/forms';
 import { ReactiveFormsModule, FormGroup, FormBuilder } from '@angular/forms';
+
+// Add this type definition at the top of the file, outside the component class
+type ParticipantType = 'Developer' | 'Manager' | 'Client' | 'DigitalMarketingRole' | 'ContentCreator';
+
 @Component({
   selector: 'app-calendar',
   standalone: true,
@@ -63,6 +67,8 @@ export class CalendarComponent implements OnInit {
   filteredEvents: any[] = [];
   showFilterModal = false;
   clients: any[] = [];
+  marketingMembers: any[] = [];
+  contentCreators: any[] = [];
 
   constructor(
     private adminService: AdminService,
@@ -91,6 +97,8 @@ export class CalendarComponent implements OnInit {
     this.fetchDevelopers();
     this.fetchManagers();
     this.fetchClients();
+    this.fetchMarketingMembers();
+    this.fetchContentCreators();
     this.updateEventCounts();
   }
 
@@ -290,19 +298,22 @@ export class CalendarComponent implements OnInit {
   }
 
   getParticipantName(participant: any): string {
-    if (!participant) return 'Unknown';
+    const { participantId, onModel } = participant;
     
-    if (participant.onModel === 'Developer') {
-      const developer = this.developers.find(dev => dev._id === participant.participantId);
-      return developer?.username || 'Unknown Developer';
-    } else if (participant.onModel === 'Manager') {
-      const manager = this.managers.find(mgr => mgr._id === participant.participantId);
-      return manager?.username || 'Unknown Manager';
-    } else if (participant.onModel === 'Client') {
-      const client = this.clients.find(cl => cl._id === participant.participantId);
-      return client?.clientName || 'Unknown Client';
+    switch (onModel) {
+      case 'Developer':
+        return this.developers.find(dev => dev._id === participantId)?.username || 'Unknown Developer';
+      case 'Manager':
+        return this.managers.find(manager => manager._id === participantId)?.username || 'Unknown Manager';
+      case 'Client':
+        return this.clients.find(client => client._id === participantId)?.clientName || 'Unknown Client';
+      case 'DigitalMarketingRole':
+        return this.marketingMembers.find(member => member._id === participantId)?.username || 'Unknown Marketing Member';
+      case 'ContentCreator':
+        return this.contentCreators.find(creator => creator._id === participantId)?.username || 'Unknown Content Creator';
+      default:
+        return 'Unknown Participant';
     }
-    return 'Unknown';
   }
 
   formatDate(dateString: string): string {
@@ -626,25 +637,27 @@ export class CalendarComponent implements OnInit {
 
   updateSelectedParticipants() {
     const selectedParticipantsDiv = document.getElementById('selected-participants');
-    selectedParticipantsDiv!.innerHTML = '';
+    if (!selectedParticipantsDiv) return;
+
+    selectedParticipantsDiv.innerHTML = '';
 
     this.newEvent.participants.forEach((participant: any) => {
-      const participantName = participant.onModel === 'Developer'
-        ? this.developers.find(dev => dev._id === participant.participantId)?.username
-        : this.managers.find(manager => manager._id === participant.participantId)?.username;
+      const participantName = this.getParticipantName(participant);
 
       const participantElement = document.createElement('div');
-      participantElement.textContent = participantName || 'Unknown Participant';
+      participantElement.textContent = `${participantName} (${participant.onModel})`;
 
       const removeButton = document.createElement('button');
       removeButton.textContent = 'Remove';
       removeButton.addEventListener('click', () => {
-        this.newEvent.participants = this.newEvent.participants.filter((p: any) => p.participantId !== participant.participantId);
+        this.newEvent.participants = this.newEvent.participants.filter(
+          (p: any) => !(p.participantId === participant.participantId && p.onModel === participant.onModel)
+        );
         this.updateSelectedParticipants();
       });
 
       participantElement.appendChild(removeButton);
-      selectedParticipantsDiv!.appendChild(participantElement);
+      selectedParticipantsDiv.appendChild(participantElement);
     });
   }
 
@@ -762,11 +775,17 @@ export class CalendarComponent implements OnInit {
     }
   }
 
-  addParticipant(id: string, type: 'Developer' | 'Manager' | 'Client'): void {
-    if (!id || this.newEvent.participants.some((p: any) => p.participantId === id)) {
-      return;
+  addParticipant(participantId: string, onModel: ParticipantType): void {
+    if (!participantId) return;
+
+    // Check if participant already exists
+    const exists = this.newEvent.participants.some(
+      (p: any) => p.participantId === participantId && p.onModel === onModel
+    );
+
+    if (!exists) {
+      this.newEvent.participants.push({ participantId, onModel });
     }
-    this.newEvent.participants.push({ participantId: id, onModel: type });
   }
 
   removeParticipant(participant: any): void {
@@ -852,6 +871,28 @@ export class CalendarComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error fetching clients:', error);
+      }
+    });
+  }
+
+  fetchMarketingMembers(): void {
+    this.adminService.getAllDigitalMarketingMembers().subscribe({
+      next: (response) => {
+        this.marketingMembers = response.data;
+      },
+      error: (error) => {
+        console.error('Error fetching marketing members:', error);
+      }
+    });
+  }
+
+  fetchContentCreators(): void {
+    this.adminService.getAllContentCreatorMembers().subscribe({
+      next: (response) => {
+        this.contentCreators = response.data;
+      },
+      error: (error) => {
+        console.error('Error fetching content creators:', error);
       }
     });
   }

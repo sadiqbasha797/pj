@@ -133,6 +133,21 @@
             <span [ngClass]="{'hidden': isCollapsed, 'ml-3 font-medium': !isCollapsed}">Leave Management</span>
           </a>
         </li>
+
+        <!-- Add this after the Leave Management section and before the closing </ul> tag -->
+        <li>
+          <a routerLink="/manager/marketing" routerLinkActive="bg-gradient-to-r from-green-100/50 to-emerald-100/50 text-green-700"
+             class="group flex items-center py-2.5 px-4 rounded-xl hover:bg-green-50/40 transition-all duration-300 hover:shadow-[0_0_15px_rgba(16,185,129,0.5)] hover:border-emerald-400 border border-transparent"
+             [title]="isCollapsed ? 'Marketing Tasks' : ''">
+            <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-100 to-green-50 group-hover:from-emerald-200 group-hover:to-green-100 transition-colors duration-300">
+              <svg class="h-5 w-5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+              </svg>
+            </div>
+            <span [ngClass]="{'hidden': isCollapsed, 'ml-3 font-medium': !isCollapsed}">Marketing Tasks</span>
+          </a>
+        </li>
       </ul>
     </nav>
   </div>

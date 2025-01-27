@@ -10,7 +10,8 @@ const {
     getProfile,
     deleteProfile,
     fetchNotifications,
-    markAllNotificationsAsRead
+    markAllNotificationsAsRead,
+    getParticipatingMeetings
 } = require('../controllers/contentCreatorController');
 
 const {createTaskUpdate, getTaskUpdates, addComment, deleteTaskUpdate, updateTaskUpdate, getProjectTaskUpdates} = require('../controllers/taskUpdateController');
@@ -69,7 +70,7 @@ router.delete('/profile', deleteProfile);
 
 // Task Update routes
 router.post('/task-updates', verifyContentCreatorToken, upload.array('attachments', 5), createTaskUpdate);
-router.get('/task-updates', verifyContentCreatorToken, getTaskUpdates);
+router.get('/task-updates/:taskId', verifyContentCreatorToken, getTaskUpdates);
 router.post('/task-updates/:id/comments', verifyContentCreatorToken, addComment);
 router.delete('/task-updates/:id', verifyContentCreatorToken, deleteTaskUpdate);
 router.put('/task-updates/:id', verifyContentCreatorToken, upload.array('attachments', 5), updateTaskUpdate);
@@ -93,5 +94,8 @@ router.get('/projects', verifyContentCreatorToken, fetchProjects);
 // Notifications API's
 router.get('/notifications', verifyContentCreatorToken, fetchNotifications);
 router.put('/notifications/mark-all-as-read', verifyContentCreatorToken, markAllNotificationsAsRead);
+
+// Get participating meetings
+router.get('/participating-meetings', verifyContentCreatorToken, getParticipatingMeetings);
 
 module.exports = router;

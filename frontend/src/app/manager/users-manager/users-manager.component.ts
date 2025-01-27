@@ -62,6 +62,8 @@ export class UsersManagerComponent implements OnInit {
   upcomingMeetings: any[] = [];
   pastMeetings: any[] = [];
   activeEventTab: 'upcoming' | 'past' = 'upcoming';
+  digitalMarketingMembers: any[] = [];
+  contentCreatorMembers: any[] = [];
 
   constructor(
     private managerService: ManagerService,
@@ -76,12 +78,55 @@ export class UsersManagerComponent implements OnInit {
     this.managerService.getManagerProfile().subscribe({
       next: (profile) => {
         this.managerProfile = profile;
+        this.loadTeamMembers();
         this.loading = false;
       },
       error: (err) => {
         this.error = 'Failed to load manager profile';
         this.loading = false;
         console.error('Error loading profile:', err);
+      }
+    });
+  }
+
+  private loadTeamMembers() {
+    // Get assigned digital marketing member IDs
+    const assignedDigitalMarketingIds = this.managerProfile.digitalMarketingRoles?.map(
+      (role: any) => role.roleId
+    ) || [];
+
+    // Get assigned content creator IDs
+    const assignedContentCreatorIds = this.managerProfile.contentCreators?.map(
+      (creator: any) => creator.roleId
+    ) || [];
+
+    // Load and filter digital marketing members
+    this.managerService.getAllDigitalMarketingMembers().subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.digitalMarketingMembers = response.data.filter(member => 
+            assignedDigitalMarketingIds.includes(member._id)
+          );
+        }
+      },
+      error: (error) => {
+        console.error('Error loading digital marketing team:', error);
+        this.showMessage('Error loading digital marketing team members');
+      }
+    });
+
+    // Load and filter content creator members
+    this.managerService.getAllContentCreatorMembers().subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.contentCreatorMembers = response.data.filter(member => 
+            assignedContentCreatorIds.includes(member._id)
+          );
+        }
+      },
+      error: (error) => {
+        console.error('Error loading content creator team:', error);
+        this.showMessage('Error loading content creator team members');
       }
     });
   }
