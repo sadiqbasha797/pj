@@ -8,7 +8,7 @@ interface Notification {
   content: string;
   read: boolean;
   type: string;
-  date: string;
+  createdAt: string;
   relatedId: string;
   time?: string;
 }
@@ -40,7 +40,7 @@ export class NotificationsDeveloperComponent implements OnInit {
       next: (notifications) => {
         this.notifications = notifications.map((notification: Notification) => ({
           ...notification,
-          time: new Date(notification.date).toLocaleString()
+          time: new Date(notification.createdAt).toLocaleString()
         }));
         this.unreadCount = this.notifications.filter(n => !n.read).length;
         this.loading = false;

@@ -1,0 +1,117 @@
+<div class="container mx-auto px-4 py-8">
+  <!-- Header Card with Blue Gradient -->
+  <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg shadow-md p-6 mb-8">
+    <div class="flex justify-between items-start">
+      <div>
+        <div class="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+          <h2 class="text-2xl font-bold text-white">My Meetings</h2>
+        </div>
+        <p class="text-blue-100 mt-2">Track and manage your scheduled meetings</p>
+      </div>
+      <div class="text-sm text-white flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <span>{{ meetings.length }} Upcoming Meetings</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Meetings List -->
+  <div *ngIf="meetings.length > 0; else noMeetings" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+    <div *ngFor="let meeting of meetings" 
+         class="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group border border-gray-100">
+      <!-- Meeting Header with Gradient -->
+      <div class="relative p-6 bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+        <div class="absolute top-0 right-0 mt-4 mr-4">
+          <span [class]="meeting.status === 'Active' ? 'px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-700' : 'px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700'">
+            {{ meeting.status }}
+          </span>
+        </div>
+        
+        <h2 class="text-xl font-bold text-gray-800 mb-2 group-hover:text-blue-600 transition-colors">
+          {{ meeting.title }}
+        </h2>
+        <p class="text-gray-600 line-clamp-2">{{ meeting.description }}</p>
+      </div>
+
+      <!-- Meeting Details -->
+      <div class="p-6 space-y-4">
+        <!-- Date and Time -->
+        <div class="flex items-center text-gray-700">
+          <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+          </svg>
+          <span class="text-sm">{{ formatDate(meeting.eventDate) }}</span>
+        </div>
+
+        <!-- Location -->
+        <div class="flex items-center text-gray-700">
+          <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+          </svg>
+          <span class="text-sm">{{ meeting.location }}</span>
+        </div>
+
+        <!-- Meeting Type -->
+        <div class="flex items-center text-gray-700">
+          <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+          </svg>
+          <span class="text-sm">{{ meeting.eventType }}</span>
+        </div>
+
+        <!-- Divider -->
+        <div class="border-t border-gray-100 my-4"></div>
+
+        <!-- Organizer -->
+        <div class="flex items-center justify-between">
+          <div class="flex items-center">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center text-white text-sm font-medium">
+              {{ meeting.createdBy.username.charAt(0).toUpperCase() }}
+            </div>
+            <div class="ml-3">
+              <p class="text-sm font-medium text-gray-800">{{ meeting.createdBy.username }}</p>
+              <p class="text-xs text-gray-500">Organizer</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Participants -->
+        <div class="mt-4">
+          <p class="text-sm font-medium text-gray-700 mb-2 flex items-center">
+            <svg class="w-4 h-4 mr-1 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+            </svg>
+            Participants
+          </p>
+          <div class="space-y-1">
+            <div *ngFor="let participant of meeting.participants" 
+                 class="text-sm text-gray-600 flex items-center gap-2 px-3 py-1 rounded-lg hover:bg-gray-50">
+              <div class="w-6 h-6 rounded-full bg-gradient-to-r from-indigo-400 to-purple-400 flex items-center justify-center text-white text-xs">
+                {{ participant.participantId.username.charAt(0).toUpperCase() }}
+              </div>
+              <span>{{ participant.participantId.username }}</span>
+              <span class="text-xs text-gray-400">({{ participant.onModel }})</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- No Meetings Template -->
+  <ng-template #noMeetings>
+    <div class="text-center py-16 bg-white rounded-xl shadow-sm">
+      <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+      </svg>
+      <p class="text-gray-600 text-lg mb-2">No meetings scheduled at the moment</p>
+      <p class="text-gray-400 text-sm">Your upcoming meetings will appear here</p>
+    </div>
+  </ng-template>
+</div>

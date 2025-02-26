@@ -1,0 +1,105 @@
+<div class="lg:p-6 min-h-screen">
+  <!-- Header Section with Gradient -->
+  <div class="relative rounded-lg overflow-hidden mb-6 bg-gradient-to-r from-violet-400 via-purple-500 to-indigo-600 p-4 sm:p-6">
+    <!-- Decorative shapes -->
+    <div class="absolute inset-0">
+      <div class="absolute w-32 h-32 -top-16 -right-16 bg-white opacity-10 rounded-full"></div>
+      <div class="absolute w-24 h-24 -bottom-12 -left-12 bg-white opacity-10 rounded-full"></div>
+      <div class="absolute w-20 h-20 top-8 left-1/3 bg-white opacity-5 rounded-full"></div>
+    </div>
+
+    <!-- Header content -->
+    <div class="relative">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0">
+        <div class="flex items-center gap-3">
+          <div class="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
+            <span class="material-icons text-white">group_add</span>
+          </div>
+          <div>
+            <h1 class="text-xl sm:text-2xl font-bold text-white">Team Requests</h1>
+            <p class="text-sm sm:text-base text-violet-100">Manage team member requests</p>
+          </div>
+        </div>
+        <div class="flex gap-2">
+          <div class="flex items-center gap-4">
+            <div class="bg-white/10 px-3 py-1.5 rounded-lg backdrop-blur-sm">
+              <p class="text-xs text-violet-100">Pending</p>
+              <p class="text-lg font-semibold text-white">{{ pendingRequests.length }}</p>
+            </div>
+            <div class="bg-white/10 px-3 py-1.5 rounded-lg backdrop-blur-sm">
+              <p class="text-xs text-violet-100">Processed</p>
+              <p class="text-lg font-semibold text-white">{{ processedCount }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Request Cards Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div *ngFor="let request of pendingRequests" 
+         class="max-w-sm rounded-xl overflow-hidden shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px] hover:shadow-[rgba(0,_0,_0,_0.2)_0px_10px_20px] transition-all duration-300 hover:-translate-y-1 bg-white dark:bg-gray-800"
+         (mouseenter)="setHoveredRequest(request._id)"
+         (mouseleave)="setHoveredRequest(null)">
+      <div class="px-6 py-4">
+        <!-- Request Header -->
+        <div class="flex justify-between items-start mb-2">
+          <div class="font-bold text-xl text-gray-800 dark:text-white">
+            {{ request.memberId.username }}
+          </div>
+          <span class="px-3 py-1 text-xs font-semibold rounded-full bg-indigo-100 text-indigo-800">
+            {{ request.requestType }}
+          </span>
+        </div>
+
+        <!-- Request Details -->
+        <p class="text-gray-700 dark:text-gray-300 text-base mb-4">
+          {{ request.notes || 'No additional notes provided.' }}
+        </p>
+
+        <!-- Request Metadata -->
+        <div class="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+          <div class="flex items-center">
+            <span class="material-icons text-indigo-400 text-sm mr-1">person</span>
+            <span>{{ request.manager.username }}</span>
+          </div>
+          <div class="flex items-center">
+            <span class="material-icons text-indigo-400 text-sm mr-1">schedule</span>
+            <span>{{ request.requestDate | date:'shortDate' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="px-6 pb-4 flex justify-end">
+        <div class="flex">
+          <button (click)="handleRequest(request._id, 'approved')" 
+                  class="px-4 py-1.5 bg-green-50 text-green-600 hover:bg-green-100 transition duration-300 text-sm">
+            <span class="material-icons text-sm">check</span>
+          </button>
+          <button (click)="handleRequest(request._id, 'rejected')" 
+                  class="px-4 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 transition duration-300 text-sm">
+            <span class="material-icons text-sm">close</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Hover Effect Line -->
+      <div class="h-1 bg-indigo-500 transition-all duration-300 ease-in-out" 
+           [ngStyle]="{'width': isRequestHovered(request._id) ? '100%' : '0%'}"></div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="pendingRequests.length === 0" 
+         class="col-span-3 bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
+      <div class="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
+        <span class="material-icons text-gray-400">inbox</span>
+      </div>
+      <h3 class="text-base font-medium text-gray-900 mb-1">No pending requests</h3>
+      <p class="text-sm text-gray-500">
+        There are currently no team requests requiring your attention.
+      </p>
+    </div>
+  </div>
+</div>

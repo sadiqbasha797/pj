@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ManagerService } from '../../services/manager.service';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -7,6 +7,7 @@ import { CalendarOptions, EventClickArg, EventInput } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin, { DateClickArg } from '@fullcalendar/interaction';
 import Swal from 'sweetalert2';
+import { forkJoin } from 'rxjs';
 
 interface CalendarEvent {
   _id: string;
@@ -39,7 +40,7 @@ interface CalendarEvent {
   templateUrl: './calendar-manager.component.html',
   styleUrl: './calendar-manager.component.css'
 })
-export class CalendarManagerComponent implements OnInit {
+export class CalendarManagerComponent implements OnInit, AfterViewInit {
   participants: any;
   formatDate(arg0: any) {
     throw new Error('Method not implemented.');
@@ -100,8 +101,37 @@ export class CalendarManagerComponent implements OnInit {
       center: 'title',
       right: 'dayGridMonth,dayGridWeek,dayGridDay'
     },
-    dayCellDidMount: this.handleDayCellMount.bind(this),
     datesSet: this.handleDatesSet.bind(this),
+    displayEventTime: true,
+    eventTimeFormat: {
+      hour: '2-digit',
+      minute: '2-digit',
+      meridiem: 'short'
+    },
+    dayMaxEvents: 2,
+    eventDisplay: 'auto',
+    eventContent: (arg) => {
+      const eventEl = document.createElement('div');
+      eventEl.className = 'flex items-center gap-1 p-1 rounded-md text-xs';
+      eventEl.style.backgroundColor = arg.event.backgroundColor || '#4CAF50';
+      
+      const icon = document.createElement('span');
+      icon.className = 'material-icons text-xs';
+      icon.innerHTML = this.getEventIcon(arg.event.extendedProps?.['type'] || '');
+      icon.style.color = 'white';
+      
+      const title = document.createElement('span');
+      title.innerHTML = arg.event.title;
+      title.style.color = 'white';
+      title.style.whiteSpace = 'nowrap';
+      title.style.overflow = 'hidden';
+      title.style.textOverflow = 'ellipsis';
+      
+      eventEl.appendChild(icon);
+      eventEl.appendChild(title);
+      
+      return { domNodes: [eventEl] };
+    }
   };
 
   @ViewChild(FullCalendarComponent) calendarComponent: FullCalendarComponent | undefined;
@@ -112,6 +142,8 @@ export class CalendarManagerComponent implements OnInit {
   // Add new properties
   digitalMarketingMembers: any[] = [];
   contentCreatorMembers: any[] = [];
+  admins: any[] = [];
+  isLoading: boolean = true;
 
   constructor(
     private managerService: ManagerService,
@@ -134,27 +166,37 @@ export class CalendarManagerComponent implements OnInit {
   }
 
   ngOnInit() {
-    // Add console logs to debug
     console.log('Component initialized');
     this.initializeForms();
     this.loadManagerProfile();
     
-    // Fetch all team members
-    Promise.all([
-      this.fetchDevelopers(),
-      this.fetchDigitalMarketingMembers(),
-      this.fetchContentCreatorMembers()
-    ]).then(() => {
-      console.log('All team members loaded:', {
-        developers: this.developers,
-        marketingMembers: this.digitalMarketingMembers,
-        contentCreators: this.contentCreatorMembers
-      });
-    });
-    
-    setTimeout(() => {
-      this.colorEventDates();
-    }, 100);
+    // Initialize calendar options
+    this.calendarOptions = {
+      ...this.calendarOptions,
+      events: this.calendarEvents,
+      initialView: 'dayGridMonth',
+      headerToolbar: {
+        left: 'prev,next today',
+        center: 'title',
+        right: 'dayGridMonth,dayGridWeek,dayGridDay'
+      },
+      plugins: [dayGridPlugin, interactionPlugin],
+      editable: false,
+      selectable: true,
+      displayEventTime: true,
+      eventTimeFormat: {
+        hour: '2-digit',
+        minute: '2-digit',
+        meridiem: 'short'
+      },
+      dayMaxEvents: true,
+      eventDisplay: 'block',
+      eventClick: this.handleEventClick.bind(this),
+      dateClick: this.handleDateClick.bind(this)
+    };
+
+    // Load events after initialization
+    this.loadEvents();
   }
 
   fetchManagers() {
@@ -203,9 +245,13 @@ export class CalendarManagerComponent implements OnInit {
           event.participants.some(p => this.assignedDevelopers.includes(p.participantId))
         );
         
+        // Transform events and update calendar
         this.calendarEvents = this.transformEventsForCalendar(this.events);
+        if (this.calendarComponent) {
+          this.calendarComponent.getApi().removeAllEvents();
+          this.calendarComponent.getApi().addEventSource(this.calendarEvents);
+        }
         this.updateEventCounts();
-        this.colorEventDates();
       },
       error: (error) => console.error('Error loading events:', error)
     });
@@ -252,6 +298,7 @@ export class CalendarManagerComponent implements OnInit {
   }
 
   handleEventClick(arg: EventClickArg) {
+    console.log('Event clicked:', arg.event);
     const eventId = arg.event.id;
     const event = this.events.find(e => e._id === eventId);
     if (event) {
@@ -424,30 +471,19 @@ export class CalendarManagerComponent implements OnInit {
 
   // Participant Management
   addParticipant(participantId: string, onModel: string) {
-    console.log('Adding participant:', { participantId, onModel });
+    if (!participantId) return;
     
-    if (!participantId) {
-      console.warn('No participant ID provided');
-      return;
-    }
-
-    // Check if participant already exists
-    const exists = this.newEvent.participants.some(
-      (p: { participantId: string; }) => p.participantId === participantId
+    // Prevent duplicate participants
+    const isDuplicate = this.newEvent.participants.some(
+      (      p: { participantId: string; onModel: string; }) => p.participantId === participantId && p.onModel === onModel
     );
-
-    if (exists) {
-      console.warn('Participant already added');
-      return;
+    
+    if (!isDuplicate) {
+      this.newEvent.participants.push({
+        participantId,
+        onModel
+      });
     }
-
-    // Add new participant
-    this.newEvent.participants.push({
-      participantId: participantId,
-      onModel: onModel
-    });
-
-    console.log('Updated participants:', this.newEvent.participants);
   }
 
   removeParticipant(participant: any) {
@@ -503,15 +539,16 @@ export class CalendarManagerComponent implements OnInit {
     return events.map(event => ({
       id: event._id,
       title: event.title,
-      start: event.eventDate,
-      end: event.endDate,
-      className: this.getEventTypeClass(event.eventType),
+      start: new Date(event.eventDate), // Ensure proper date conversion
+      end: event.endDate ? new Date(event.endDate) : undefined,
+      allDay: event.isAllDay || false,
+      backgroundColor: this.getEventColor(event.eventType),
+      borderColor: this.getEventColor(event.eventType),
+      textColor: '#FFFFFF',
       extendedProps: {
-        description: event.description,
         type: event.eventType,
-        location: event.location,
-        participants: event.participants,
-        status: event.status
+        description: event.description,
+        location: event.location
       }
     }));
   }
@@ -624,44 +661,14 @@ export class CalendarManagerComponent implements OnInit {
     });
   }
 
-  private handleDayCellMount(arg: any): void {
-    const date = arg.date;
-    const hasEvents = this.events.some(event => 
-      new Date(event.eventDate).toDateString() === date.toDateString()
-    );
-    
-    if (hasEvents) {
-      arg.el.style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
-    }
-  }
-
   private handleDatesSet(arg: any): void {
-    this.loadEvents();
-    this.colorEventDates();
+    console.log('Calendar dates set:', arg);
+    console.log('Current events:', this.calendarEvents);
   }
 
   private handleDatesRendered() {
-    this.colorEventDates();
-  }
-
-  private colorEventDates(): void {
-    const calendarApi = this.calendarComponent?.getApi();
-    if (!calendarApi) return;
-
-    // Reset all cell backgrounds
-    const allDayCells = document.querySelectorAll('.fc-daygrid-day');
-    allDayCells.forEach(cell => {
-      (cell as HTMLElement).style.backgroundColor = '';
-    });
-
-    // Color cells with events
-    this.events.forEach(event => {
-      const eventDate = new Date(event.eventDate).toISOString().split('T')[0];
-      const dayCell = document.querySelector(`[data-date="${eventDate}"]`);
-      if (dayCell) {
-        (dayCell as HTMLElement).style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
-      }
-    });
+    // Remove this line
+    // this.colorEventDates();
   }
 
   // Add this method to check if the current manager created the event
@@ -721,5 +728,76 @@ export class CalendarManagerComponent implements OnInit {
         }
       });
     });
+  }
+
+  loadUsers() {
+    this.isLoading = true;
+    
+    forkJoin({
+      managers: this.managerService.getAllManagers(),
+      developers: this.managerService.getAllDevelopers(),
+      admins: this.managerService.getAllAdmins(),
+      digitalMarketing: this.managerService.getAllDigitalMarketingMembers(),
+      contentCreators: this.managerService.getAllContentCreatorMembers()
+    }).subscribe({
+      next: (response) => {
+        // ... existing user mappings ...
+        this.admins = response.admins.admins.map((user: { _id: any; username: any; email: any; }) => ({
+          _id: user._id,
+          username: user.username,
+          role: 'admin',
+          email: user.email
+        }));
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading users:', error);
+        this.isLoading = false;
+      }
+    });
+  }
+
+  private getEventColor(eventType: string): string {
+    switch (eventType) {
+      case 'Meeting':
+        return '#4CAF50'; // green
+      case 'Project Deadline':
+        return '#FFC107'; // amber
+      case 'Reminder':
+        return '#2196F3'; // blue
+      case 'Work':
+        return '#9C27B0'; // purple
+      case 'Holiday':
+        return '#3F51B5'; // indigo
+      case 'Task':
+        return '#FF5722'; // deep orange
+      default:
+        return '#757575'; // grey
+    }
+  }
+
+  private getEventIcon(eventType: string): string {
+    switch (eventType) {
+      case 'Meeting':
+        return 'groups';
+      case 'Project Deadline':
+        return 'assignment';
+      case 'Reminder':
+        return 'notifications';
+      case 'Work':
+        return 'work';
+      case 'Holiday':
+        return 'celebration';
+      case 'Task':
+        return 'task';
+      default:
+        return 'event';
+    }
+  }
+
+  // Add this method to check if events are properly loaded
+  ngAfterViewInit() {
+    console.log('Calendar component:', this.calendarComponent);
+    console.log('Initial events:', this.calendarEvents);
   }
 }

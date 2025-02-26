@@ -19,6 +19,10 @@ const TaskUpdateSchema = new mongoose.Schema(
       type: Date,
       required: false
     },
+    budget: {
+      type: Number,
+      required: false
+    },
     attachments: [{
       type: String,  // URLs or file paths to media files
       required: false

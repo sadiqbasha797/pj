@@ -1,0 +1,40 @@
+.notification-popup {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  max-width: 400px;
+  width: calc(100% - 40px);
+}
+
+.notification-content {
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f8f9fa;
+  border-left: 4px solid #007bff;
+}
+
+.message {
+  margin-right: 16px;
+  color: #333;
+  font-size: 14px;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.close-btn:hover {
+  color: #333;
+}

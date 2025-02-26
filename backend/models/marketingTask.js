@@ -54,6 +54,10 @@ const MarketingTaskSchema = new mongoose.Schema(
       "type": mongoose.Schema.Types.ObjectId,
       "required": true
     },
+    "budget": {
+      "type": Number,
+      "default": 0
+    },
     "relatedDocs": [
       {
         "type": String,

@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Notification = require('../models/Notification');
 const CalendarEvent = require('../models/calendarEvent');
+const Holiday = require('../models/Holiday');
 
 // Register a new digital marketing role
 const register = async (req, res) => {
@@ -352,24 +353,34 @@ const getParticipatingMeetings = async (req, res) => {
         const meetings = await CalendarEvent.find({
             'participants': {
                 $elemMatch: {
-                    participantId: userId,
+                    participantId: { $exists: true, $ne: null }, // Only get non-null participants
                     onModel: 'DigitalMarketingRole'
                 }
-            }
+            },
+            eventType: 'Meeting'
         })
         .populate({
             path: 'createdBy',
-            select: 'username email -_id',
+            select: 'username email',
             refPath: 'onModel'
         })
         .populate({
             path: 'participants.participantId',
-            select: 'username email -_id',
+            select: 'username email',
             refPath: 'participants.onModel'
         })
-        .sort({ eventDate: 1 }); // Sort by date ascending
+        .sort({ eventDate: 1 });
 
-        if (meetings.length === 0) {
+        // Filter out any meetings with null participants
+        const validMeetings = meetings.map(meeting => {
+            const validParticipants = meeting.participants.filter(p => p.participantId != null);
+            return {
+                ...meeting.toObject(),
+                participants: validParticipants
+            };
+        });
+
+        if (validMeetings.length === 0) {
             return res.status(404).json({
                 success: false,
                 message: 'No meetings found'
@@ -378,12 +389,208 @@ const getParticipatingMeetings = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            data: meetings
+            data: validMeetings
         });
     } catch (error) {
         res.status(500).json({
             success: false,
             message: 'Error fetching meetings',
+            error: error.message
+        });
+    }
+};
+
+// Fetch all events for marketing user
+const getMarketingEvents = async (req, res) => {
+    try {
+        const userId = req.marketingUser._id;
+
+        // Find events where the marketing user is either the creator or a participant
+        const events = await CalendarEvent.find({
+            $or: [
+                { 
+                    'participants': {
+                        $elemMatch: {
+                            participantId: userId,
+                            onModel: 'DigitalMarketingRole'
+                        }
+                    }
+                },
+                {
+                    createdBy: userId,
+                    onModel: 'DigitalMarketingRole'
+                }
+            ]
+        })
+        .populate({
+            path: 'createdBy',
+            select: 'username email _id', // Include _id in the select
+            refPath: 'onModel'
+        })
+        .populate({
+            path: 'participants.participantId',
+            select: 'username email _id', // Include _id in the select
+            refPath: 'participants.onModel'
+        })
+        .populate({
+            path: 'projectId',
+            select: 'title description -_id'
+        })
+        .sort({ eventDate: 1 }); // Sort by date ascending
+
+        if (events.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'No events found'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: events
+        });
+    } catch (error) {
+        console.error('Error fetching marketing events:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching events',
+            error: error.message
+        });
+    }
+};
+
+// Apply for holiday/leave
+const applyForHoliday = async (req, res) => {
+    const { startDate, endDate, reason } = req.body;
+    const marketingId = req.marketingUser._id;
+    const marketingName = req.marketingUser.username;
+
+    try {
+        const newHoliday = new Holiday({
+            developer: marketingId,
+            developerName: marketingName,
+            startDate,
+            endDate,
+            reason,
+            role: 'DigitalMarketingRole'
+        });
+        await newHoliday.save();
+
+        // Create a corresponding calendar event
+        const newEvent = new CalendarEvent({
+            title: "Holiday",
+            description: reason,
+            eventDate: startDate,
+            createdBy: marketingId,
+            onModel: 'DigitalMarketingRole',
+            eventType: 'Holiday',
+            endDate: endDate,
+            projectId: newHoliday._id,
+            participants: [{ participantId: marketingId, onModel: 'DigitalMarketingRole' }]
+        });
+        await newEvent.save();
+
+        // Create notification for admin
+        const notification = new Notification({
+            recipient: null,
+            content: `Holiday request from ${marketingName} (Digital Marketing)`,
+            type: 'Holiday',
+            relatedId: newHoliday._id,
+            read: false
+        });
+        await notification.save();
+
+        res.status(201).json({
+            success: true,
+            message: 'Holiday request submitted successfully',
+            data: {
+                holiday: newHoliday,
+                event: newEvent
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error submitting holiday request',
+            error: error.message
+        });
+    }
+};
+
+// Withdraw holiday request
+const withdrawHoliday = async (req, res) => {
+    const holidayId = req.params.holidayId;
+    const marketingId = req.marketingUser._id;
+
+    try {
+        // Update the holiday request to 'Withdrawn'
+        const updatedHoliday = await Holiday.findOneAndUpdate(
+            { 
+                _id: holidayId, 
+                developer: marketingId,
+                role: 'DigitalMarketingRole',
+                status: { $ne: 'Approved' } 
+            },
+            { status: 'Withdrawn' },
+            { new: true }
+        );
+
+        if (!updatedHoliday) {
+            return res.status(404).json({
+                success: false,
+                message: 'Holiday request not found or already approved'
+            });
+        }
+
+        // Update the corresponding calendar event
+        const updatedEvent = await CalendarEvent.findOneAndUpdate(
+            { projectId: holidayId },
+            { status: 'Not-Active', title: 'Withdrawn Holiday' },
+            { new: true }
+        );
+
+        res.status(200).json({
+            success: true,
+            message: 'Holiday withdrawn successfully',
+            data: {
+                holiday: updatedHoliday,
+                event: updatedEvent
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error withdrawing holiday',
+            error: error.message
+        });
+    }
+};
+
+// Fetch all holidays for the marketing user
+const fetchHolidays = async (req, res) => {
+    const marketingId = req.marketingUser._id;
+
+    try {
+        const holidays = await Holiday.find({ 
+            developer: marketingId,
+            role: 'DigitalMarketingRole'
+        });
+        
+        if (holidays.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'No holiday requests found'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: holidays
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching holiday requests',
             error: error.message
         });
     }
@@ -399,5 +606,9 @@ module.exports = {
     markAllNotificationsAsRead,
     getAllMembers,
     adminDeleteUser,
-    getParticipatingMeetings
+    getParticipatingMeetings,
+    getMarketingEvents,
+    applyForHoliday,
+    withdrawHoliday,
+    fetchHolidays
 };

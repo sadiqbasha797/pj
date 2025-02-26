@@ -7,7 +7,9 @@ import { tap } from 'rxjs/operators';
   providedIn: 'root'
 })
 export class CreatorService {
-  private apiUrl = 'http://localhost:3000/api/content-creator';
+  
+    private apiUrl = 'http://localhost:4000/api/content-creator';
+
 
   constructor(private http: HttpClient) {}
 
@@ -106,6 +108,62 @@ export class CreatorService {
     return this.http.put(`${this.apiUrl}/notifications/mark-all-as-read`, {}, { headers: this.getHeaders() });
   }
 
+  getParticipatingMeetings(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/participating-meetings`, { headers: this.getHeaders() });
+  }
+
+  getAllDigitalMarketingMembers(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/all-digital-marketing-members`, { headers: this.getHeaders() });
+  }
+
+  getAllContentCreatorMembers(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/all-content-creator-members`, { headers: this.getHeaders() });
+  }
+
+  getAllAdmins(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/all-admins`, { headers: this.getHeaders() });
+  }
+  
+  getAllDevelopers(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/all-developers`, { headers: this.getHeaders() });
+  }
+    //client api's
+    getAllClients(): Observable<any> {
+      return this.http.get(`${this.apiUrl}/clients`, { headers: this.getHeaders() });
+    }
+  
+  getAllManagers(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/all-managers`, { headers: this.getHeaders() });
+  }
+    
+  addEvent(event: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/add-event`, event, { headers: this.getHeaders() });
+  }
+
+  updateEvent(eventId: string, event: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/update-event/${eventId}`, event, { headers: this.getHeaders() });
+  }
+
+  deleteEvent(eventId: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/delete-event/${eventId}`, { headers: this.getHeaders() });
+  }
+
+  getContentCreatorEvents(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/content-creator-events`, { headers: this.getHeaders() });
+  }
+
+  applyForHoliday(holidayData: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/apply-for-holiday`, holidayData, { headers: this.getHeaders() });
+  }
+
+  withdrawHoliday(holidayId: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}/withdraw-holiday/${holidayId}`, {}, { headers: this.getHeaders() });
+  }
+
+  fetchHolidays(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/fetch-holidays`, { headers: this.getHeaders() });
+  }
+
   getToken(): string | null {
     return localStorage.getItem('creatorToken');
   }
@@ -121,4 +179,5 @@ export class CreatorService {
     const role = localStorage.getItem('userRole');
     return !!token && role === 'creator';
   }
+  
 }

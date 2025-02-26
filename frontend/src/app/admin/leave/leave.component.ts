@@ -16,6 +16,12 @@ interface Holiday {
   reason: string;
   status: string;
   appliedOn: string;
+  role: string;
+  approvedBy?: {
+    name: string;
+    role: string;
+    approvedDate: string;
+  };
 }
 
 @Component({

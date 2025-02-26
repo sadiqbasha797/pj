@@ -150,3 +150,233 @@
   background-color: #3b82f6;
   border-radius: 50%;
 }
+
+/* Calendar Mobile Styles */
+:host ::ng-deep .fc .fc-header-toolbar {
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.5rem;
+}
+
+@media (max-width: 640px) {
+  :host ::ng-deep .fc .fc-header-toolbar {
+    display: grid;
+    grid-template-areas: 
+      "title title"
+      "left right";
+    gap: 0.75rem;
+  }
+
+  :host ::ng-deep .fc .fc-toolbar-chunk:nth-child(1) {
+    grid-area: left;
+  }
+
+  :host ::ng-deep .fc .fc-toolbar-chunk:nth-child(2) {
+    grid-area: title;
+  }
+
+  :host ::ng-deep .fc .fc-toolbar-chunk:nth-child(3) {
+    grid-area: right;
+  }
+}
+
+/* Title */
+:host ::ng-deep .fc .fc-toolbar-title {
+  font-size: 1.25rem !important;
+  text-align: center;
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  :host ::ng-deep .fc .fc-toolbar-title {
+    font-size: 1.125rem !important;
+  }
+}
+
+/* Navigation and view buttons */
+:host ::ng-deep .fc .fc-button-group {
+  gap: 0.25rem;
+}
+
+@media (max-width: 640px) {
+  :host ::ng-deep .fc .fc-button-group {
+    width: 100%;
+    display: flex !important;
+  }
+
+  :host ::ng-deep .fc .fc-button-group .fc-button {
+    flex: 1;
+    padding: 0.5rem 0.25rem;
+  }
+}
+
+/* Individual buttons */
+:host ::ng-deep .fc .fc-button {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+@media (max-width: 640px) {
+  :host ::ng-deep .fc .fc-button {
+    padding: 0.5rem;
+    font-size: 0.75rem;
+  }
+}
+
+/* Today button */
+@media (max-width: 640px) {
+  :host ::ng-deep .fc .fc-today-button {
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+}
+
+/* Calendar grid */
+@media (max-width: 640px) {
+  :host ::ng-deep .fc .fc-view .fc-day-header {
+    padding: 0.25rem !important;
+    font-size: 0.75rem;
+  }
+
+  :host ::ng-deep .fc .fc-view .fc-daygrid-day-number {
+    font-size: 0.875rem;
+    padding: 0.25rem;
+  }
+
+  :host ::ng-deep .fc .fc-view .fc-daygrid-day-events {
+    margin: 0 0.25rem;
+  }
+}
+
+/* Custom styles for event indicators */
+:host ::ng-deep .fc-daygrid-day-events .fc-event {
+  margin: 1px 0;
+  padding: 2px 4px;
+  font-size: 0.875rem;
+}
+
+@media (max-width: 640px) {
+  :host ::ng-deep .fc-daygrid-day-events .fc-event {
+    font-size: 0.75rem;
+    padding: 1px 2px;
+  }
+}
+
+/* Additional mobile optimizations */
+@media (max-width: 640px) {
+  :host ::ng-deep .fc .fc-view {
+    font-size: 0.875rem;
+  }
+
+  :host ::ng-deep .fc .fc-scrollgrid-sync-table {
+    min-width: 100%;
+  }
+
+  :host ::ng-deep .fc .fc-daygrid-day-frame {
+    min-height: 5rem;
+  }
+}
+
+/* Improve touch targets */
+@media (max-width: 640px) {
+  :host ::ng-deep .fc .fc-button {
+    min-height: 2.5rem;
+    touch-action: manipulation;
+  }
+
+  :host ::ng-deep .fc .fc-daygrid-day-top {
+    min-height: 1.5rem;
+  }
+}
+
+/* Calendar container width adjustments */
+@media (max-width: 640px) {
+  :host ::ng-deep .fc {
+    margin: -1rem;  /* Negative margin to expand beyond parent padding */
+    width: calc(100% + 2rem);  /* Compensate for negative margin */
+  }
+
+  :host ::ng-deep .fc .fc-view-harness {
+    width: 100%;
+  }
+
+  :host ::ng-deep .fc .fc-scrollgrid {
+    border-right: none;
+    border-left: none;
+  }
+
+  :host ::ng-deep .fc .fc-daygrid-day {
+    min-width: 40px !important;  /* Ensure minimum day cell width */
+  }
+
+  :host ::ng-deep .fc .fc-toolbar {
+    padding: 1rem !important;
+  }
+
+  /* Adjust day cell content */
+  :host ::ng-deep .fc .fc-daygrid-day-frame {
+    min-height: 4rem !important;
+    padding: 2px !important;
+  }
+
+  /* Make date numbers more compact */
+  :host ::ng-deep .fc .fc-daygrid-day-top {
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+  }
+
+  :host ::ng-deep .fc .fc-daygrid-day-number {
+    padding: 2px 4px !important;
+    font-size: 0.8rem;
+  }
+}
+
+/* Additional optimization for very small screens */
+@media (max-width: 380px) {
+  :host ::ng-deep .fc .fc-daygrid-day {
+    min-width: 35px !important;
+  }
+
+  :host ::ng-deep .fc .fc-toolbar-title {
+    font-size: 1rem !important;
+  }
+}
+
+::ng-deep .fc-daygrid-event-harness {
+  margin: 2px 0 !important;
+}
+
+::ng-deep .event-item {
+  margin: 2px 0;
+  transition: transform 0.2s ease;
+}
+
+::ng-deep .event-item:hover {
+  transform: translateX(2px);
+}
+
+::ng-deep .more-events {
+  text-align: center;
+  padding: 2px 4px;
+  margin: 2px 0;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+::ng-deep .more-events:hover {
+  background-color: #E5E7EB !important;
+}
+
+::ng-deep .event-icon {
+  font-size: 0.875rem;
+  line-height: 1;
+}
+
+::ng-deep .event-title {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

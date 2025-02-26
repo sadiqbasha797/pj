@@ -8,7 +8,8 @@ import { tap } from 'rxjs/operators';
 })
 export class MarketerService {
   [x: string]: any;
-  private apiUrl = 'http://localhost:3000/api/digital-marketing'; // Base API URL
+    private apiUrl = 'http://localhost:4000/api/digital-marketing'; // Base API URL
+
 
   constructor(private http: HttpClient) { }
 
@@ -22,8 +23,21 @@ export class MarketerService {
     return this.http.post(`${this.apiUrl}/register`, formData);
   }
 
-  login(credentials: { email: string; password: string }): Observable<any> {
-    return this.http.post(`${this.apiUrl}/login`, credentials);
+  login(credentials: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/login`, credentials).pipe(
+      tap(response => {
+        if (response.success && response.data) {
+          localStorage.setItem('marketerToken', response.data.token);
+          localStorage.setItem('userId', response.data.user._id);
+          localStorage.setItem('userRole', response.data.user.role);
+          // For debugging
+          console.log('Stored user data:', {
+            userId: response.data.user._id,
+            userRole: response.data.user.role
+          });
+        }
+      })
+    );
   }
 
   // Profile management
@@ -114,6 +128,64 @@ export class MarketerService {
     return this.http.put(`${this.apiUrl}/notifications/mark-all-as-read`, {}, { headers: this.getHeaders() });
   }
 
+  getParticipatingMeetings(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/participating-meetings`, { headers: this.getHeaders() });
+  }
+
+  // Marketing Events
+  getMarketingEvents(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/marketing-events`, { headers: this.getHeaders() });
+  }
+
+  // Get all members
+  getAllMarketingMembers(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/digital-marketing-members`, { headers: this.getHeaders() });
+  }
+
+  getAllContentCreators(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/content-creator-members`, { headers: this.getHeaders() });
+  }
+
+  getAllDevelopers(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/developers`, { headers: this.getHeaders() });
+  }
+
+  getAllManagers(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/managers`, { headers: this.getHeaders() });
+  }
+
+  getAllAdmins(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/admins`, { headers: this.getHeaders() });
+  }
+  
+  //client api's
+  getAllClients(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/clients`, { headers: this.getHeaders() });
+  }
+
+  // Calendar API's
+  addEvent(eventData: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/add-event`, eventData, { headers: this.getHeaders() });
+  }
+
+  updateEvent(eventId: string, eventData: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/update-event/${eventId}`, eventData, { headers: this.getHeaders() });
+  }
+
+  deleteEvent(eventId: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/delete-event/${eventId}`, { headers: this.getHeaders() });
+  }
+
+  // Holiday API's
+  applyForHoliday(holidayData: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/apply-for-holiday`, holidayData, { headers: this.getHeaders() });
+  }
+
+  withdrawHoliday(holidayId: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}/withdraw-holiday/${holidayId}`, {}, { headers: this.getHeaders() });
+  }
+
+  fetchHolidays(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/fetch-holidays`, { headers: this.getHeaders() });
+  }
 }
-
-

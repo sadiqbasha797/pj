@@ -2,6 +2,7 @@ const nodemailer = require('nodemailer');
 const MarketingTask = require('../models/marketingTask');
 const Project = require('../models/Project');
 const Notification = require('../models/Notification');
+const CalendarEvent = require('../models/calendarEvent');
 const { uploadToCloudinary, deleteFromCloudinary } = require('../utils/cloudinary');
 
 // Email configuration
@@ -54,11 +55,30 @@ const sendEmailToAssignees = async (assignees, taskDetails) => {
 // Create new marketing task
 const createMarketingTask = async (req, res) => {
     try {
-        const { taskName, taskDescription, projectId, priority, startDate, endDate, status } = req.body;
+        const { 
+            taskName, 
+            taskDescription, 
+            projectId, 
+            priority, 
+            startDate, 
+            endDate, 
+            status,
+            budget
+        } = req.body;
         
-        // Parse assignedTo from JSON string
-        const assignedTo = JSON.parse(req.body.assignedTo);
-        
+        // Parse assignedTo if it's a string
+        let assignedTo;
+        try {
+            assignedTo = typeof req.body.assignedTo === 'string' 
+                ? JSON.parse(req.body.assignedTo) 
+                : req.body.assignedTo;
+        } catch (error) {
+            return res.status(400).json({ 
+                message: 'Invalid assignedTo format',
+                error: error.message 
+            });
+        }
+
         // Get creator info based on user type
         let createdBy;
         if (req.admin) {
@@ -90,10 +110,29 @@ const createMarketingTask = async (req, res) => {
             endDate,
             status,
             createdBy,
-            relatedDocs
+            relatedDocs,
+            budget: Number(budget) || 0,
+            leads: 0
         });
 
         await newMarketingTask.save();
+
+        // Create a corresponding calendar event for the marketing task
+        const newEvent = new CalendarEvent({
+            title: taskName,
+            description: 'Marketing Task: ' + taskDescription,
+            eventDate: startDate,
+            endDate: endDate,
+            createdBy,
+            onModel: req.admin ? 'Admin' : 'Manager',
+            eventType: 'Task',
+            projectId,
+            participants: assignedTo.map(assignee => ({
+                participantId: assignee.id,
+                onModel: assignee.role
+            }))
+        });
+        await newEvent.save();
 
         // Send email notifications
         await sendEmailToAssignees(assignedTo, {
@@ -115,8 +154,9 @@ const createMarketingTask = async (req, res) => {
         }
 
         res.status(201).json({
-            message: 'Marketing task created successfully',
-            task: newMarketingTask
+            message: 'Marketing task and corresponding calendar event created successfully',
+            task: newMarketingTask,
+            event: newEvent
         });
 
     } catch (error) {
@@ -137,6 +177,11 @@ const updateMarketingTask = async (req, res) => {
         // Parse assignedTo from JSON string if it exists
         if (updates.assignedTo) {
             updates.assignedTo = JSON.parse(updates.assignedTo);
+        }
+
+        // Validate budget if provided
+        if (updates.budget) {
+            updates.budget = Number(updates.budget);
         }
 
         const files = req.files;
@@ -440,7 +485,7 @@ const getTasksByUserId = async (req, res) => {
             success: true,
             count: tasks.length,
             tasks
-        });
+        }); 
 
     } catch (error) {
         console.error('Failed to fetch user tasks:', error);

@@ -21,7 +21,7 @@ const CalendarEventSchema = new Schema({
     createdBy: {
         type: Schema.Types.ObjectId,
         required: true,
-        refPath: 'onModel' // This references the model type of the creator
+        refPath: 'onModel' 
     },
     status : {
         type : String,

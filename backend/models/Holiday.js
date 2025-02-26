@@ -4,7 +4,6 @@ const Schema = mongoose.Schema;
 const HolidaySchema = new Schema({
     developer: {
         type: Schema.Types.ObjectId,
-        ref: 'Developer',  // Assuming you have a Developer model
         required: true
     },
     developerName: {
@@ -28,9 +27,22 @@ const HolidaySchema = new Schema({
         enum: ['Pending', 'Approved', 'Denied','Withdrawn'],
         default: 'Pending'
     },
+    approvedBy: {
+        name: String,
+        role: {
+            type: String,
+            enum: ['admin', 'manager']
+        },
+        approvedDate: Date
+    },
     appliedOn: {
         type: Date,
         default: Date.now
+    },
+    role: {
+        type: String,
+        enum: ['Developer', 'DigitalMarketingRole', 'ContentCreator'],
+        required: true
     }
 }, { timestamps: true });
 

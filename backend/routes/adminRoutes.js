@@ -22,7 +22,9 @@ const {
     updateAdminMedia,
     getAllNotifications,
     markNotificationAsRead,
-    markAllNotificationsAsRead
+    markAllNotificationsAsRead,
+    getPendingRequests,
+    handleTeamRequest
   } = require('../controllers/adminController');
 const verifyAdminToken = require('../middleware/verifyAdminToken'); // Ensure you have this middleware
 const { addTask, updateTask, getTasksByProject, deleteTask, getAllTasks, getTaskById, addTaskUpdate, addFinalResult, deleteTaskUpdate } = require('../controllers/taskController');
@@ -219,4 +221,7 @@ router.delete('/content-creator/:userId', verifyAdminToken, adminDeleteContentCr
 router.post('/content-creator', verifyAdminToken, registerContentCreator);
 //marketing task
 router.get('/marketing-user-task/:userId', verifyAdminToken, getTasksByUserId);
+// Add these routes to your admin routes
+router.get('/pending-requests', verifyAdminToken, getPendingRequests);
+router.put('/team-request/:requestId', verifyAdminToken, handleTeamRequest);
 module.exports = router;

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Visiting Card Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'navy': '#1a2b4c',
+                        'hot-orange': '#ff4f1f'
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <link href="visiting.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+    <div class="max-w-2xl mx-auto">
+        <h1 class="text-3xl font-bold text-center mb-8 text-navy">Virtual Visiting Card Generator</h1>
+        
+        <!-- Input Form -->
+        <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+            <form id="cardForm" class="space-y-4">
+                <div>
+                    <label class="block text-navy">Profile Image:</label>
+                    <input type="file" id="profileImage" accept="image/*" class="w-full border rounded p-2 focus:border-hot-orange focus:ring-1 focus:ring-hot-orange outline-none" required>
+                </div>
+                <div>
+                    <label class="block text-navy">Name:</label>
+                    <input type="text" id="name" class="w-full border rounded p-2 focus:border-hot-orange focus:ring-1 focus:ring-hot-orange outline-none" required>
+                </div>
+                <div>
+                    <label class="block text-navy">Title:</label>
+                    <input type="text" id="title" class="w-full border rounded p-2 focus:border-hot-orange focus:ring-1 focus:ring-hot-orange outline-none" required>
+                </div>
+                <div>
+                    <label class="block text-navy">Email:</label>
+                    <input type="email" id="email" class="w-full border rounded p-2 focus:border-hot-orange focus:ring-1 focus:ring-hot-orange outline-none" required>
+                </div>
+                <div>
+                    <label class="block text-navy">Phone:</label>
+                    <input type="tel" id="phone" class="w-full border rounded p-2 focus:border-hot-orange focus:ring-1 focus:ring-hot-orange outline-none" required>
+                </div>
+                <button type="submit" class="w-full bg-hot-orange text-white py-2 px-4 rounded hover:bg-opacity-90 transition duration-300">
+                    Generate Card
+                </button>
+            </form>
+        </div>
+
+        <!-- Card Preview -->
+        <div id="cardPreview" class="hidden">
+            <div id="card" class="bg-navy p-8 rounded-lg shadow-lg mb-4 text-white relative overflow-hidden">
+                <!-- Background Patterns -->
+                <div class="absolute top-0 right-0 w-64 h-64 bg-hot-orange opacity-10 rounded-full -mr-32 -mt-32"></div>
+                <div class="absolute bottom-0 left-0 w-64 h-64 bg-hot-orange opacity-10 rounded-full -ml-32 -mb-32"></div>
+                
+                <!-- Growth Chart Background -->
+                <div class="absolute inset-0 opacity-10">
+                    <svg class="absolute right-0 bottom-0 w-96 h-96" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M1 11a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1zm5-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1zm5-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1z"/>
+                    </svg>
+                </div>
+                
+                <!-- Logo and Company Name -->
+                <div class="relative z-10">
+                    <!-- Main Content Row -->
+                    <div class="flex justify-between items-start mb-8">
+                        <!-- Left Side - Personal Details -->
+                        <div class="flex-1">
+                            <div class="flex items-center gap-4 mb-4">
+                                <img id="profileImg" src="" alt="Profile" class="hidden w-20 h-20 rounded-full object-cover border-2 border-hot-orange">
+                                <div>
+                                    <h2 id="previewName" class="text-3xl font-bold mb-2 text-navy"></h2>
+                                    <p id="previewTitle" class="text-xl text-hot-orange font-medium"></p>
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-3 mt-6">
+                                <div class="flex items-center">
+                                    <svg class="w-5 h-5 text-hot-orange mr-3" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6ZM20 6L12 11L4 6H20ZM20 18H4V8L12 13L20 8V18Z"/>
+                                    </svg>
+                                    <p id="previewEmail" class="text-lg text-navy font-bold"></p>
+                                </div>
+                                <div class="flex items-center">
+                                    <svg class="w-5 h-5 text-hot-orange mr-3" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M20 15.5C18.8 15.5 17.5 15.3 16.4 14.9C16.3 14.9 16.2 14.9 16.1 14.9C15.8 14.9 15.6 15 15.4 15.2L13.2 17.4C10.4 15.9 8 13.6 6.6 10.8L8.8 8.6C9.1 8.3 9.2 7.9 9 7.6C8.7 6.5 8.5 5.2 8.5 4C8.5 3.5 8 3 7.5 3H4C3.5 3 3 3.5 3 4C3 13.4 10.6 21 20 21C20.5 21 21 20.5 21 20V16.5C21 16 20.5 15.5 20 15.5Z"/>
+                                    </svg>
+                                    <p id="previewPhone" class="text-lg text-navy font-bold"></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Side - Company Details -->
+                        <div class="text-right">
+                            <div class="w-32 h-32 p-3 rounded-3xl mb-3 ml-auto" style="margin-top: -3rem">
+                                <img src="projexino.png" alt="Projexino Logo" class="w-full h-full object-contain">
+                            </div>
+                            <h3 class="text-lg font-bold text-hot-orange" style="margin-top: -3rem">Projexino Solutions</h3>
+                            <p class="text-navy text-sm">Pvt. Ltd.</p>
+                        </div>
+                    </div>
+
+                    <!-- QR Code and Address Row -->
+                    <div class="flex justify-between items-end mt-6 pt-6 border-t border-white/20">
+                        <div class="flex items-center flex-1">
+                            <svg class="w-5 h-5 text-hot-orange mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2ZM12 11.5C10.62 11.5 9.5 10.38 9.5 9C9.5 7.62 10.62 6.5 12 6.5C13.38 6.5 14.5 7.62 14.5 9C14.5 10.38 13.38 11.5 12 11.5Z"/>
+                            </svg>
+                            <p class="text-white">
+                                P No 305 Sa Society Khanamet,Kondapur, Hyderabad,Telangana 500084
+                            </p>
+                        </div>
+                        <div id="qrcode" class="bg-white p-2 rounded-lg border-4 border-hot-orange ml-4"></div>
+                    </div>
+                </div>
+            </div>
+            <br>
+            <button id="downloadBtn" class="w-full bg-navy text-white py-2 px-4 rounded hover:bg-opacity-90 transition duration-300">
+                Download Card
+            </button>
+        </div>
+    </div>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="visiting.js"></script>
+</body>
+</html>
+
+</html>

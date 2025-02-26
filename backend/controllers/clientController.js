@@ -3,11 +3,13 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Task = require('../models/Task');
 const CalendarEvent = require('../models/calendarEvent');
+const { uploadToCloudinary, deleteFromCloudinary } = require('../utils/cloudinary');
+const Notification = require('../models/Notification');
 
 // Register a new client
-exports.registerClient = async (req, res) => {
+const registerClient = async (req, res) => {
     try {
-        const { clientName, email, password, projectId } = req.body;
+        const { clientName, email, password, companyName, address, countryCode, mobileNumber } = req.body;
         
         // Check if client already exists
         const existingClient = await Client.findOne({ email });
@@ -15,22 +17,42 @@ exports.registerClient = async (req, res) => {
             return res.status(409).json({ message: 'Email already in use' });
         }
 
+        // Handle company logo upload if provided
+        let companyLogo;
+        if (req.file) {
+            const result = await uploadToCloudinary(req.file.path, {
+                folder: 'client-logos',
+                resource_type: 'auto'
+            });
+            companyLogo = result.secure_url;
+        }
+
         const client = new Client({
             clientName,
             email,
             password,
-            projectId
+            companyName,
+            address,
+            countryCode,
+            mobileNumber,
+            companyLogo
         });
 
         await client.save();
-        res.status(201).json({ message: 'Client registered successfully', clientId: client._id });
+        res.status(201).json({ 
+            message: 'Client registered successfully', 
+            client: {
+                ...client.toObject(),
+                password: undefined
+            }
+        });
     } catch (error) {
         res.status(500).json({ message: 'Error registering client', error: error.message });
     }
 };
 
 // Client login
-exports.loginClient = async (req, res) => {
+const loginClient = async (req, res) => {
     try {
         const { email, password } = req.body;
         const client = await Client.findOne({ email });
@@ -47,39 +69,89 @@ exports.loginClient = async (req, res) => {
         // Generate a token
         const token = jwt.sign({ id: client._id }, process.env.JWT_SECRET);
         
-        // Return token with usage instructions
+        // Return token with usage instructions and user ID
         res.status(200).json({ 
             message: 'Login successful',
             token,
+            userId: client._id
         });
     } catch (error) {
         res.status(500).json({ message: 'Error logging in', error: error.message });
     }
 };
-// Update client
-exports.updateClient = async (req, res) => {
-    const { clientId } = req.params;
-    const updates = req.body;
 
+// Update client
+const updateClient = async (req, res) => {
     try {
-        const client = await Client.findByIdAndUpdate(clientId, updates, { new: true });
-        if (!client) {
+        const { clientId } = req.params;
+        const updates = { ...req.body };
+
+        // Get current client document
+        const currentClient = await Client.findById(clientId);
+        if (!currentClient) {
             return res.status(404).json({ message: 'Client not found' });
         }
-        res.status(200).json({ message: 'Client updated successfully', client });
+
+        // Handle company logo upload if provided
+        if (req.file) {
+            const result = await uploadToCloudinary(req.file.path, {
+                folder: 'client-logos',
+                resource_type: 'auto'
+            });
+            updates.companyLogo = result.secure_url;
+
+            // Delete old company logo if it exists
+            if (currentClient.companyLogo) {
+                const publicId = currentClient.companyLogo.split('/').slice(-2).join('/').split('.')[0];
+                await deleteFromCloudinary(publicId);
+            }
+        }
+
+        // Remove projects from updates if it exists to prevent the error
+        delete updates.projects;
+
+        // If password is being updated, hash it
+        if (updates.password) {
+            const salt = await bcrypt.genSalt(10);
+            updates.password = await bcrypt.hash(updates.password, salt);
+        }
+
+        const client = await Client.findByIdAndUpdate(
+            clientId,
+            { $set: updates },
+            { new: true }
+        ).select('-password');
+
+        res.status(200).json({ 
+            message: 'Client updated successfully', 
+            client 
+        });
     } catch (error) {
-        res.status(500).json({ message: 'Error updating client', error: error.message });
+        console.error('Update error:', error);
+        res.status(500).json({ 
+            message: 'Error updating client', 
+            error: error.message 
+        });
     }
 };
+
 // Delete client
-exports.deleteClient = async (req, res) => {
+const deleteClient = async (req, res) => {
     const { clientId } = req.params;
 
     try {
-        const client = await Client.findByIdAndDelete(clientId);
+        const client = await Client.findById(clientId);
         if (!client) {
             return res.status(404).json({ message: 'Client not found' });
         }
+
+        // Delete company logo from Cloudinary if it exists
+        if (client.companyLogo) {
+            const publicId = client.companyLogo.split('/').slice(-2).join('/').split('.')[0];
+            await deleteFromCloudinary(publicId);
+        }
+
+        await client.deleteOne();
         res.status(200).json({ message: 'Client deleted successfully' });
     } catch (error) {
         res.status(500).json({ message: 'Error deleting client', error: error.message });
@@ -87,7 +159,7 @@ exports.deleteClient = async (req, res) => {
 };
 
 // Get client's projects with related tasks
-exports.getClientProjects = async (req, res) => {
+const getClientProjects = async (req, res) => {
     try {
         // Get client from the token
         const clientId = req.client._id;
@@ -153,13 +225,21 @@ exports.getClientProjects = async (req, res) => {
 };
 
 // Get client's calendar events/meetings
-exports.getClientMeetings = async (req, res) => {
+const getClientMeetings = async (req, res) => {
     try {
         const clientId = req.client._id; // From verifyClientToken middleware
 
         const meetings = await CalendarEvent.find({
-            'participants.participantId': clientId,
-            'participants.onModel': 'Client',
+            $or: [
+                {
+                    'participants.participantId': clientId,
+                    'participants.onModel': 'Client'
+                },
+                {
+                    'createdBy': clientId,
+                    'onModel': 'Client'
+                }
+            ],
             'status': 'Active',
             'eventType': 'Meeting' // Filter for meetings only
         })
@@ -167,13 +247,13 @@ exports.getClientMeetings = async (req, res) => {
             {
                 // Populate creator details
                 path: 'createdBy',
-                select: 'name email',
+                select: 'name email clientName', // Added clientName for Client creators
                 refPath: 'onModel'
             },
             {
                 // Populate other participants
                 path: 'participants.participantId',
-                select: 'name email clientName', // Include clientName for Client model
+                select: 'name email clientName',
                 refPath: 'participants.onModel'
             },
             {
@@ -225,7 +305,7 @@ exports.getClientMeetings = async (req, res) => {
 };
 
 // Get all clients
-exports.getAllClients = async (req, res) => {
+const getAllClients = async (req, res) => {
     try {
         const clients = await Client.find()
             .select('-password') // Exclude password field
@@ -243,6 +323,95 @@ exports.getAllClients = async (req, res) => {
     }
 };
 
+const fetchClientNotifications = async (req, res) => {
+  try {
+    const clientId = req.client._id;
 
+    // Find notifications for this client
+    const notifications = await Notification.find({
+      recipient: clientId
+    }).sort({ date: -1 }); // Sort by date descending (newest first)
 
+    if (notifications.length === 0) {
+      return res.status(404).json({
+        message: 'No notifications found'
+      });
+    }
 
+    res.status(200).json(notifications);
+  } catch (error) {
+    res.status(500).json({
+      message: 'Error fetching notifications',
+      error: error.message
+    });
+  }
+};
+
+const markAllNotificationsAsRead = async (req, res) => {
+  try {
+    const clientId = req.client._id;
+
+    // Update all unread notifications for this client
+    await Notification.updateMany(
+      { 
+        recipient: clientId,
+        read: false 
+      },
+      { read: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'All notifications marked as read'
+    });
+
+  } catch (error) {
+    console.error('Error marking all notifications as read:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error marking all notifications as read', 
+      error: error.message
+    });
+  }
+};
+
+const getClientProfile = async (req, res) => {
+    try {
+        const clientId = req.client._id;
+
+        const client = await Client.findById(clientId)
+            .select('-password') // Exclude password
+            .populate('projects', 'title description status deadline'); // Include basic project info
+
+        if (!client) {
+            return res.status(404).json({ 
+                success: false,
+                message: 'Client not found' 
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            client
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching client profile',
+            error: error.message
+        });
+    }
+};
+
+module.exports = {
+  registerClient,
+  loginClient,
+  updateClient,
+  deleteClient,
+  getClientProjects,
+  getClientMeetings,
+  getAllClients,
+  fetchClientNotifications,
+  markAllNotificationsAsRead,
+  getClientProfile
+};

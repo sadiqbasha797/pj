@@ -7,13 +7,20 @@ import { Chart, registerables } from 'chart.js';
 import { MatTableModule } from '@angular/material/table';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
+import { RouterModule } from '@angular/router';
 
 Chart.register(...registerables);
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, MatTableModule, MatCardModule, MatIconModule],
+  imports: [
+    CommonModule, 
+    MatTableModule, 
+    MatCardModule, 
+    MatIconModule,
+    RouterModule
+  ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })

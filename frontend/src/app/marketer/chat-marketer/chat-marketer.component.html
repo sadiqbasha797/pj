@@ -1,0 +1,224 @@
+<div class="flex h-[calc(90vh-64px)]">
+  <!-- Users List -->
+  <div class="w-72 border-r border-gray-200 flex flex-col">
+    <!-- Tabs -->
+    <div class="flex border-b border-gray-200">
+      <button 
+        (click)="switchTab('users')"
+        class="flex-1 py-3 px-4 text-center font-medium"
+        [class.text-purple-600]="activeTab === 'users'"
+        [class.border-b-2]="activeTab === 'users'"
+        [class.border-purple-600]="activeTab === 'users'">
+        All Users
+      </button>
+      <button 
+        (click)="switchTab('messages')"
+        class="flex-1 py-3 px-4 text-center font-medium"
+        [class.text-purple-600]="activeTab === 'messages'"
+        [class.border-b-2]="activeTab === 'messages'"
+        [class.border-purple-600]="activeTab === 'messages'">
+        Messages
+      </button>
+    </div>
+
+    <!-- Users List Content -->
+    <div class="flex-1 overflow-y-auto">
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="p-4 text-center text-gray-500">
+        <svg class="animate-spin h-5 w-5 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Loading users...
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!isLoading && (activeTab === 'messages' ? messagedUsers.length === 0 : allUsers.length === 0)" 
+           class="p-4 text-center text-gray-500">
+        {{ activeTab === 'messages' ? 'No message history' : 'No users available' }}
+      </div>
+
+      <!-- Users List -->
+      <div *ngFor="let user of activeTab === 'users' ? allUsers : messagedUsers" 
+           (click)="selectUser(user)"
+           class="p-4 hover:bg-gray-50 cursor-pointer transition-colors duration-200"
+           [class.bg-purple-50]="selectedUser?._id === user._id">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center"
+               [ngClass]="{
+                 'bg-blue-100': user.role === 'manager',
+                 'bg-green-100': user.role === 'developer',
+                 'bg-purple-100': user.role === 'digitalMarketing',
+                 'bg-yellow-100': user.role === 'contentCreator',
+                 'bg-red-100': user.role === 'admin',
+                 'bg-orange-100': user.role === 'client'
+               }">
+            <span [ngClass]="{
+                    'text-blue-600': user.role === 'manager',
+                    'text-green-600': user.role === 'developer',
+                    'text-purple-600': user.role === 'digitalMarketing',
+                    'text-yellow-600': user.role === 'contentCreator',
+                    'text-red-600': user.role === 'admin',
+                    'text-orange-600': user.role === 'client'
+                  }"
+                  class="font-medium">{{user.username.charAt(0).toUpperCase()}}</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="font-medium text-gray-900">{{user.username}}</div>
+            <div class="text-sm text-gray-500">
+              {{user.role === 'digitalMarketing' ? 'Digital Marketing' : 
+                 user.role === 'contentCreator' ? 'Content Creator' : 
+                 user.role.charAt(0).toUpperCase() + user.role.slice(1)}}
+            </div>
+            <!-- Recent Message -->
+            <div *ngIf="user.recentMessage" class="mt-1">
+              <p class="text-sm text-gray-600 truncate">
+                {{user.recentMessage.content}}
+              </p>
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-gray-400">
+                  {{user.recentMessage.createdAt | date:'shortTime'}}
+                </span>
+                <!-- Unread indicator -->
+                <div *ngIf="user.recentMessage.unread" 
+                     class="w-2 h-2 rounded-full bg-purple-500">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat Area -->
+  <div class="flex-1 flex flex-col">
+    <!-- Empty State (No Selected User) -->
+    <div *ngIf="!selectedUser" class="flex-1 flex items-center justify-center text-gray-500">
+      <div class="text-center">
+        <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+        </svg>
+        <p>Select a user to start chatting</p>
+      </div>
+    </div>
+
+    <!-- Chat Content -->
+    <ng-container *ngIf="selectedUser">
+      <!-- Chat Header -->
+      <div class="p-4 border-b border-gray-200 bg-white">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center"
+               [ngClass]="{
+                 'bg-blue-100': selectedUser.role === 'manager',
+                 'bg-green-100': selectedUser.role === 'developer',
+                 'bg-purple-100': selectedUser.role === 'digitalMarketing',
+                 'bg-yellow-100': selectedUser.role === 'contentCreator',
+                 'bg-red-100': selectedUser.role === 'admin',
+                 'bg-orange-100': selectedUser.role === 'client'
+               }">
+            <span [ngClass]="{
+                    'text-blue-600': selectedUser.role === 'manager',
+                    'text-green-600': selectedUser.role === 'developer',
+                    'text-purple-600': selectedUser.role === 'digitalMarketing',
+                    'text-yellow-600': selectedUser.role === 'contentCreator',
+                    'text-red-600': selectedUser.role === 'admin',
+                    'text-orange-600': selectedUser.role === 'client'
+                  }"
+                  class="font-medium">{{selectedUser.username.charAt(0).toUpperCase()}}</span>
+          </div>
+          <div>
+            <div class="font-medium text-gray-900">{{selectedUser.username}}</div>
+            <div class="text-sm text-gray-500">
+              {{selectedUser.role === 'digitalMarketing' ? 'Digital Marketing' : 
+                selectedUser.role === 'contentCreator' ? 'Content Creator' : 
+                selectedUser.role.charAt(0).toUpperCase() + selectedUser.role.slice(1)}}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Messages Section -->
+      <div class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 messages-container">
+        <div *ngFor="let message of messages" 
+             class="w-full flex"
+             [ngClass]="{
+               'justify-end': message.sender.id === currentUserId,
+               'justify-start': message.sender.id !== currentUserId
+             }">
+          
+          <!-- Received Messages (Left side) -->
+          <div *ngIf="message.sender.id !== currentUserId"
+               class="max-w-[70%] flex flex-col items-start animate-fade-in">
+            <div class="flex flex-col items-start">
+              <div class="text-xs text-gray-500 mb-1">{{selectedUser.username}}</div>
+              <div class="bg-white text-gray-800 px-4 py-2 rounded-xl rounded-tl-none shadow-md border border-gray-200">
+                {{message.content}}
+              </div>
+            </div>
+            <span class="text-xs text-gray-500 mt-1">
+              {{message.createdAt | date:'shortTime'}}
+            </span>
+          </div>
+
+          <!-- Sent Messages (Right side) -->
+          <div *ngIf="message.sender.id === currentUserId" 
+               class="max-w-[70%] flex flex-col items-end animate-fade-in">
+            <div class="flex flex-col items-end">
+              <div class="text-xs text-gray-500 mb-1">You</div>
+              <div class="bg-purple-600 text-white px-4 py-2 rounded-xl rounded-tr-none shadow-md hover:bg-purple-700 transition-colors">
+                {{message.content}}
+              </div>
+            </div>
+            <div class="flex items-center gap-1 mt-1">
+              <span class="text-xs text-gray-500">
+                {{message.createdAt | date:'shortTime'}}
+              </span>
+              <!-- Read/Unread indicators -->
+              <svg *ngIf="message.read" class="w-4 h-4 text-purple-500" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <svg *ngIf="!message.read" class="w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Typing Indicator -->
+        <div *ngIf="isTyping" class="flex justify-start">
+          <div class="bg-gray-200 px-4 py-2 rounded-full">
+            <div class="flex space-x-1">
+              <div class="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
+              <div class="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+              <div class="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Message Input Section -->
+      <div class="p-4 border-t border-gray-200 bg-white">
+        <div class="flex items-center space-x-2">
+          <input type="text" 
+                 [(ngModel)]="newMessage"
+                 (keyup.enter)="sendMessage()"
+                 placeholder="Type a message..."
+                 class="flex-1 rounded-full border border-gray-300 px-4 py-2 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500">
+
+          <button (click)="sendMessage()"
+                  [disabled]="!newMessage.trim() || isSending"
+                  class="p-2 bg-purple-500 text-white rounded-full hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+            <svg *ngIf="isSending" class="w-5 h-5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <svg *ngIf="!isSending" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+</div>

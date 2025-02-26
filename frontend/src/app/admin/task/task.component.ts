@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { AdminService } from '../../services/admin.service';
 import { LoaderService } from '../../services/loader.service';
 import Swal from 'sweetalert2';
+import * as XLSX from 'xlsx';
 
 interface Project {
   _id: string;
@@ -601,6 +602,39 @@ export class TaskComponent implements OnInit {
     const files: FileList = event.target.files;
     if (files) {
       this.selectedFiles = Array.from(files);
+    }
+  }
+
+  downloadTasksExcel() {
+    try {
+      // Prepare the data for Excel, excluding updates and final result
+      const excelData = this.tasks.map(task => ({
+        'Task Name': task.taskName,
+        'Description': task.description || '',
+        'Project': this.getProjectTitle(task.projectId),
+        'Start Date': new Date(task.startDate).toLocaleDateString(),
+        'End Date': new Date(task.endDate).toLocaleDateString(),
+        'Status': task.status,
+        'Participants': task.participants.map(p => this.getParticipantUsername(p)).join(', '),
+        'Documents Count': task.relatedDocuments?.length || 0,
+        'Created At': new Date(task.createdAt).toLocaleString(),
+        'Last Updated': new Date(task.updatedAt).toLocaleString()
+      }));
+
+      // Create worksheet
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+      // Create workbook
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Tasks');
+
+      // Generate Excel file
+      XLSX.writeFile(workbook, 'tasks_report.xlsx');
+      
+      this.showSuccessAlert('Tasks exported successfully!');
+    } catch (error) {
+      console.error('Error exporting tasks:', error);
+      this.showErrorAlert('Error exporting tasks. Please try again.');
     }
   }
 }

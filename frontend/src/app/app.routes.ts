@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { DeveloperComponent } from './developer/developer.component';
 import { WelcomeComponent } from './welcome/welcome.component';
+import { RouterModule} from '@angular/router';
 
 export const routes: Routes = [
   { path: 'welcome', component: WelcomeComponent },

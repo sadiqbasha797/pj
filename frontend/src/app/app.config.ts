@@ -11,6 +11,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideAnimations(),
     provideHttpClient(),
-    importProvidersFrom(NgxSpinnerModule), provideAnimationsAsync()
+    importProvidersFrom(NgxSpinnerModule),
+    provideAnimationsAsync()
   ]
 };

@@ -1,0 +1,29 @@
+::ng-deep .event-item {
+  margin: 2px 0;
+  transition: transform 0.2s ease;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+
+::ng-deep .fc-daygrid-more-link {
+  text-align: center;
+  padding: 2px 4px;
+  margin: 2px 0;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  background-color: #F3F4F6;
+  color: #6B7280;
+  transition: background-color 0.2s ease;
+}
+
+::ng-deep .fc-daygrid-more-link:hover {
+  background-color: #E5E7EB;
+  text-decoration: none;
+}
+
+::ng-deep .fc-daygrid-day-events {
+  margin-top: 1px !important;
+  margin-bottom: 1px !important;
+}

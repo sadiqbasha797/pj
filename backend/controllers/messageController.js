@@ -2,6 +2,9 @@ const Message = require('../models/message');
 const Admin = require('../models/Admin');
 const Manager = require('../models/Manager');
 const Developer = require('../models/Developer');
+const ContentCreator = require('../models/contentCreator');
+const DigitalMarketingRole = require('../models/digitalMarketingRole');
+const Client = require('../models/Client');
 const nodemailer = require('nodemailer');
 
 // Email configuration (reusing from adminController)
@@ -37,6 +40,12 @@ const getUserById = async (userId, role) => {
             return await Manager.findById(userId);
         case 'developer':
             return await Developer.findById(userId);
+        case 'content-creator':
+            return await ContentCreator.findById(userId);
+        case 'digital-marketing':
+            return await DigitalMarketingRole.findById(userId);
+        case 'client':
+            return await Client.findById(userId);
         default:
             return null;
     }
@@ -50,34 +59,36 @@ const messageController = {
             const senderId = req.user._id;
             const senderRole = req.user.role;
 
-            const newMessage = new Message({
+            const messageData = {
                 sender: { id: senderId, role: senderRole },
                 receiver: { id: receiverId, role: receiverRole },
-                content
-            });
+                content,
+                createdAt: new Date()
+            };
 
-            await newMessage.save();
-
-            // Get receiver's email for notification
-            const receiver = await getUserById(receiverId, receiverRole);
-            
-            if (receiver && receiver.email) {
-                await sendMessageNotification(
-                    receiver.email,
-                    req.user.username,
-                    content
-                );
-            }
-
-            // Emit socket event
+            // Emit socket event immediately
             if (req.app.get('io')) {
-                req.app.get('io').emit('newMessage', {
-                    message: newMessage,
+                req.app.get('io').to(receiverId.toString()).emit('newMessage', {
+                    message: messageData,
                     receiverId
                 });
             }
 
-            res.status(201).json(newMessage);
+            // Create and save message in background
+            const newMessage = new Message(messageData);
+            await newMessage.save();
+
+            // Send email notification in background
+            const receiver = await getUserById(receiverId, receiverRole);
+            if (receiver && receiver.email) {
+                sendMessageNotification(
+                    receiver.email,
+                    req.user.username,
+                    content
+                ).catch(err => console.error('Email notification error:', err));
+            }
+
+            res.status(201).json(messageData);
         } catch (error) {
             console.error('Error in sendMessage:', error);
             res.status(500).json({ message: 'Error sending message', error: error.message });
@@ -137,7 +148,76 @@ const messageController = {
         } catch (error) {
             res.status(500).json({ message: 'Error getting unread count', error: error.message });
         }
+    },
+
+    getMessagedUsers: async (req, res) => {
+        try {
+            const userId = req.user._id;
+            const userRole = req.user.role;
+
+            // Find all unique users that the current user has interacted with
+            const conversations = await Message.find({
+                $or: [
+                    { 'sender.id': userId },
+                    { 'receiver.id': userId }
+                ]
+            }).sort({ createdAt: -1 });
+
+            // Extract unique users from conversations
+            const userMap = new Map();
+            
+            for (const message of conversations) {
+                const otherUser = message.sender.id.toString() === userId.toString() 
+                    ? {
+                        id: message.receiver.id,
+                        role: message.receiver.role
+                    }
+                    : {
+                        id: message.sender.id,
+                        role: message.sender.role
+                    };
+
+                if (!userMap.has(otherUser.id.toString())) {
+                    // Get user details
+                    const userDetails = await getUserById(otherUser.id, otherUser.role);
+                    if (userDetails) {
+                        userMap.set(otherUser.id.toString(), {
+                            _id: otherUser.id,
+                            username: userDetails.username,
+                            email: userDetails.email,
+                            role: otherUser.role,
+                            lastMessage: {
+                                content: message.content,
+                                createdAt: message.createdAt,
+                                read: message.read
+                            }
+                        });
+                    }
+                }
+            }
+
+            const messagedUsers = Array.from(userMap.values());
+
+            res.status(200).json({
+                success: true,
+                data: messagedUsers
+            });
+        } catch (error) {
+            console.error('Error in getMessagedUsers:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error fetching messaged users',
+                error: error.message
+            });
+        }
     }
 };
 
-module.exports = messageController; 
+module.exports = {
+    sendMessage: messageController.sendMessage,
+    getConversation: messageController.getConversation,
+    markAsRead: messageController.markAsRead,
+    getUnreadCount: messageController.getUnreadCount,
+    getMessagedUsers: messageController.getMessagedUsers,
+    getUserById: messageController.getUserById
+};

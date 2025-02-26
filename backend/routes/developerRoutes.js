@@ -19,18 +19,26 @@ const {
     fetchDeveloperNotifications,
     markAllNotificationsAsRead
 } = require('../controllers/developerController');
+const {getAllClients} = require('../controllers/clientController');
 const {getAllManagers, getAllDevelopers, getAllAdmins, markNotificationAsRead} = require('../controllers/adminController');
+const {getAllMembers} = require('../controllers/digitalMarketingController');
+const {getAllContentCreatorMembers} = require('../controllers/contentCreatorController');
 const {addEvent,deleteEvent} = require('../controllers/calendarController');
 const { addTaskUpdate, deleteTaskUpdate, addFinalResult } = require('../controllers/taskController');
 const verifyAdminToken = require('../middleware/verifyAdminToken');
 const verifyDeveloperToken = require('../middleware/verifyDeveloperToken');
 const router = express.Router();
-//user managment api's
 
-router.post('/register', verifyAdminToken, registerDeveloper);
+// Configure multer for multiple file types
+const uploadFields = upload.fields([
+  { name: 'image', maxCount: 1 },
+  { name: 'resume', maxCount: 1 }
+]);
+
+router.post('/register', verifyAdminToken, upload.single('resume'), registerDeveloper);
 router.post('/login', developerLogin);
 router.get('/profile', verifyDeveloperToken, getDeveloperProfile);
-router.put('/profile', verifyDeveloperToken, upload.single('image'), updateDeveloperProfile);
+router.put('/profile', verifyDeveloperToken, uploadFields, updateDeveloperProfile);
 //project api's
 router.get('/projects', verifyDeveloperToken, getAssignedProjects);
 router.put('/project-status/:projectId', verifyDeveloperToken, updateProjectStatus);
@@ -59,4 +67,11 @@ router.get('/admins', verifyDeveloperToken, getAllAdmins);
 router.get('/developer-notifications', verifyDeveloperToken, fetchDeveloperNotifications);
 router.put('/notifications/:notificationId/read', verifyDeveloperToken, markNotificationAsRead);
 router.put('/notifications/mark-all-read', verifyDeveloperToken, markAllNotificationsAsRead);
+//digital marketing
+router.get('/digital-marketing-members', verifyDeveloperToken, getAllMembers);
+//content creator
+router.get('/content-creator-members', verifyDeveloperToken, getAllContentCreatorMembers);
+//client
+router.get('/clients', verifyDeveloperToken, getAllClients);
+
 module.exports = router;

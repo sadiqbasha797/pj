@@ -1,13 +1,21 @@
-<div class="container mx-auto px-4 py-8">
+<div class="container mx-auto lg:px-6 py-8">
   <!-- Task Details Header -->
   @if (task) {
-    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-      <div class="flex justify-between items-start">
+    <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6" 
+         [ngClass]="{'border-2 border-yellow-400': task.budget > 0}">
+      <div class="flex flex-col sm:flex-row justify-between items-start gap-4">
         <div>
-          <h1 class="text-2xl font-bold text-gray-800">{{task.taskName}}</h1>
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl sm:text-2xl font-bold text-gray-800">{{task.taskName}}</h1>
+            @if (task.budget > 0) {
+              <span class="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
+                Paid Campaign
+              </span>
+            }
+          </div>
           <p class="text-gray-600 mt-1">{{task.projectId?.title}}</p>
         </div>
-        <span class="px-3 py-1 text-sm rounded-full" 
+        <span class="px-3 py-1 text-sm rounded-full self-start" 
               [ngClass]="{
                 'bg-yellow-100 text-yellow-800': task.status === 'in-progress',
                 'bg-green-100 text-green-800': task.status === 'completed',
@@ -19,10 +27,33 @@
     </div>
   }
 
+  <!-- Budget Metrics - Only show if task has budget -->
+  @if (task?.budget > 0) {
+    <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6">
+      <h3 class="text-lg font-semibold text-gray-800 mb-4">Budget Metrics</h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="p-4 bg-gray-50 rounded-lg">
+          <p class="text-sm text-gray-600">Total Budget</p>
+          <p class="text-xl font-bold text-gray-900">${{task.budget}}</p>
+        </div>
+        <div class="p-4 bg-gray-50 rounded-lg">
+          <p class="text-sm text-gray-600">Budget Spent</p>
+          <p class="text-xl font-bold text-green-600">${{totalBudgetSpent}}</p>
+        </div>
+        <div class="p-4 bg-gray-50 rounded-lg">
+          <p class="text-sm text-gray-600">Remaining Budget</p>
+          <p class="text-xl font-bold" [ngClass]="{'text-red-600': remainingBudget < 0, 'text-blue-600': remainingBudget >= 0}">
+            ${{remainingBudget}}
+          </p>
+        </div>
+      </div>
+    </div>
+  }
+
   <!-- Updates Table -->
   <div class="bg-white rounded-lg shadow-md overflow-hidden">
-    <div class="p-6 border-b border-gray-200">
-      <div class="flex justify-between items-center mb-6">
+    <div class="p-4 sm:p-6 border-b border-gray-200">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h2 class="text-xl font-semibold text-gray-800">Task Updates</h2>
         <button (click)="isFilterVisible = !isFilterVisible" 
                 class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">
@@ -34,19 +65,19 @@
       <!-- Redesigned filters section -->
       @if (isFilterVisible) {
         <div class="bg-gray-50 p-4 rounded-lg mb-6 border border-gray-200">
-          <!-- First Row: Filters -->
+          <!-- Filters Grid -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <!-- Date Range Filter -->
             <div class="space-y-2">
               <label class="block text-sm font-medium text-gray-700">Date Range</label>
-              <div class="flex space-x-2">
+              <div class="flex flex-col sm:flex-row gap-2">
                 <div class="flex-1">
                   <input type="date" 
                          [(ngModel)]="filterDateFrom" 
                          (ngModelChange)="applyFilters()"
                          class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
-                <div class="flex items-center text-gray-400">→</div>
+                <div class="hidden sm:flex items-center text-gray-400">→</div>
                 <div class="flex-1">
                   <input type="date" 
                          [(ngModel)]="filterDateTo" 
@@ -87,10 +118,10 @@
             </div>
           </div>
 
-          <!-- Second Row: Active Filters and Actions -->
-          <div class="flex justify-between items-start border-t border-gray-200 pt-4">
+          <!-- Active Filters and Actions -->
+          <div class="flex flex-col sm:flex-row justify-between items-start gap-4 border-t border-gray-200 pt-4">
             <!-- Active Filters Summary -->
-            <div class="flex-1">
+            <div class="w-full sm:flex-1">
               <label class="block text-sm font-medium text-gray-700 mb-2">Active Filters</label>
               <div class="flex flex-wrap gap-2">
                 @if (hasActiveFilters()) {
@@ -125,11 +156,11 @@
             </div>
 
             <!-- Clear Filters Button -->
-            <div class="ml-4">
+            <div class="w-full sm:w-auto">
               <button (click)="clearFilters()" 
                       [disabled]="!hasActiveFilters()"
                       [ngClass]="{'opacity-50 cursor-not-allowed': !hasActiveFilters()}"
-                      class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">
+                      class="w-full sm:w-auto inline-flex items-center justify-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">
                 <span class="material-icons text-sm mr-2">clear_all</span>
                 Clear All Filters
               </button>
@@ -139,40 +170,33 @@
       }
 
       <!-- Table -->
-      <div class="overflow-x-auto">
+      <div class="overflow-x-auto -mx-4 sm:mx-0">
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Date
-              </th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Updated By
-              </th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Description
-              </th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Timeline
-              </th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Attachments
-              </th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
+              <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+              <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Updated By</th>
+              <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+              <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Timeline</th>
+              <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Attachments</th>
+              @if (task?.budget > 0) {
+                <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Budget Spent
+                </th>
+              }
+              <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
             @for (update of filteredTaskUpdates; track update._id) {
               <tr class="hover:bg-gray-50">
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {{ formatDate(update.createdAt) }}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
                   <div class="text-sm font-medium text-gray-900">{{ update.updatedBy.name }}</div>
                 </td>
-                <td class="px-6 py-4">
+                <td class="px-4 sm:px-6 py-4">
                   <div class="text-sm text-gray-900">{{ update.description }}</div>
                   @if (update.leadsInfo?.length) {
                     <div class="mt-2">
@@ -194,10 +218,10 @@
                     </div>
                   }
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {{ formatDate(update.startDate) }} → {{ formatDate(update.endDate) }}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
                   @if (update.attachments?.length) {
                     <div class="flex flex-wrap gap-2">
                       @for (attachment of update.attachments; track attachment) {
@@ -211,7 +235,16 @@
                     </div>
                   }
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                @if (task?.budget > 0) {
+                  <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
+                    @if (update.budget) {
+                      <span class="text-sm font-medium text-gray-900">${{update.budget}}</span>
+                    } @else {
+                      <span class="text-sm text-gray-500">-</span>
+                    }
+                  </td>
+                }
+                <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   <button (click)="toggleComments(update._id)"
                           class="text-blue-600 hover:text-blue-800 mr-3">
                     {{ showComments[update._id] ? 'Hide' : 'Show' }} Comments
@@ -221,27 +254,25 @@
               <!-- Comments Section -->
               @if (showComments[update._id]) {
                 <tr>
-                  <td colspan="6" class="px-6 py-4 bg-gray-50">
-                    <!-- Existing Comments -->
-                    @if (update.comments?.length) {
-                      <div class="space-y-3 mb-4">
-                        @for (comment of update.comments; track comment._id) {
-                          <div class="flex justify-between items-start bg-white p-3 rounded shadow-sm">
-                            <div>
-                              <p class="text-sm text-gray-800">{{ comment.text }}</p>
-                              <p class="text-xs text-gray-600 mt-1">
-                                {{ comment.name }} ({{ comment.role }}) • 
-                                {{ formatDate(comment.createdAt) }}
-                              </p>
-                            </div>
-                            <button (click)="deleteComment(update._id, comment._id)"
-                                    class="text-red-600 hover:text-red-800 text-sm">
-                              Delete
-                            </button>
+                  <td colspan="6" class="px-4 sm:px-6 py-4 bg-gray-50">
+                    <!-- Comments content -->
+                    <div class="space-y-3 mb-4">
+                      @for (comment of update.comments; track comment._id) {
+                        <div class="flex flex-col sm:flex-row justify-between items-start bg-white p-3 rounded shadow-sm gap-3">
+                          <div>
+                            <p class="text-sm text-gray-800">{{ comment.text }}</p>
+                            <p class="text-xs text-gray-600 mt-1">
+                              {{ comment.name }} ({{ comment.role }}) • 
+                              {{ formatDate(comment.createdAt) }}
+                            </p>
                           </div>
-                        }
-                      </div>
-                    }
+                          <button (click)="deleteComment(update._id, comment._id)"
+                                  class="text-red-600 hover:text-red-800 text-sm">
+                            Delete
+                          </button>
+                        </div>
+                      }
+                    </div>
 
                     <!-- Add Comment Form -->
                     @if (selectedUpdateId === update._id) {
@@ -250,7 +281,7 @@
                                   class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                   rows="2"
                                   placeholder="Write a comment..."></textarea>
-                        <div class="flex justify-end gap-2 mt-2">
+                        <div class="flex flex-col sm:flex-row justify-end gap-2 mt-2">
                           <button (click)="selectedUpdateId = ''"
                                   class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">
                             Cancel
@@ -261,11 +292,6 @@
                           </button>
                         </div>
                       </div>
-                    } @else {
-                      <button (click)="selectedUpdateId = update._id"
-                              class="text-blue-600 hover:text-blue-800 text-sm">
-                        Add Comment
-                      </button>
                     }
                   </td>
                 </tr>

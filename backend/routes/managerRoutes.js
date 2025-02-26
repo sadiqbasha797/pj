@@ -10,7 +10,9 @@ const {
   verifyDeveloper,
   updateManagerMedia,
   getManagerNotifications,
-  markAllNotificationsAsRead
+  markAllNotificationsAsRead,
+  createTeamRequest,
+  getManagerRequests
 } = require('../controllers/managerController');
 const { registerDeveloper } = require('../controllers/developerController');
 const router = express.Router();
@@ -200,4 +202,7 @@ router.get('/content-creator-members', verifyManagerToken, getAllContentCreatorM
 //task updates
 router.get('/task-updates/:taskId', verifyManagerToken, getTaskUpdates);
 router.get('/project-task-updates/:projectId', verifyManagerToken, getProjectTaskUpdates);
+// Add these routes to your manager routes
+router.post('/team-request', verifyManagerToken, createTeamRequest);
+router.get('/team-requests', verifyManagerToken, getManagerRequests);
 module.exports = router;

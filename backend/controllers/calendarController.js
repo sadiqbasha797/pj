@@ -8,6 +8,8 @@ const nodemailer = require('nodemailer');
 const CalendarEvent = require('../models/calendarEvent');
 const Holiday = require('../models/Holiday');
 const Notification = require('../models/Notification');
+const DigitalMarketingRole = require('../models/digitalMarketingRole');
+const ContentCreator = require('../models/contentCreator');
 const { createNotification, notifyCreation, notifyUpdate, leaveUpdateNotification, leaveNotification } = require('../utils/notificationHelper'); // Adjust the path as necessary
 const Client = require('../models/Client');
 // Email configuration
@@ -46,8 +48,21 @@ ${relatedDocsLinks}` // Adding related documents links to the email body
 //calendar api's
 const addEvent = async (req, res) => {
   const { title, description, eventDate, participants, eventType, projectId, location, time } = req.body;
-  const createdBy = req.admin ? req.admin._id : (req.manager ? req.manager._id : req.developer._id);
-  const onModel = req.admin ? 'Admin' : (req.manager ? 'Manager' : 'Developer');
+  
+  // Add digital marketing, content creator and client roles to possible creators
+  const createdBy = req.admin ? req.admin._id : 
+                   req.manager ? req.manager._id :
+                   req.developer ? req.developer._id :
+                   req.marketingUser ? req.marketingUser._id :
+                   req.contentCreator ? req.contentCreator._id :
+                   req.client._id;
+
+  const onModel = req.admin ? 'Admin' : 
+                 req.manager ? 'Manager' : 
+                 req.developer ? 'Developer' :
+                 req.marketingUser ? 'DigitalMarketingRole' :
+                 req.contentCreator ? 'ContentCreator' :
+                 'Client';
 
   try {
     const newEvent = new CalendarEvent({
@@ -91,15 +106,56 @@ const addEvent = async (req, res) => {
       const clientParticipants = await Client.find({
         '_id': { $in: participantIds }
       });
+      const marketingParticipants = await DigitalMarketingRole.find({
+        '_id': { $in: participantIds }
+      });
+      const contentCreatorParticipants = await ContentCreator.find({
+        '_id': { $in: participantIds }
+      });
 
       // Combine all participant emails
       const emails = [
         ...developerParticipants.map(dev => dev.email),
         ...managerParticipants.map(mgr => mgr.email),
-        ...clientParticipants.map(client => client.email)
+        ...clientParticipants.map(client => client.email),
+        ...marketingParticipants.map(marketing => marketing.email),
+        ...contentCreatorParticipants.map(creator => creator.email)
       ];
 
       if (emails.length > 0) {
+        // Create ICS file content if event type is meeting
+        let emailAttachments = [];
+        if (eventType.toLowerCase() === 'meeting') {
+          // Format the date and time properly
+          const eventDateTime = new Date(eventDate);
+          if (time) {
+            const [hours, minutes] = time.split(':');
+            eventDateTime.setHours(parseInt(hours), parseInt(minutes), 0);
+          }
+
+          // Format current timestamp
+          const now = new Date();
+          
+          const icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Your Company//Calendar Event//EN
+BEGIN:VEVENT
+UID:${newEvent._id}@yourdomain.com
+DTSTAMP:${now.toISOString().replace(/[-:.]/g, '').split('T').join('T')}
+DTSTART:${eventDateTime.toISOString().replace(/[-:.]/g, '').split('T').join('T')}
+SUMMARY:${title}
+DESCRIPTION:${description || ''}
+LOCATION:${location || 'N/A'}
+END:VEVENT
+END:VCALENDAR`;
+
+          emailAttachments = [{
+            filename: 'meeting.ics',
+            content: icsContent,
+            contentType: 'text/calendar'
+          }];
+        }
+
         const mailOptions = {
           from: 'khanbasha7777777@gmail.com',
           to: emails.join(", "),
@@ -108,8 +164,10 @@ const addEvent = async (req, res) => {
 Description: ${description}
 Date: ${eventDate}
 Time: ${time}
-Location: ${location || 'N/A'}`
+Location: ${location || 'N/A'}`,
+          attachments: emailAttachments
         };
+        
         await transporter.sendMail(mailOptions);
       }
     } else {
@@ -139,6 +197,14 @@ const updateEvent = async (req, res) => {
     const originalEvent = await CalendarEvent.findById(eventId);
     if (!originalEvent) {
       return res.status(404).json({ message: 'Event not found' });
+    }
+
+    // Check if the user has permission to update the event
+    const userId = req.admin?._id || req.manager?._id || req.developer?._id || 
+                  req.marketingUser?._id || req.contentCreator?._id || req.client?._id;
+    
+    if (originalEvent.createdBy.toString() !== userId.toString()) {
+      return res.status(403).json({ message: 'Not authorized to update this event' });
     }
 
     const updatedEvent = await CalendarEvent.findByIdAndUpdate(eventId, updates, { new: true });
@@ -230,25 +296,48 @@ const deleteEvent = async (req, res) => {
       return res.status(404).json({ message: 'Event not found' });
     }
 
+    // Check if the user has permission to delete the event
+    const userId = req.admin?._id || req.manager?._id || req.developer?._id || 
+                  req.marketingUser?._id || req.contentCreator?._id || req.client?._id;
+    
+    if (eventToDelete.createdBy.toString() !== userId.toString()) {
+      return res.status(403).json({ message: 'Not authorized to delete this event' });
+    }
+
     if (eventToDelete.eventType === 'Project Deadline' && eventToDelete.projectId) {
-      // Update the project to remove or flag the deadline as deleted
-      await Project.findByIdAndUpdate(eventToDelete.projectId, { deadline: null }); // Setting deadline to null
+      await Project.findByIdAndUpdate(eventToDelete.projectId, { deadline: null });
     }
 
     // Send cancellation emails to participants
     if (eventToDelete.participants && eventToDelete.participants.length > 0) {
       const participantIds = eventToDelete.participants.map(part => part.participantId);
-      const participantUsers = await Developer.find({ '_id': { $in: participantIds } });
-      const emails = participantUsers.map(user => user.email);
+      
+      // Get participants from all possible models
+      const developerParticipants = await Developer.find({ '_id': { $in: participantIds } });
+      const managerParticipants = await Manager.find({ '_id': { $in: participantIds } });
+      const marketingParticipants = await DigitalMarketingRole.find({ '_id': { $in: participantIds } });
+      const contentCreatorParticipants = await ContentCreator.find({ '_id': { $in: participantIds } });
+      const clientParticipants = await Client.find({ '_id': { $in: participantIds } });
 
-      const mailOptions = {
-        from: 'khanbasha7777777@gmail.com',
-        to: emails.join(", "),
-        subject: `Event Cancelled: ${eventToDelete.title}`,
-        text: `The event "${eventToDelete.title}" scheduled for ${eventToDelete.eventDate} has been cancelled.`
-      };
+      // Combine all participant emails
+      const emails = [
+        ...developerParticipants.map(dev => dev.email),
+        ...managerParticipants.map(mgr => mgr.email),
+        ...marketingParticipants.map(mkt => mkt.email),
+        ...contentCreatorParticipants.map(cc => cc.email),
+        ...clientParticipants.map(client => client.email)
+      ].filter(email => email); // Remove any undefined/null emails
 
-      await transporter.sendMail(mailOptions);
+      if (emails.length > 0) {
+        const mailOptions = {
+          from: 'khanbasha7777777@gmail.com',
+          to: emails.join(", "),
+          subject: `Event Cancelled: ${eventToDelete.title}`,
+          text: `The event "${eventToDelete.title}" scheduled for ${eventToDelete.eventDate} has been cancelled.`
+        };
+
+        await transporter.sendMail(mailOptions);
+      }
 
       // Create individual notifications for each participant
       for (const participantId of participantIds) {
@@ -285,7 +374,8 @@ const fetchAllEvents = async (req, res) => {
 
 const fetchUserEvents = async (req, res) => {
   try {
-    const userId = req.admin._id;
+    const userId = req.admin?._id || req.manager?._id || req.developer?._id || 
+                  req.marketingUser?._id || req.contentCreator?._id || req.client?._id;
     const userEvents = await CalendarEvent.find({ createdBy: userId });
 
     if (userEvents.length === 0) {
@@ -307,7 +397,28 @@ const approveOrDenyHoliday = async (req, res) => {
       return res.status(400).json({ message: 'Invalid status. Only "Approved" or "Denied" are valid statuses.' });
     }
 
-    const holiday = await Holiday.findByIdAndUpdate(holidayId, { status: status }, { new: true });
+    // Create update object
+    const updateData = { status };
+
+    // Add approver details if status is 'Approved'
+    if (status === 'Approved') {
+      // Determine the approver's role and details
+      const approverRole = req.admin ? 'admin' : 'manager';
+      const approverName = req.admin ? req.admin.username : req.manager.username;
+      
+      updateData.approvedBy = {
+        name: approverName,
+        role: approverRole,
+        approvedDate: new Date()
+      };
+    }
+
+    const holiday = await Holiday.findByIdAndUpdate(
+      holidayId, 
+      updateData,
+      { new: true }
+    );
+
     if (!holiday) {
       return res.status(404).json({ message: 'Holiday request not found' });
     }
@@ -315,7 +426,7 @@ const approveOrDenyHoliday = async (req, res) => {
     // Create notification for the developer
     const notification = new Notification({
       recipient: holiday.developer,
-      content: `Your holiday request has been ${status.toLowerCase()}`,
+      content: `Your holiday request has been ${status.toLowerCase()}${status === 'Approved' ? ` by ${updateData.approvedBy.name} (${updateData.approvedBy.role})` : ''}`,
       type: 'Holiday',
       relatedId: holiday._id,
       read: false

@@ -9,6 +9,10 @@ import { CreatorAuthGuard } from '../guards/creator-auth.guard';
 import { TaskCreatorComponent } from './task-creator/task-creator.component';
 import { UpdatesCreatorComponent } from './updates-creator/updates-creator.component';
 import { NotificationsCreatorComponent } from './notifications-creator/notifications-creator.component';
+import { MeetingsCreatorComponent } from './meetings-creator/meetings-creator.component';
+import { CalendarCreatorComponent } from './calendar-creator/calendar-creator.component';
+import { LeaveCreatorComponent } from './leave-creator/leave-creator.component';
+import { CreatorDashboardComponent } from './creator-dashboard/creator-dashboard.component';
 const routes: Routes = [
   { path: 'login', component: LoginCreatorComponent },
   { 
@@ -22,6 +26,10 @@ const routes: Routes = [
       { path: 'updates', component: UpdatesCreatorComponent },
       { path: 'tasks', component: TaskCreatorComponent },
       { path: 'notifications', component: NotificationsCreatorComponent },
+      { path: 'meetings', component: MeetingsCreatorComponent },
+      { path: 'calendar', component: CalendarCreatorComponent },
+      { path: 'leave', component: LeaveCreatorComponent },
+      { path: 'dashboard', component: CreatorDashboardComponent },
       { path: '', redirectTo: 'profile', pathMatch: 'full' }
     ]
   }

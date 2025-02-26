@@ -7,7 +7,13 @@ import { DeveloperAuthService } from './developer-auth.service';
   providedIn: 'root'
 })
 export class DeveloperService {
-  private apiUrl = 'http://localhost:3000/api/developer'; // Adjust this URL as needed
+  getEvents() {
+    throw new Error('Method not implemented.');
+  }
+  createEvent(eventData: any) {
+    throw new Error('Method not implemented.');
+  }
+  private apiUrl = 'http://localhost:4000/api/developer'; // Adjust this URL as needed
 
   constructor(
     private http: HttpClient,
@@ -176,4 +182,21 @@ export class DeveloperService {
     );
   }  
 
+ 
+
+  fetchDigitalMarketingMembers(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/digital-marketing-members`, { headers: this.getHeaders() });
+  }
+
+  fetchContentCreatorMembers(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/content-creator-members`, { headers: this.getHeaders() });
+  }
+
+  getParticipatingMeetings(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/digital-marketing-members/meetings`, { headers: this.getHeaders() });
+  }
+  fetchClients(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/clients`, { headers: this.getHeaders() });
+  }
+ 
 }

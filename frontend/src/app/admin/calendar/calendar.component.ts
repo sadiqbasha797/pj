@@ -29,10 +29,71 @@ export class CalendarComponent implements OnInit {
       center: 'title',
       right: 'dayGridMonth,dayGridWeek,dayGridDay'
     },
+    themeSystem: 'standard',
+    height: 'auto',
+    contentHeight: 'auto',
+    buttonText: {
+      today: 'Today',
+      month: 'M',
+      week: 'W',
+      day: 'D',
+    },
+    views: {
+      dayGridMonth: {
+        titleFormat: { year: 'numeric', month: 'short' },
+        dayHeaderFormat: { weekday: 'narrow' },
+      },
+      dayGridWeek: {
+        titleFormat: { year: 'numeric', month: 'short' },
+        dayHeaderFormat: { weekday: 'short' },
+      },
+      dayGridDay: {
+        titleFormat: { year: 'numeric', month: 'short', day: 'numeric' },
+        dayHeaderFormat: { weekday: 'short' },
+      }
+    },
     events: this.getEventCounts.bind(this),
     dateClick: this.handleDateClick.bind(this),
-    eventContent: this.renderEventContent,
-    dayCellDidMount: this.highlightDatesWithEvents.bind(this),
+    eventClick: this.handleEventClick.bind(this),
+    eventContent: (arg) => {
+      const icon = arg.event.extendedProps?.['icon'] || '📅';
+      return {
+        html: `
+          <div class="flex items-center gap-1 px-2 py-1 rounded-md w-full overflow-hidden cursor-pointer" style="
+            border: 1px solid ${arg.event.borderColor};
+            background-color: ${arg.event.backgroundColor};
+            color: ${arg.event.textColor};
+          ">
+            <span class="event-icon">${icon}</span>
+            <span class="event-title text-xs font-medium truncate">${arg.event.title}</span>
+          </div>
+        `
+      };
+    },
+    eventDidMount: (info) => {
+      if (info.event.title.includes('+')) {
+        info.el.style.fontSize = '0.75rem';
+        info.el.style.fontStyle = 'italic';
+        info.el.style.textAlign = 'center';
+        info.el.style.backgroundColor = '#F3F4F6';
+        info.el.style.color = '#6B7280';
+        info.el.style.padding = '2px 4px';
+        info.el.style.borderRadius = '4px';
+        info.el.style.margin = '2px 0';
+      }
+    },
+    dayCellDidMount: (arg) => {
+      // Add hover effect to day cells
+      arg.el.style.transition = 'all 0.2s ease';
+      arg.el.addEventListener('mouseenter', () => {
+        arg.el.style.backgroundColor = '#F8FAFC';
+      });
+      arg.el.addEventListener('mouseleave', () => {
+        arg.el.style.backgroundColor = '';
+      });
+    },
+    eventDisplay: 'list-item',
+    dayMaxEvents: true,
   };
 
   private allEvents: EventInput[] = [];
@@ -145,23 +206,104 @@ export class CalendarComponent implements OnInit {
   }
 
   getEventCounts(fetchInfo: any, successCallback: any, failureCallback: any) {
-    const events = this.allEvents.reduce((acc: any[], event) => {
+    const eventsByDate = this.allEvents.reduce((acc: { [key: string]: any[] }, event) => {
       const date = new Date(event.start as string).toDateString();
-      const existingEvent = acc.find(e => new Date(e.start as string).toDateString() === date);
-      if (existingEvent) {
-        existingEvent.title = String(parseInt(existingEvent.title) + 1);
-      } else {
-        acc.push({
+      if (!acc[date]) {
+        acc[date] = [];
+      }
+      acc[date].push(event);
+      return acc;
+    }, {});
+
+    const events = Object.entries(eventsByDate).map(([dateStr, dateEvents]) => {
+      const displayEvents = dateEvents.slice(0, 3).map(event => {
+        const eventTypeStyles = this.getEventStyles(event.extendedProps?.['eventType']);
+        return {
+          id: event.id,
           start: event.start,
-          title: '1',
+          title: event.title,
           allDay: true,
-          display: 'background',
-          backgroundColor: 'rgba(0, 255, 0, 0.1)', // Light green with reduced opacity
+          display: 'list-item',
+          backgroundColor: eventTypeStyles.bgColor,
+          textColor: eventTypeStyles.textColor,
+          borderColor: eventTypeStyles.borderColor,
+          classNames: ['event-item'],
+          extendedProps: {
+            ...event.extendedProps,
+            icon: eventTypeStyles.icon
+          }
+        };
+      });
+
+      if (dateEvents.length > 3) {
+        displayEvents.push({
+          id: dateEvents[0].id,
+          start: dateEvents[0].start,
+          title: `+${dateEvents.length - 3} more`,
+          allDay: true,
+          display: 'list-item',
+          backgroundColor: '#F3F4F6',
+          textColor: '#6B7280',
+          borderColor: '#E5E7EB',
+          classNames: ['more-events'],
+          extendedProps: {
+            icon: '📅'
+          }
         });
       }
-      return acc;
-    }, []);
+
+
+      return displayEvents;
+    }).flat();
+
     successCallback(events);
+  }
+
+  getEventStyles(eventType: string): { bgColor: string; textColor: string; borderColor: string; icon: string } {
+    switch (eventType?.toLowerCase()) {
+      case 'meeting':
+        return {
+          bgColor: '#EFF6FF',  // light blue bg
+          textColor: '#3B82F6', // blue text
+          borderColor: '#93C5FD', // blue border
+          icon: '🤝'
+        };
+      case 'project deadline':
+        return {
+          bgColor: '#FEF2F2', // light red bg
+          textColor: '#EF4444', // red text
+          borderColor: '#FCA5A5', // red border
+          icon: '⏰'
+        };
+      case 'reminder':
+        return {
+          bgColor: '#ECFDF5', // light green bg
+          textColor: '#10B981', // green text
+          borderColor: '#6EE7B7', // green border
+          icon: '📝'
+        };
+      case 'holiday':
+        return {
+          bgColor: '#FDF2F8', // light pink bg
+          textColor: '#EC4899', // pink text
+          borderColor: '#F9A8D4', // pink border
+          icon: '🎉'
+        };
+      case 'task':
+        return {
+          bgColor: '#FEF3C7', // light yellow bg
+          textColor: '#D97706', // yellow text
+          borderColor: '#FCD34D', // yellow border
+          icon: '📋'
+        };
+      default:
+        return {
+          bgColor: '#F3F4F6', // light gray bg
+          textColor: '#6B7280', // gray text
+          borderColor: '#E5E7EB', // gray border
+          icon: '📅'
+        };
+    }
   }
 
   highlightDatesWithEvents(arg: any) {
@@ -895,5 +1037,15 @@ export class CalendarComponent implements OnInit {
         console.error('Error fetching content creators:', error);
       }
     });
+  }
+
+  handleEventClick(clickInfo: any): void {
+    // Find the original event data
+    const eventId = clickInfo.event.id;
+    const originalEvent = this.allEvents.find(e => e.id === eventId);
+    
+    if (originalEvent) {
+      this.viewEvent(eventId);
+    }
   }
 }

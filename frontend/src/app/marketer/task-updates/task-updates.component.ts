@@ -21,10 +21,12 @@ interface TaskUpdate {
     taskDescription: string;
     priority: 'high' | 'medium' | 'low';
     status: 'in-progress' | 'completed' | 'pending';
+    budget: number;
   };
   description: string;
   startDate: string;
   endDate: string;
+  budget: number;
   attachments: string[];
   leadsInfo: LeadInfo[];
   comments: any[];
@@ -62,11 +64,13 @@ export class TaskUpdatesComponent implements OnInit {
       taskName: '',
       taskDescription: '',
       priority: 'low',
-      status: 'pending'
+      status: 'pending',
+      budget: 0
     },
     description: '',
     startDate: '',
     endDate: '',
+    budget: 0,
     attachments: [],
     leadsInfo: [],
     comments: [],
@@ -82,6 +86,10 @@ export class TaskUpdatesComponent implements OnInit {
   priorities: string[] = ['high', 'medium', 'low'];
   statuses: string[] = ['in-progress', 'completed', 'pending'];
   showLeadsTable: boolean = false;
+  totalBudget: number = 0;
+  spentBudget: number = 0;
+  remainingBudget: number = 0;
+  currentTask: any = null;
 
   constructor(
     private marketerService: MarketerService,
@@ -98,6 +106,7 @@ export class TaskUpdatesComponent implements OnInit {
       description: ['', Validators.required],
       startDate: ['', Validators.required],
       endDate: ['', Validators.required],
+      budget: [0, [Validators.required, Validators.min(0)]],
       leadsInfo: this.fb.array([])
     });
 
@@ -161,6 +170,7 @@ export class TaskUpdatesComponent implements OnInit {
       formData.append('description', this.updateForm.get('description')?.value);
       formData.append('startDate', this.updateForm.get('startDate')?.value);
       formData.append('endDate', this.updateForm.get('endDate')?.value);
+      formData.append('budget', this.updateForm.get('budget')?.value.toString());
       formData.append('leadsInfo', JSON.stringify(this.updateForm.get('leadsInfo')?.value));
 
       this.selectedFiles.forEach((file) => {
@@ -184,7 +194,23 @@ export class TaskUpdatesComponent implements OnInit {
     this.route.queryParams.subscribe(params => {
       this.taskId = params['taskId'];
       if (this.taskId) {
-        this.loadTaskUpdates();
+        // First get the task details
+        this.marketerService.getAssignedMarketingTasks().subscribe({
+          next: (response) => {
+            const task = response.tasks.find((t: any) => t._id === this.taskId);
+            if (task) {
+              this.currentTask = task;
+              this.totalBudget = task.budget;
+              this.loadTaskUpdates();
+            } else {
+              this.error = 'Task not found';
+            }
+          },
+          error: (error) => {
+            console.error('Error loading task:', error);
+            this.error = 'Failed to load task details';
+          }
+        });
       } else {
         this.error = 'No task ID provided';
       }
@@ -196,9 +222,22 @@ export class TaskUpdatesComponent implements OnInit {
     this.loaderService.show();
     this.marketerService.getTaskUpdates(this.taskId).subscribe({
       next: (response) => {
-        this.taskUpdates = response;
-        this.filteredTaskUpdates = response; // Initialize filtered results
+        // Get current user ID from localStorage
+        const currentUserId = JSON.parse(localStorage.getItem('marketerUser') || '{}')?.id;
+        console.log('Current User ID:', currentUserId);
+        console.log('Updates received:', response);
+        
+        // Filter updates for current user
+        this.taskUpdates = response.filter((update: TaskUpdate) => {
+          console.log('Comparing:', update.updatedBy.id, currentUserId);
+          return update.updatedBy.id === currentUserId;
+        });
+        
+        console.log('Filtered Updates:', this.taskUpdates);
+        
+        this.filteredTaskUpdates = [...this.taskUpdates]; // Initialize filtered results
         this.applyFilters(); // Apply any existing filters
+        this.calculateBudgetMetrics();
         this.loading = false;
         this.loaderService.hide();
       },
@@ -224,6 +263,7 @@ export class TaskUpdatesComponent implements OnInit {
       description: update.description,
       startDate: update.startDate.split('T')[0], // Format date for input
       endDate: update.endDate.split('T')[0],
+      budget: update.budget
     });
 
     // Clear and repopulate leads info
@@ -257,6 +297,7 @@ export class TaskUpdatesComponent implements OnInit {
       formData.append('description', this.updateForm.get('description')?.value);
       formData.append('startDate', this.updateForm.get('startDate')?.value);
       formData.append('endDate', this.updateForm.get('endDate')?.value);
+      formData.append('budget', this.updateForm.get('budget')?.value.toString());
       formData.append('leadsInfo', JSON.stringify(this.updateForm.get('leadsInfo')?.value));
 
       // Append new files
@@ -379,5 +420,12 @@ export class TaskUpdatesComponent implements OnInit {
       });
     });
     return allLeads;
+  }
+
+  calculateBudgetMetrics() {
+    // Calculate spent budget from all updates
+    this.spentBudget = this.taskUpdates.reduce((total, update) => total + (update.budget || 0), 0);
+    // Calculate remaining budget
+    this.remainingBudget = this.totalBudget - this.spentBudget;
   }
 }

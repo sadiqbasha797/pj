@@ -10,6 +10,7 @@ const Holiday = require('../models/Holiday');
 const { createNotification,notifyCreation,notifyUpdate,leaveUpdateNotification,leaveNotification } = require('../utils/notificationHelper'); // Adjust the path as necessary
 const { uploadToCloudinary, deleteFromCloudinary } = require('../utils/cloudinary');
 const Notification = require('../models/Notification');
+const ManagerRequest = require('../models/managerRequest');
 
 // Email configuration
 const transporter = nodemailer.createTransport({
@@ -427,7 +428,7 @@ const getAllNotifications = async (req, res) => {
         { recipient: null },
         { type: 'holiday' }
       ]
-    }).sort({ date: -1 });
+    }).sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
@@ -521,6 +522,136 @@ const getAllAdmins = async (req, res) => {
   }
 };
 
+const getPendingRequests = async (req, res) => {
+  try {
+    const requests = await ManagerRequest.find({ status: 'pending' })
+      .populate('manager', 'username email')
+      .populate('memberId')
+      .sort({ requestDate: -1 });
+
+    res.status(200).json({
+      requests
+    });
+
+  } catch (error) {
+    console.error('Error fetching pending requests:', error);
+    res.status(500).json({
+      message: 'Error fetching pending requests',
+      error: error.message
+    });
+  }
+};
+
+const handleTeamRequest = async (req, res) => {
+  try {
+    const { requestId } = req.params;
+    const { status, notes } = req.body;
+
+    if (!['approved', 'rejected'].includes(status)) {
+      return res.status(400).json({ message: 'Invalid status' });
+    }
+
+    const request = await ManagerRequest.findById(requestId)
+      .populate('manager')
+      .populate('memberId');
+
+    if (!request) {
+      return res.status(404).json({ message: 'Request not found' });
+    }
+
+    if (request.status !== 'pending') {
+      return res.status(400).json({ message: 'Request has already been processed' });
+    }
+
+    // Update request status
+    request.status = status;
+    request.responseDate = new Date();
+    request.notes = notes || request.notes;
+
+    // If approved, add member to manager's team
+    if (status === 'approved') {
+      const manager = await Manager.findById(request.manager._id);
+      
+      switch (request.requestType) {
+        case 'developer':
+          manager.developers.push({
+            developerId: request.memberId._id,
+            developerName: request.memberId.username,
+            assignedOn: new Date()
+          });
+          break;
+        case 'digitalMarketer':
+          manager.digitalMarketingRoles.push({
+            roleId: request.memberId._id,
+            roleName: request.memberId.role,
+            marketerName: request.memberId.username,
+            assignedOn: new Date()
+          });
+          break;
+        case 'contentCreator':
+          manager.contentCreators.push({
+            roleId: request.memberId._id,
+            roleName: request.memberId.role,
+            creatorName: request.memberId.username,
+            assignedOn: new Date()
+          });
+          break;
+      }
+
+      manager.teamSize = manager.developers.length + 
+                        manager.digitalMarketingRoles.length + 
+                        manager.contentCreators.length;
+      
+      await manager.save();
+    }
+
+    await request.save();
+
+    // Send email to manager
+    const mailOptions = {
+      from: 'khanbasha7777777@gmail.com',
+      to: request.manager.email,
+      subject: `Team Member Request ${status.toUpperCase()}`,
+      text: `
+Your team member request has been ${status}:
+
+Request Type: ${request.requestType}
+${status === 'approved' ? 'Member has been added to your team.' : ''}
+${notes ? `Notes: ${notes}` : ''}
+
+You can view the details in your dashboard.`
+    };
+
+    transporter.sendMail(mailOptions, function(error, info) {
+      if (error) {
+        console.log('Error sending email:', error);
+      } else {
+        console.log('Email sent to manager:', info.response);
+      }
+    });
+
+    // Create notification for manager
+    await createNotification(
+      [request.manager._id],
+      `Your team member request has been ${status}`,
+      'team_request_response',
+      request._id
+    );
+
+    res.status(200).json({
+      message: `Request ${status} successfully`,
+      request
+    });
+
+  } catch (error) {
+    console.error('Error handling request:', error);
+    res.status(500).json({
+      message: 'Error handling team request',
+      error: error.message
+    });
+  }
+};
+
 // Export all functions
 module.exports = {
  
@@ -544,5 +675,7 @@ module.exports = {
   getAllNotifications,
   markNotificationAsRead,
   markAllNotificationsAsRead,
-  getAllAdmins
+  getAllAdmins,
+  getPendingRequests,
+  handleTeamRequest
 };

@@ -17,6 +17,34 @@ const clientSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    companyName: {
+        type: String,
+        trim: true
+    },
+    address: {
+        type: String,
+        trim: true
+    },
+    countryCode: {
+        type: String,
+        trim: true
+    },
+    mobileNumber: {
+        type: String,
+        required: true,
+        trim: true,
+        validate: {
+            validator: function(v) {
+                // Basic validation for phone number with country code
+                return /^\+?[\d\s-]+$/.test(v);
+            },
+            message: props => `${props.value} is not a valid phone number!`
+        }
+    },
+    companyLogo: {
+        type: String,
+        trim: true
+    },
     projects: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Project',

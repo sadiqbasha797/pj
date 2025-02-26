@@ -25,6 +25,8 @@ export class ViewUpdatesComponent implements OnInit {
   filterUpdatedBy: string = '';
   filterDescription: string = '';
   isFilterVisible: boolean = false;
+  totalBudgetSpent: number = 0;
+  remainingBudget: number = 0;
 
   constructor(
     private adminService: AdminService,
@@ -36,7 +38,6 @@ export class ViewUpdatesComponent implements OnInit {
       this.taskId = params['taskId'];
       if (this.taskId) {
         this.loadTaskDetails();
-        this.loadTaskUpdates();
       }
     });
   }
@@ -45,6 +46,7 @@ export class ViewUpdatesComponent implements OnInit {
     this.adminService.getMarketingTaskById(this.taskId).subscribe({
       next: (task) => {
         this.task = task;
+        this.loadTaskUpdates();
       },
       error: (error) => {
         console.error('Error loading task details:', error);
@@ -56,6 +58,7 @@ export class ViewUpdatesComponent implements OnInit {
     this.adminService.getTaskUpdates(this.taskId).subscribe({
       next: (updates) => {
         this.taskUpdates = updates;
+        this.calculateBudgetMetrics();
         this.applyFilters();
       },
       error: (error) => {
@@ -140,5 +143,20 @@ export class ViewUpdatesComponent implements OnInit {
     this.filterDateFrom = '';
     this.filterDateTo = '';
     this.applyFilters();
+  }
+
+  calculateBudgetMetrics() {
+    if (!this.task) {
+      console.warn('Task details not available for budget calculation');
+      return;
+    }
+
+    this.totalBudgetSpent = this.taskUpdates.reduce((total, update) => {
+      const updateBudget = Number(update.budget) || 0;
+      return total + updateBudget;
+    }, 0);
+
+    const taskBudget = Number(this.task.budget) || 0;
+    this.remainingBudget = taskBudget - this.totalBudgetSpent;
   }
 }

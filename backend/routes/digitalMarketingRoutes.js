@@ -11,13 +11,22 @@ const {
     deleteProfile,
     fetchNotifications,
     markAllNotificationsAsRead,
-    getParticipatingMeetings
+    getParticipatingMeetings,   
+    getMarketingEvents,
+    getAllMembers,
+    applyForHoliday,
+    withdrawHoliday,
+    fetchHolidays
 } = require('../controllers/digitalMarketingController');
 
+const {getAllClients} = require('../controllers/clientController');
 const {createTaskUpdate, getTaskUpdates, addComment, deleteTaskUpdate, updateTaskUpdate, getProjectTaskUpdates} = require('../controllers/taskUpdateController');
 const {getAssignedMarketingTasks} = require('../controllers/marketingTaskController');
 const {createRevenue, getAllRevenue, getRevenueByProject, updateRevenue, deleteRevenue} = require('../controllers/revenueController');
+const {getAllDevelopers,getAllManagers,getAllAdmins} = require('../controllers/adminController');
+const {getAllContentCreatorMembers} = require('../controllers/contentCreatorController');
 const {fetchProjects} = require('../controllers/projectController');
+const {addEvent, updateEvent, deleteEvent} = require('../controllers/calendarController');
 // Multer configuration for handling file uploads
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -96,5 +105,28 @@ router.put('/notifications/mark-all-as-read', verifyMarketingToken, markAllNotif
 
 // Get participating meetings
 router.get('/participating-meetings', verifyMarketingToken, getParticipatingMeetings);
+
+// Get marketing events
+router.get('/marketing-events', verifyMarketingToken, getMarketingEvents);  
+
+// Get all members
+router.get('/digital-marketing-members', verifyMarketingToken, getAllMembers);
+router.get('/content-creator-members', verifyMarketingToken, getAllContentCreatorMembers);
+router.get('/developers', verifyMarketingToken, getAllDevelopers);
+router.get('/managers', verifyMarketingToken, getAllManagers);
+router.get('/admins', verifyMarketingToken, getAllAdmins);
+
+// Calendar API's
+router.post('/add-event', verifyMarketingToken, addEvent);
+router.put('/update-event/:eventId', verifyMarketingToken, updateEvent);
+router.delete('/delete-event/:eventId', verifyMarketingToken, deleteEvent);
+
+// Holiday API's
+router.post('/apply-for-holiday', verifyMarketingToken, applyForHoliday);
+router.put('/withdraw-holiday/:holidayId', verifyMarketingToken, withdrawHoliday);
+router.get('/fetch-holidays', verifyMarketingToken, fetchHolidays);
+
+//client api's
+router.get('/clients', verifyMarketingToken, getAllClients);
 
 module.exports = router;

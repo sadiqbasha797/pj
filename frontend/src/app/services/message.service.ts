@@ -22,13 +22,19 @@ interface Message {
   providedIn: 'root'
 })
 export class MessageService {
+  getRecentChats(): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.apiUrl}/users`,
+      { headers: this.getHeaders() }
+    );
+  }
   private socket: Socket;
-  private apiUrl = 'https://pj-backend-y82g.onrender.com/api/message';
+  private apiUrl = 'http://localhost:4000/api/message';
   private unreadCount = new BehaviorSubject<number>(0);
   private newMessage = new BehaviorSubject<Message | null>(null);
 
   constructor(private http: HttpClient) {
-    this.socket = io('http://localhost:3000');
+    this.socket = io('http://localhost:4000');
     this.setupSocketListeners();
     this.getUnreadCount().subscribe();
   }
@@ -44,10 +50,22 @@ export class MessageService {
     const token = 
       localStorage.getItem('managerToken') || 
       localStorage.getItem('adminToken') || 
-      localStorage.getItem('developerToken');
+      localStorage.getItem('developerToken') ||
+      localStorage.getItem('marketerToken') ||
+      localStorage.getItem('digitalMarketingToken') ||
+      localStorage.getItem('contentCreatorToken') ||
+      localStorage.getItem('clientToken');
     
     if (!token) {
-      console.warn('No authentication token found');
+      console.warn('No authentication token found in localStorage:', {
+        managerToken: localStorage.getItem('managerToken'),
+        adminToken: localStorage.getItem('adminToken'),
+        developerToken: localStorage.getItem('developerToken'),
+        marketerToken: localStorage.getItem('marketerToken'),
+        digitalMarketingToken: localStorage.getItem('digitalMarketingToken'),
+        contentCreatorToken: localStorage.getItem('contentCreatorToken'),
+        clientToken: localStorage.getItem('clientToken')
+      });
     }
     
     return new HttpHeaders()
@@ -56,11 +74,25 @@ export class MessageService {
   }
 
   sendMessage(receiverId: string, receiverRole: string, content: string): Observable<Message> {
+    // Map frontend role names to backend role names
+    const roleMapping: { [key: string]: string } = {
+      'admin': 'admin',
+      'manager': 'manager',
+      'developer': 'developer',
+      'contentCreator': 'content-creator',
+      'digitalMarketing': 'digital-marketing',
+      'marketer': 'digital-marketing',
+      'client': 'client'
+    };
+
+    const mappedRole = roleMapping[receiverRole] || receiverRole;
+    
     const payload = {
       receiverId,
-      receiverRole,
+      receiverRole: mappedRole,
       content
     };
+    
     return this.http.post<Message>(
       `${this.apiUrl}/send`, 
       payload, 
@@ -118,5 +150,12 @@ export class MessageService {
     if (this.socket) {
       this.socket.disconnect();
     }
+  }
+
+  getMessagedUsers(): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.apiUrl}/users`,
+      { headers: this.getHeaders() }
+    );
   }
 }

@@ -7,7 +7,9 @@ interface ManagerProfile {
   _id: string;
   username: string;
   email: string;
+  password: string;
   teamSize: number;
+  role: string;
   developers: {
     developerId: string;
     developerName: string;
@@ -16,11 +18,15 @@ interface ManagerProfile {
   }[];
   digitalMarketingRoles: {
     roleId: string;
+    roleName: string;
+    marketerName: string;
     assignedOn: string;
     _id: string;
   }[];
   contentCreators: {
     roleId: string;
+    roleName: string;
+    creatorName: string;
     assignedOn: string;
     _id: string;
   }[];
@@ -49,7 +55,7 @@ export class ManagerService {
     const headers = this.getHeaders();
     return this.http.get<ManagerProfile>(`${this.apiUrl}/profile`, { headers });
   }
-  private apiUrl = 'http://localhost:3000/api/manager';
+  private apiUrl = 'http://localhost:4000/api/manager';
 
   constructor(private http: HttpClient) { }
 
@@ -370,5 +376,29 @@ export class ManagerService {
   getProjectTaskUpdates(projectId: string): Observable<any> {
     const headers = this.getHeaders();
     return this.http.get(`${this.apiUrl}/project-task-updates/${projectId}`, { headers });
+  }
+
+  // Team Requests
+  createTeamRequest(requestData: any): Observable<any> {
+    const headers = this.getHeaders();
+    return this.http.post(`${this.apiUrl}/team-request`, requestData, { headers });
+  }
+
+  getManagerRequests(): Observable<any> {
+    const headers = this.getHeaders();
+    return this.http.get(`${this.apiUrl}/team-requests`, { headers });
+  }
+
+  getAllDevelopersUnfiltered(): Observable<{ success: boolean; data: TeamMember[] }> {
+    const headers = this.getHeaders();
+    return this.http.get<{ success: boolean; data: TeamMember[] }>(
+      `${this.apiUrl}/developers`,
+      { headers }
+    ).pipe(
+      map(response => ({
+        success: true,
+        data: Array.isArray(response) ? response : [] // Transform the response to match the expected format
+      }))
+    );
   }
 }

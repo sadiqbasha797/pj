@@ -32,7 +32,7 @@ import { MatSelectModule } from '@angular/material/select';
 export class ClientsComponent implements OnInit {
   clients: any[] = [];
   clientForm: FormGroup;
-  displayedColumns: string[] = ['clientName', 'email', 'projects', 'actions'];
+  displayedColumns: string[] = ['clientName', 'email', 'companyDetails', 'projects', 'actions'];
   isEditing: boolean = false;
   selectedClientId: string | null = null;
   isLoading = false;
@@ -51,7 +51,12 @@ export class ClientsComponent implements OnInit {
       clientName: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
-      projects: [[]]
+      projects: [[]],
+      companyName: ['', Validators.required],
+      address: [''],
+      countryCode: [''],
+      mobileNumber: ['', [Validators.pattern('^[0-9]{10}$')]],
+      companyLogo: [null]
     });
   }
 
@@ -113,11 +118,33 @@ export class ClientsComponent implements OnInit {
 
   updateClient(): void {
     if (this.selectedClientId) {
-      const clientData = {
+      // Create interface for client data
+      interface ClientUpdateData {
+        clientName: string;
+        email: string;
+        projects: string[];
+        companyName: string;
+        address: string;
+        countryCode: string;
+        mobileNumber: string;
+        password?: string; // Optional password field
+      }
+
+      const clientData: ClientUpdateData = {
         clientName: this.clientForm.get('clientName')?.value,
         email: this.clientForm.get('email')?.value,
-        projects: this.clientForm.get('projects')?.value || []
+        projects: this.clientForm.get('projects')?.value || [],
+        companyName: this.clientForm.get('companyName')?.value,
+        address: this.clientForm.get('address')?.value,
+        countryCode: this.clientForm.get('countryCode')?.value,
+        mobileNumber: this.clientForm.get('mobileNumber')?.value
       };
+      
+      // Add password if provided
+      const password = this.clientForm.get('password')?.value;
+      if (password) {
+        clientData.password = password;
+      }
       
       this.adminService.updateClient(this.selectedClientId, clientData).subscribe({
         next: () => {
@@ -142,7 +169,11 @@ export class ClientsComponent implements OnInit {
       clientName: client.clientName,
       email: client.email,
       password: '',
-      projects: this.selectedProjects
+      projects: this.selectedProjects,
+      companyName: client.companyName,
+      address: client.address,
+      countryCode: client.countryCode,
+      mobileNumber: client.mobileNumber
     });
     
     this.clientForm.get('password')?.clearValidators();

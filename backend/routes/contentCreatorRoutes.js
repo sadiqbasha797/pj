@@ -11,9 +11,17 @@ const {
     deleteProfile,
     fetchNotifications,
     markAllNotificationsAsRead,
-    getParticipatingMeetings
+    getParticipatingMeetings,
+    getAllContentCreatorMembers,
+    getContentCreatorEvents,
+    applyForHoliday,
+    withdrawHoliday,
+    fetchHolidays
 } = require('../controllers/contentCreatorController');
-
+const {getAllClients} = require('../controllers/clientController');
+const {addEvent, updateEvent, deleteEvent} = require('../controllers/calendarController');
+const {getAllAdmins, getAllDevelopers, getAllManagers} = require('../controllers/adminController');
+const {getAllMembers}=require('../controllers/digitalMarketingController');
 const {createTaskUpdate, getTaskUpdates, addComment, deleteTaskUpdate, updateTaskUpdate, getProjectTaskUpdates} = require('../controllers/taskUpdateController');
 const {getAssignedMarketingTasks} = require('../controllers/marketingTaskController');
 const {createRevenue, getAllRevenue, getRevenueByProject, updateRevenue, deleteRevenue} = require('../controllers/revenueController');
@@ -97,5 +105,28 @@ router.put('/notifications/mark-all-as-read', verifyContentCreatorToken, markAll
 
 // Get participating meetings
 router.get('/participating-meetings', verifyContentCreatorToken, getParticipatingMeetings);
+
+// Get all members
+router.get('/all-digital-marketing-members', verifyContentCreatorToken, getAllMembers);
+router.get('/all-content-creator-members', verifyContentCreatorToken, getAllContentCreatorMembers);
+router.get('/all-admins', verifyContentCreatorToken, getAllAdmins);
+router.get('/all-developers', verifyContentCreatorToken, getAllDevelopers);
+router.get('/all-managers', verifyContentCreatorToken, getAllManagers);
+
+// Calendar API's
+router.post('/add-event', verifyContentCreatorToken, addEvent);
+router.put('/update-event/:eventId', verifyContentCreatorToken, updateEvent);
+router.delete('/delete-event/:eventId', verifyContentCreatorToken, deleteEvent);
+
+// Get content creator events
+router.get('/content-creator-events', verifyContentCreatorToken, getContentCreatorEvents);
+
+// Holiday API's
+router.post('/apply-for-holiday', verifyContentCreatorToken, applyForHoliday);
+router.put('/withdraw-holiday/:holidayId', verifyContentCreatorToken, withdrawHoliday);
+router.get('/fetch-holidays', verifyContentCreatorToken, fetchHolidays);
+
+//client api's
+router.get('/clients', verifyContentCreatorToken, getAllClients);
 
 module.exports = router;

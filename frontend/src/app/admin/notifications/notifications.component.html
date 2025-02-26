@@ -77,7 +77,7 @@
               </div>
               <p class="text-sm text-gray-500">{{notification.time}}</p>
             </div>
-            <p class="mt-1 text-sm text-gray-600">{{notification.content}}</p>
+            <p class="mt-1 text-sm text-gray-600">{{notification.content || 'No content available'}}</p>
           </div>
 
           <!-- Read indicator -->
@@ -97,5 +97,13 @@
     </svg>
     <h3 class="mt-2 text-sm font-medium text-gray-900">No notifications</h3>
     <p class="mt-1 text-sm text-gray-500">You're all caught up! Check back later for new notifications.</p>
+  </div>
+
+  <!-- Notification Popup -->
+  <div *ngIf="activePopup?.visible" class="notification-popup" [@slideInOut]>
+    <div class="notification-content">
+      <span class="message">{{ activePopup?.content || 'New notification' }}</span>
+      <button class="close-btn" (click)="hideNotificationPopup()">×</button>
+    </div>
   </div>
 </div>

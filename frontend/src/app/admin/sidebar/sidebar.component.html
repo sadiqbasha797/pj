@@ -149,7 +149,8 @@
             </div>
             <span [ngClass]="{'hidden': isCollapsed, 'ml-3 font-medium': !isCollapsed}">Chat</span>
           </a>
-        </li>
+        </li>  
+      
 
         <!-- Leave -->
         <li>
@@ -161,7 +162,27 @@
                 <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
               </svg>
             </div>
-            <span [ngClass]="{'hidden': isCollapsed, 'ml-3 font-medium': !isCollapsed}">Leave</span>
+            <span [ngClass]="{'hidden': isCollapsed, 'ml-3 font-medium': !isCollapsed}">Leave Management</span>
+          </a>
+        </li>
+
+        <!-- Team Requests -->
+        <li>
+          <a routerLink="/admin/team-requests" routerLinkActive="bg-gradient-to-r from-blue-100/50 to-indigo-100/50 text-blue-700"
+             class="group flex items-center py-2.5 px-4 rounded-xl hover:bg-blue-50/40 transition-all duration-300 hover:shadow-[0_0_15px_rgba(147,51,234,0.5)] hover:border-purple-400 border border-transparent"
+             [title]="isCollapsed ? 'Team Requests' : ''">
+            <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-purple-100 to-violet-50 group-hover:from-purple-200 group-hover:to-violet-100 transition-colors duration-300">
+              <svg class="h-5 w-5 text-purple-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+              </svg>
+            </div>
+            <span [ngClass]="{'hidden': isCollapsed, 'ml-3 font-medium': !isCollapsed}">Team Requests</span>
+            
+            <!-- Optional: Add a badge for pending requests count -->
+            <span *ngIf="pendingRequestsCount > 0 && !isCollapsed" 
+                  class="ml-auto bg-purple-100 text-purple-600 text-xs px-2 py-0.5 rounded-full">
+              {{ pendingRequestsCount }}
+            </span>
           </a>
         </li>
 

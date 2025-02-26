@@ -15,6 +15,41 @@ import { InputTextareaModule } from 'primeng/inputtextarea';
 import { DropdownModule } from 'primeng/dropdown';
 import { ReactiveFormsModule, FormGroup, FormBuilder, Validators } from '@angular/forms';
 import Swal from 'sweetalert2';
+import { LoaderService } from '../../services/loader.service';
+
+interface AdminResponse {
+  admins: Array<{
+    _id: string;
+    username: string;
+    // ... other admin properties
+  }>;
+}
+
+interface DigitalMarketingResponse {
+  success: boolean;
+  data: Array<{
+    _id: string;
+    username: string;
+    email: string;
+    skills: string[];
+    role: string;
+    image: string | null;
+    createdAt: string;
+  }>;
+}
+
+interface ContentCreatorResponse {
+  success: boolean;
+  data: Array<{
+    _id: string;
+    username: string;
+    email: string;
+    skills: string[];
+    role: string;
+    image: string;
+    createdAt: string;
+  }>;
+}
 
 @Component({
   selector: 'app-calendar-developer',
@@ -24,6 +59,12 @@ import Swal from 'sweetalert2';
   styleUrl: './calendar-developer.component.css'
 })
 export class CalendarDeveloperComponent implements OnInit {
+  completedCount: any;
+  cancelledCount: any;
+closeEventDialog: any;
+  openFilterModal() {
+    throw new Error('Method not implemented.');
+  }
   calendarOptions: any;
   events: any[] = [];
   showEventDialog: boolean = false;
@@ -33,15 +74,16 @@ export class CalendarDeveloperComponent implements OnInit {
   newEvent: any = {
     title: '',
     description: '',
-    eventDate: '',
     eventType: '',
-    location: ''
+    location: '',
+    participants: [],
+    eventDate: new Date().toISOString().slice(0, 16),
+    status: 'Active'
   };
   eventTypes: any[] = [
     { label: 'Work', value: 'Work' },
     { label: 'Reminder', value: 'Reminder' },
     { label: 'Other ', value: 'Other' },
-  
   ];
   eventForm: FormGroup;
   editingEventId: string | undefined;
@@ -49,9 +91,22 @@ export class CalendarDeveloperComponent implements OnInit {
   eventProject: any = null;
   developers: any[] = [];
   managers: any[] = [];
+  marketingMembers: DigitalMarketingResponse['data'] = [];
+  contentCreators: ContentCreatorResponse['data'] = [];
+  admins: AdminResponse | null = null;
+  clients: any[] = [];
+  
+  totalEvents: number = 0;
+  meetingsCount: number = 0;
+  tasksCount: number = 0;
+  monthlyEvents: number = 0;
+
+  filterForm: FormGroup;
+  filteredEvents: any[] = [];
 
   constructor(
     private developerService: DeveloperService,
+    private loaderService: LoaderService,
     private fb: FormBuilder
   ) {
     this.eventForm = this.fb.group({
@@ -63,13 +118,19 @@ export class CalendarDeveloperComponent implements OnInit {
       priority: [''],
       reminderTime: ['']
     });
+
+    this.filterForm = this.fb.group({
+      eventType: [''],
+      startDate: [''],
+      endDate: ['']
+    });
   }
 
   ngOnInit() {
     this.loadEvents();
     this.initializeCalendar();
-    this.fetchDevelopers();
-    this.fetchManagers();
+    this.fetchAllParticipants();
+    this.updateEventCounts();
   }
 
   loadEvents() {
@@ -93,6 +154,7 @@ export class CalendarDeveloperComponent implements OnInit {
         }));
         console.log(this.events);
         this.updateCalendarEvents();
+        this.updateEventCounts();
       },
       error: (error) => {
         console.error('Error loading events:', error);
@@ -130,7 +192,34 @@ export class CalendarDeveloperComponent implements OnInit {
       displayEventTime: false,
       dayMaxEvents: true,
       height: 'auto',
-      dayCellDidMount: this.highlightDatesWithEvents.bind(this)
+      dayCellDidMount: this.highlightDatesWithEvents.bind(this),
+      eventContent: (arg: { event: { extendedProps: { [x: string]: string; }; borderColor: any; backgroundColor: any; textColor: any; title: any; }; }) => {
+        const icon = arg.event.extendedProps?.['icon'] || '📅';
+        return {
+          html: `
+            <div class="flex items-center gap-1 px-2 py-1 rounded-md w-full overflow-hidden" style="
+              border: 1px solid ${arg.event.borderColor};
+              background-color: ${arg.event.backgroundColor};
+              color: ${arg.event.textColor};
+            ">
+              <span class="event-icon">${icon}</span>
+              <span class="event-title text-xs font-medium truncate">${arg.event.title}</span>
+            </div>
+          `
+        };
+      },
+      eventDidMount: (info: { event: { title: string | string[]; }; el: { style: { fontSize: string; fontStyle: string; textAlign: string; backgroundColor: string; color: string; padding: string; borderRadius: string; margin: string; }; }; }) => {
+        if (info.event.title.includes('+')) {
+          info.el.style.fontSize = '0.75rem';
+          info.el.style.fontStyle = 'italic';
+          info.el.style.textAlign = 'center';
+          info.el.style.backgroundColor = '#F3F4F6';
+          info.el.style.color = '#6B7280';
+          info.el.style.padding = '2px 4px';
+          info.el.style.borderRadius = '4px';
+          info.el.style.margin = '2px 0';
+        }
+      },
     };
   }
 
@@ -296,7 +385,7 @@ export class CalendarDeveloperComponent implements OnInit {
   openAddEventDialog() {
     // Close any open modals first
     if (this.showEventDialog) {
-      this.closeEventDialog();
+      this.closeAddEventDialog();
     }
     if (this.viewingEvent) {
       this.closeViewModal();
@@ -426,7 +515,7 @@ export class CalendarDeveloperComponent implements OnInit {
   editEvent(event: any) {
     // Close any open modals first
     if (this.showEventDialog) {
-      this.closeEventDialog();
+      this.closeAddEventDialog();
     }
     if (this.viewingEvent) {
       this.closeViewModal();
@@ -484,33 +573,213 @@ export class CalendarDeveloperComponent implements OnInit {
     });
   }
 
-  fetchDevelopers() {
+  fetchAllParticipants(): void {
+    this.fetchDevelopers();
+    this.fetchManagers();
+    this.fetchMarketingMembers();
+    this.fetchContentCreators();
+    this.fetchAdmins();
+  }
+
+  fetchDevelopers(): void {
     this.developerService.fetchDevelopers().subscribe({
-      next: (developers) => {
-        this.developers = developers;
+      next: (response) => {
+        this.developers = response;
       },
-      error: (error) => console.error('Error fetching developers:', error)
+      error: (error) => {
+        console.error('Error fetching developers:', error);
+      }
     });
   }
 
-  fetchManagers() {
+  fetchManagers(): void {
     this.developerService.fetchManagers().subscribe({
-      next: (managers) => {
-        this.managers = managers;
+      next: (response) => {
+        this.managers = response;
       },
-      error: (error) => console.error('Error fetching managers:', error)
+      error: (error) => {
+        console.error('Error fetching managers:', error);
+      }
     });
   }
 
-  closeEventDialog() {
-    const modalElement = document.querySelector('.animate__fadeInDown');
-    modalElement?.classList.remove('animate__fadeInDown');
-    modalElement?.classList.add('animate__fadeOutUp');
+  fetchMarketingMembers(): void {
+    console.log('Fetching marketing members...');
+    this.developerService.fetchDigitalMarketingMembers().subscribe({
+      next: (response: DigitalMarketingResponse) => {
+        console.log('Marketing members response:', response);
+        if (response.success) {
+          this.marketingMembers = response.data;
+          console.log('Updated marketing members:', this.marketingMembers);
+        } else {
+          console.error('Failed to fetch marketing members: success is false');
+        }
+      },
+      error: (error) => {
+        console.error('Error fetching marketing members:', error);
+      }
+    });
+  }
+
+  fetchContentCreators(): void {
+    console.log('Fetching content creators...');
+    this.developerService.fetchContentCreatorMembers().subscribe({
+      next: (response: ContentCreatorResponse) => {
+        console.log('Content creators response:', response);
+        if (response.success) {
+          this.contentCreators = response.data;
+          console.log('Updated content creators:', this.contentCreators);
+        } else {
+          console.error('Failed to fetch content creators: success is false');
+        }
+      },
+      error: (error) => {
+        console.error('Error fetching content creators:', error);
+      }
+    });
+  }
+
+  fetchAdmins(): void {
+    this.developerService.getAllAdmins().subscribe({
+      next: (response: AdminResponse) => {
+        this.admins = response;
+      },
+      error: (error) => {
+        console.error('Error fetching admins:', error);
+      }
+    });
+  }
+
+  onEventTypeChange(event: any): void {
+    const eventType = event.target.value;
+    console.log('Event type changed to:', eventType);
+    this.newEvent.eventType = eventType;
+    if (eventType !== 'Meeting') {
+      this.newEvent.participants = [];
+    } else {
+      // Refresh participants when Meeting is selected
+      this.fetchAllParticipants();
+    }
+  }
+
+  addParticipant(participantId: string, participantType: string): void {
+    if (participantId && !this.newEvent.participants.some((p: { participantId: string; }) => p.participantId === participantId)) {
+      this.newEvent.participants.push({
+        participantId: participantId,
+        onModel: participantType
+      });
+      this.updateSelectedParticipants();
+    }
+  }
+
+  removeParticipant(participant: any): void {
+    this.newEvent.participants = this.newEvent.participants.filter(
+      (p: { participantId: any; onModel: any; }) => !(p.participantId === participant.participantId && p.onModel === participant.onModel)
+    );
+    this.updateSelectedParticipants();
+  }
+
+  updateSelectedParticipants(): void {
+    const selectedParticipantsDiv = document.getElementById('selected-participants');
+    if (!selectedParticipantsDiv) return;
+
+    selectedParticipantsDiv.innerHTML = '';
+    this.newEvent.participants.forEach((participant: any) => {
+      const participantName = this.getParticipantName(participant);
+      const participantElement = document.createElement('div');
+      participantElement.textContent = `${participantName} (${participant.onModel})`;
+      selectedParticipantsDiv.appendChild(participantElement);
+    });
+  }
+
+  getParticipantName(participant: any): string {
+    const participantId = participant.participantId;
     
-    setTimeout(() => {
-      this.showEventDialog = false;
-      this.selectedDate = '';
-      this.selectedDateEvents = [];
-    }, 300);
+    // Check in each participant array
+    const developer = this.developers.find(d => d._id === participantId);
+    if (developer) return developer.username;
+    
+    const manager = this.managers.find(m => m._id === participantId);
+    if (manager) return manager.username;
+    
+    const marketer = this.marketingMembers.find(m => m._id === participantId);
+    if (marketer) return marketer.username;
+    
+    const creator = this.contentCreators.find(c => c._id === participantId);
+    if (creator) return creator.username;
+    
+    const admin = this.admins?.admins.find(a => a._id === participantId);
+    if (admin) return admin.username;
+    
+    return 'Unknown Participant';
+  }
+
+  updateEventCounts(): void {
+    if (this.events) {
+      this.totalEvents = this.events.length;
+      
+      this.meetingsCount = this.events.filter(event => 
+        event.extendedProps?.['eventType']?.toLowerCase() === 'meeting'
+      ).length;
+
+      this.tasksCount = this.events.filter(event => 
+        event.extendedProps?.['eventType']?.toLowerCase() === 'task'
+      ).length;
+
+      const now = new Date();
+      const currentMonth = now.getMonth();
+      this.monthlyEvents = this.events.filter(event => {
+        const eventDate = new Date(event.start as string);
+        return eventDate.getMonth() === currentMonth;
+      }).length;
+    }
+  }
+
+  applyFilter(): void {
+    const { eventType, startDate, endDate } = this.filterForm.value;
+    
+    if (!eventType && !startDate && !endDate) {
+      this.showErrorAlert('Please select at least one filter criteria');
+      return;
+    }
+
+    this.filteredEvents = this.events.filter(event => {
+      let matchesType = true;
+      let matchesDateRange = true;
+
+      if (eventType) {
+        matchesType = event.extendedProps?.['eventType'] === eventType;
+      }
+
+      if (startDate || endDate) {
+        const eventDate = new Date(event.start as string);
+        if (startDate) {
+          matchesDateRange = matchesDateRange && eventDate >= new Date(startDate);
+        }
+        if (endDate) {
+          matchesDateRange = matchesDateRange && eventDate <= new Date(endDate);
+        }
+      }
+
+      return matchesType && matchesDateRange;
+    });
+  }
+
+  private showSuccessAlert(message: string): void {
+    Swal.fire({
+      title: 'Success',
+      text: message,
+      icon: 'success',
+      confirmButtonColor: '#3085d6'
+    });
+  }
+
+  private showErrorAlert(message: string): void {
+    Swal.fire({
+      title: 'Error',
+      text: message,
+      icon: 'error',
+      confirmButtonColor: '#d33'
+    });
   }
 }

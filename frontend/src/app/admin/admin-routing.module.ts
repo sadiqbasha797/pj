@@ -16,6 +16,7 @@ import { ClientsComponent } from './clients/clients.component';
 import { MarketingComponent } from './marketing/marketing.component';
 import { ViewUpdatesComponent } from './view-updates/view-updates.component';
 import { MarketRevenueComponent } from './market-revenue/market-revenue.component';
+import { TeamRequestsComponent } from './team-requests/team-requests.component';
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
   {
@@ -36,6 +37,7 @@ const routes: Routes = [
       { path: 'marketing', component: MarketingComponent },
       { path: 'view-updates', component: ViewUpdatesComponent },
       { path: 'market-revenue', component: MarketRevenueComponent },
+      { path: 'team-requests', component: TeamRequestsComponent },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   }

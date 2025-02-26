@@ -1,42 +1,101 @@
-<div class="min-h-screen dark:bg-gray-900 bg-gray-50 p-6">
+<div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 lg:p-3 sm:p-6">
   <!-- Header Section -->
-  <div class="mb-8">
+  <div class="mb-6 sm:mb-8">
     <!-- Header Section with Gradient -->
-    <div class="relative rounded-lg overflow-hidden mb-6 dark:bg-gray-800 bg-gray-100 p-6">
-      <!-- Decorative shapes -->
+    <div class="relative rounded-lg overflow-hidden mb-4 sm:mb-6 bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 p-4 sm:p-6">
+      <!-- Decorative shapes -->  
       <div class="absolute inset-0">
-        <div class="absolute w-32 h-32 -top-16 -right-16 dark:bg-gray-700 bg-gray-200 opacity-10 rounded-full"></div>
-        <div class="absolute w-24 h-24 -bottom-12 -left-12 dark:bg-gray-700 bg-gray-200 opacity-10 rounded-full"></div>
-        <div class="absolute w-20 h-20 top-8 left-1/3 dark:bg-gray-700 bg-gray-200 opacity-5 rounded-full"></div>
+        <div class="absolute w-32 h-32 -top-16 -right-16 bg-white opacity-10 rounded-full"></div>
+        <div class="absolute w-24 h-24 -bottom-12 -left-12 bg-white opacity-10 rounded-full"></div>
+        <div class="absolute w-20 h-20 top-8 left-1/3 bg-white opacity-5 rounded-full"></div>
       </div>
 
       <!-- Header content -->
-      <div class="relative flex justify-between items-center">
-        <div class="flex items-center gap-3">
-          <div class="dark:bg-gray-800 bg-gray-100 p-2 rounded-lg">
-            <span class="material-icons dark:text-gray-400 text-gray-600">calendar_today</span>
+      <div class="relative">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0">
+          <div class="flex items-center gap-3">
+            <div class="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
+              <span class="material-icons text-white">calendar_today</span>
+            </div>
+            <div>
+              <h1 class="text-xl sm:text-2xl font-bold text-white">Developer Calendar</h1>
+              <p class="text-sm sm:text-base text-cyan-100">Manage your schedule</p>
+            </div>
           </div>
-          <div>
-            <h1 class="text-2xl font-bold dark:text-gray-200 text-gray-800">Calendar</h1>
-            <p class="dark:text-gray-400 text-gray-600">View your schedule</p>
+
+          <div class="flex flex-wrap gap-2 sm:gap-3 w-full sm:w-auto">
+            <button (click)="loadEvents()" 
+                    class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-lg hover:bg-white/20 transition-all duration-300 group">
+              <span class="material-icons text-white group-hover:rotate-180 transition-transform duration-500">refresh</span>
+              <span class="text-sm font-medium text-white">Refresh</span>
+            </button>
+            <button (click)="openAddEventDialog()" 
+                    class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white rounded-lg hover:bg-opacity-90 transition-all duration-300 group">
+              <span class="material-icons text-cyan-600 group-hover:rotate-180 transition-transform duration-500">add</span>
+              <span class="text-sm font-medium text-cyan-600">Add Event</span>
+            </button>
+            <button (click)="openFilterModal()" 
+                    class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-lg hover:bg-white/20 transition-all duration-300">
+              <span class="material-icons text-white">filter_list</span>
+              <span class="text-sm font-medium text-white">Filter</span>
+            </button>
           </div>
         </div>
+      </div>
+    </div>
 
-        <div class="flex gap-3">
-          <button (click)="loadEvents()" 
-                  class="flex items-center gap-2 px-4 py-2 dark:bg-gray-800 bg-gray-100 rounded-lg dark:hover:bg-gray-700 hover:bg-gray-200 transition-all duration-300 group">
-            <span class="material-icons dark:text-gray-400 text-gray-600 group-hover:rotate-180 transition-transform duration-500">refresh</span>
-            <span class="text-sm font-medium dark:text-gray-400 text-gray-600">Refresh</span>
-          </button>
-          <button pButton type="button" label="Add Event" (click)="openAddEventDialog()" class="p-button-secondary"></button>
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+      <div class="bg-white p-3 sm:p-4 rounded-xl border border-blue-100/50 hover:shadow-lg hover:shadow-blue-200 transition-all duration-300">
+        <div class="flex items-center gap-2 sm:gap-3">
+          <div class="p-2 bg-blue-50 rounded-lg">
+            <span class="material-icons text-blue-500">event</span>
+          </div>
+          <div>
+            <p class="text-xs sm:text-sm text-gray-500">Total Events</p>
+            <p class="text-base sm:text-lg font-semibold text-gray-800">{{totalEvents}}</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white p-3 sm:p-4 rounded-xl border border-indigo-100/50 hover:shadow-lg hover:shadow-indigo-200 transition-all duration-300">
+        <div class="flex items-center gap-2 sm:gap-3">
+          <div class="p-2 bg-indigo-50 rounded-lg">
+            <span class="material-icons text-indigo-500">groups</span>
+          </div>
+          <div>
+            <p class="text-xs sm:text-sm text-gray-500">Meetings</p>
+            <p class="text-base sm:text-lg font-semibold text-gray-800">{{meetingsCount}}</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white p-3 sm:p-4 rounded-xl border border-purple-100/50 hover:shadow-lg hover:shadow-purple-200 transition-all duration-300">
+        <div class="flex items-center gap-2 sm:gap-3">
+          <div class="p-2 bg-purple-50 rounded-lg">
+            <span class="material-icons text-purple-500">task</span>
+          </div>
+          <div>
+            <p class="text-xs sm:text-sm text-gray-500">Tasks</p>
+            <p class="text-base sm:text-lg font-semibold text-gray-800">{{tasksCount}}</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white p-3 sm:p-4 rounded-xl border border-emerald-100/50 hover:shadow-lg hover:shadow-emerald-200 transition-all duration-300">
+        <div class="flex items-center gap-2 sm:gap-3">
+          <div class="p-2 bg-emerald-50 rounded-lg">
+            <span class="material-icons text-emerald-500">calendar_today</span>
+          </div>
+          <div>
+            <p class="text-xs sm:text-sm text-gray-500">This Month</p>
+            <p class="text-base sm:text-lg font-semibold text-gray-800">{{monthlyEvents}}</p>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
   <!-- Calendar Section -->
-  <div class="dark:bg-gray-800 bg-white rounded-2xl dark:border-gray-700 border-gray-200 border shadow-xl dark:shadow-none overflow-hidden">
-    <full-calendar [options]="calendarOptions" class="p-6"></full-calendar>
+  <div class="bg-white rounded-2xl border border-gray-100/50 shadow-xl shadow-gray-100/10 overflow-hidden">
+    <full-calendar [options]="calendarOptions" class="p-3 sm:p-6"></full-calendar>
   </div>
 </div>
 
@@ -114,125 +173,189 @@
   </div>
 </div>
 
-<!-- Add Event Dialog -->
+<!-- Create/Edit Event Modal -->
 <div *ngIf="showAddEventDialog" 
-     class="fixed inset-0 dark:bg-gray-900/50 bg-gray-600/50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
-  <div class="dark:bg-gray-800 bg-white rounded-lg shadow-xl w-full max-w-2xl animate__animated animate__fadeInDown animate__faster">
-    <!-- Dialog Header -->
-    <div class="flex justify-between items-center p-6 border-b dark:border-gray-700">
-      <div class="flex items-center gap-3">
-        <div class="dark:bg-gray-700 bg-gray-100 p-2 rounded-lg">
-          <span class="material-icons dark:text-gray-400 text-gray-600">event_note</span>
+     class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl animate__animated animate__fadeInDown animate__faster">
+    <!-- Header -->
+    <div class="relative rounded-t-lg overflow-hidden bg-gradient-to-r from-blue-400 via-indigo-500 to-purple-600 p-4 sm:p-6">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
+            <span class="material-icons text-white">add</span>
+          </div>
+          <h2 class="text-xl font-bold text-white">Create New Event</h2>
         </div>
-        <h2 class="text-xl font-semibold dark:text-white text-gray-900">Add New Event</h2>
+        <button (click)="closeAddEventDialog()" 
+                class="bg-white/10 hover:bg-white/20 p-2 rounded-full backdrop-blur-sm transition-all duration-300">
+          <span class="material-icons text-white">close</span>
+        </button>
       </div>
-      <button (click)="closeAddEventDialog()" 
-              class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
-        <span class="material-icons">close</span>
-      </button>
     </div>
 
-    <!-- Form Content -->
-    <form [formGroup]="eventForm" (ngSubmit)="handleEventSubmit()" class="p-6 space-y-6">
-      <!-- Title -->
-      <div class="space-y-2">
-        <label for="title" class="block text-sm font-medium dark:text-gray-300 text-gray-700">
-          Event Title <span class="text-red-500">*</span>
-        </label>
-        <input id="title" 
-               type="text" 
-               formControlName="title"
-               class="w-full px-4 py-2.5 rounded-lg border dark:border-gray-600 dark:bg-gray-700 
-                      dark:text-gray-300 focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 
-                      focus:border-transparent transition-colors duration-200"
-               placeholder="Enter event title">
-        <div *ngIf="eventForm.get('title')?.touched && eventForm.get('title')?.invalid" 
-             class="text-red-500 text-sm mt-1">
-          Title is required
+    <!-- Form -->
+    <form [formGroup]="eventForm" (ngSubmit)="handleEventSubmit()" class="p-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Left Column -->
+        <div class="space-y-6">
+          <!-- Title -->
+          <div class="space-y-2">
+            <label class="flex items-center gap-2 text-sm font-medium text-gray-700">
+              <span class="material-icons text-blue-300">title</span>
+              Title
+            </label>
+            <input type="text" formControlName="title"
+                   class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+
+          <!-- Description -->
+          <div class="space-y-2">
+            <label class="flex items-center gap-2 text-sm font-medium text-gray-700">
+              <span class="material-icons text-purple-300">description</span>
+              Description
+            </label>
+            <textarea formControlName="description" rows="4"
+                      class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+          </div>
+
+          <!-- Event Type -->
+          <div class="space-y-2">
+            <label class="flex items-center gap-2 text-sm font-medium text-gray-700">
+              <span class="material-icons text-green-300">category</span>
+              Event Type
+            </label>
+            <select formControlName="eventType" (change)="onEventTypeChange($event)"
+                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="">Select Type</option>
+              <option value="Meeting">Meeting</option>
+              <option value="Task">Task</option>
+              <option value="Project Deadline">Project Deadline</option>
+              <option value="Reminder">Reminder</option>
+            </select>
+          </div>
         </div>
-      </div>
 
-      <!-- Description -->
-      <div class="space-y-2">
-        <label for="description" class="block text-sm font-medium dark:text-gray-300 text-gray-700">
-          Description
-        </label>
-        <textarea id="description" 
-                  formControlName="description"
-                  rows="3"
-                  class="w-full px-4 py-2.5 rounded-lg border dark:border-gray-600 dark:bg-gray-700 
-                         dark:text-gray-300 focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 
-                         focus:border-transparent transition-colors duration-200"
-                  placeholder="Enter event description"></textarea>
-      </div>
+        <!-- Right Column -->
+        <div class="space-y-6">
+          <!-- Location -->
+          <div class="space-y-2">
+            <label class="flex items-center gap-2 text-sm font-medium text-gray-700">
+              <span class="material-icons text-red-300">location_on</span>
+              Location
+            </label>
+            <input type="text" formControlName="location"
+                   class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
 
-      <!-- Event Type -->
-      <div class="space-y-2">
-        <label for="eventType" class="block text-sm font-medium dark:text-gray-300 text-gray-700">
-          Event Type <span class="text-red-500">*</span>
-        </label>
-        <select id="eventType" 
-                formControlName="eventType"
-                class="w-full px-4 py-2.5 rounded-lg border dark:border-gray-600 dark:bg-gray-700 
-                       dark:text-gray-300 focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 
-                       focus:border-transparent transition-colors duration-200">
-          <option value="" disabled selected>Select event type</option>
-          <option value="Work">Work</option>
-          <option value="Reminder">Reminder</option>
-          <option value="Other">Other</option>
-        </select>
-        <div *ngIf="eventForm.get('eventType')?.touched && eventForm.get('eventType')?.invalid" 
-             class="text-red-500 text-sm mt-1">
-          Event type is required
-        </div>
-      </div>
+          <!-- Date and Time -->
+          <div class="space-y-2">
+            <label class="flex items-center gap-2 text-sm font-medium text-gray-700">
+              <span class="material-icons text-orange-300">schedule</span>
+              Date and Time
+            </label>
+            <input type="datetime-local" formControlName="eventDate"
+                   class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
 
-      <!-- Location -->
-      <div class="space-y-2">
-        <label for="location" class="block text-sm font-medium dark:text-gray-300 text-gray-700">
-          Location
-        </label>
-        <input id="location" 
-               type="text" 
-               formControlName="location"
-               class="w-full px-4 py-2.5 rounded-lg border dark:border-gray-600 dark:bg-gray-700 
-                      dark:text-gray-300 focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 
-                      focus:border-transparent transition-colors duration-200"
-               placeholder="Enter location">
-      </div>
+          <!-- Participants (for Meeting type) -->
+          <div *ngIf="eventForm.get('eventType')?.value === 'Meeting'" class="space-y-4">
+            <label class="flex items-center gap-2 text-sm font-medium text-gray-700">
+              <span class="material-icons text-indigo-300">group</span>
+              Participants
+            </label>
+            
+            <!-- Developers -->
+            <div class="flex gap-2">
+              <select #developerSelect class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg">
+                <option value="">Select Developer</option>
+                <option *ngFor="let dev of developers" [value]="dev._id">{{dev.username}}</option>
+              </select>
+              <button type="button" (click)="addParticipant(developerSelect.value, 'Developer')"
+                      class="bg-blue-500 hover:bg-blue-600 text-white px-4 rounded-lg">
+                Add
+              </button>
+            </div>
 
-      <!-- Event Date -->
-      <div class="space-y-2">
-        <label for="eventDate" class="block text-sm font-medium dark:text-gray-300 text-gray-700">
-          Event Date <span class="text-red-500">*</span>
-        </label>
-        <input id="eventDate" 
-               type="datetime-local" 
-               formControlName="eventDate"
-               class="w-full px-4 py-2.5 rounded-lg border dark:border-gray-600 dark:bg-gray-700 
-                      dark:text-gray-300 focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 
-                      focus:border-transparent transition-colors duration-200">
-        <div *ngIf="eventForm.get('eventDate')?.touched && eventForm.get('eventDate')?.invalid" 
-             class="text-red-500 text-sm mt-1">
-          Event date is required
+            <!-- Managers -->
+            <div class="flex gap-2">
+              <select #managerSelect class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg">
+                <option value="">Select Manager</option>
+                <option *ngFor="let manager of managers" [value]="manager._id">{{manager.username}}</option>
+              </select>
+              <button type="button" (click)="addParticipant(managerSelect.value, 'Manager')"
+                      class="bg-blue-500 hover:bg-blue-600 text-white px-4 rounded-lg">
+                Add
+              </button>
+            </div>
+
+            <!-- Digital Marketing Members -->
+            <div class="flex gap-2">
+              <select #marketingSelect class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg">
+                <option value="">Select Digital Marketing Member</option>
+                <option *ngFor="let member of marketingMembers" [value]="member._id">
+                  {{member.username}}
+                </option>
+              </select>
+              <button type="button" (click)="addParticipant(marketingSelect.value, 'DigitalMarketing')"
+                      class="bg-blue-500 hover:bg-blue-600 text-white px-4 rounded-lg">
+                Add
+              </button>
+            </div>
+
+            <!-- Content Creators -->
+            <div class="flex gap-2">
+              <select #creatorSelect class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg">
+                <option value="">Select Content Creator</option>
+                <option *ngFor="let creator of contentCreators" [value]="creator._id">
+                  {{creator.username}}
+                </option>
+              </select>
+              <button type="button" (click)="addParticipant(creatorSelect.value, 'ContentCreator')"
+                      class="bg-blue-500 hover:bg-blue-600 text-white px-4 rounded-lg">
+                Add
+              </button>
+            </div>
+
+            <!-- Admins -->
+            <div class="flex gap-2">
+              <select #adminSelect class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg">
+                <option value="">Select Admin</option>
+                <option *ngFor="let admin of admins?.admins" [value]="admin._id">{{admin.username}}</option>
+              </select>
+              <button type="button" (click)="addParticipant(adminSelect.value, 'Admin')"
+                      class="bg-blue-500 hover:bg-blue-600 text-white px-4 rounded-lg">
+                Add
+              </button>
+            </div>
+
+            <!-- Selected Participants List -->
+            <div class="mt-4 space-y-2">
+              <h4 class="text-sm font-medium text-gray-700">Selected Participants:</h4>
+              <div id="selected-participants" class="space-y-2">
+                <div *ngFor="let participant of newEvent.participants" 
+                     class="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                  <span>{{getParticipantName(participant)}} ({{participant.onModel}})</span>
+                  <button (click)="removeParticipant(participant)" 
+                          class="text-red-500 hover:text-red-700">
+                    <span class="material-icons text-sm">close</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
       <!-- Form Actions -->
-      <div class="flex justify-end gap-3 pt-4 border-t dark:border-gray-700">
-        <button type="button"
-                class="px-4 py-2 text-sm font-medium rounded-lg dark:bg-gray-700 dark:text-gray-300 
-                       dark:hover:bg-gray-600 bg-gray-100 text-gray-700 hover:bg-gray-200 
-                       transition-colors duration-200"
-                (click)="closeAddEventDialog()">
+      <div class="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200">
+        <button type="button" (click)="closeAddEventDialog()"
+                class="px-6 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50">
           Cancel
         </button>
         <button type="submit"
                 [disabled]="!eventForm.valid"
                 [ngClass]="{'opacity-50 cursor-not-allowed': !eventForm.valid}"
-                class="px-4 py-2 text-sm font-medium rounded-lg bg-gray-600 text-white 
-                       hover:bg-gray-700 dark:bg-gray-500 dark:hover:bg-gray-600 
-                       transition-colors duration-200">
+                class="px-6 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
           Create Event
         </button>
       </div>

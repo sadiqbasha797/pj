@@ -5,7 +5,8 @@ const DeveloperSchema = new mongoose.Schema({
   password: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   skills: [{ type: String }],
-// verified: { type: String, default: 'no' },
+  experience: { type: String },
+  resume: { type: String },
   createdAt: { type: Date, default: Date.now },
   role: { type: String, default: "developer" },
   image: { type: String }

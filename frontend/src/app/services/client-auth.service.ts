@@ -9,7 +9,7 @@ import { CacheService } from './cache.service';
   providedIn: 'root'
 })
 export class ClientAuthService {
-  private apiUrl = 'http://localhost:3000/api/client';
+  private apiUrl = 'http://localhost:4000/api/client';
 
   constructor(
     private http: HttpClient,
@@ -18,14 +18,19 @@ export class ClientAuthService {
   ) {}
 
   login(credentials: any): Observable<any> {
-    return this.http.post<{ token: string, email: string }>(`${this.apiUrl}/login`, credentials).pipe(
+    return this.http.post<{ token: string, email: string, userId: string }>(`${this.apiUrl}/login`, credentials).pipe(
       tap(response => {
-        if (response && response.token) {
-          localStorage.setItem('clientToken', response.token);
-          localStorage.setItem('userRole', 'client');
+        if (response) {
+          if (response.token) {
+            localStorage.setItem('clientToken', response.token);
+          }
           if (response.email) {
             localStorage.setItem('email', response.email);
           }
+          if (response.userId) {
+            localStorage.setItem('userId', response.userId);
+          }
+          localStorage.setItem('userRole', 'client');
         }
       })
     );
@@ -39,6 +44,10 @@ export class ClientAuthService {
     return localStorage.getItem('userRole');
   }
 
+  getUserId(): string | null {
+    return localStorage.getItem('userId');
+  }
+
   isLoggedIn(): boolean {
     return !!this.getToken();
   }
@@ -46,6 +55,8 @@ export class ClientAuthService {
   logout(): void {
     localStorage.removeItem('clientToken');
     localStorage.removeItem('userRole');
+    localStorage.removeItem('email');
+    localStorage.removeItem('userId');
     this.cacheService.clearCache();
     this.router.navigate(['/client/login']);
   }

@@ -12,6 +12,11 @@ interface User {
   username: string;
   role: string;
   email: string;
+  recentMessage?: {
+    content: string;
+    createdAt: Date;
+    unread?: boolean;
+  };
 }
 
 @Component({
@@ -33,6 +38,13 @@ export class ChatDeveloperComponent implements OnInit, OnDestroy {
   isSending: boolean = false;
   admins: any[] = [];
   isDarkMode = false;
+  activeTab: 'users' | 'messages' = 'messages';
+  allUsers: User[] = [];
+  messagedUsers: User[] = [];
+  private messagesContainer: HTMLElement | null = null;
+  digitalMarketingMembers: any[] = [];
+  contentCreators: any[] = [];
+  clients: any[] = [];
 
   constructor(
     private developerService: DeveloperService,
@@ -60,7 +72,8 @@ export class ChatDeveloperComponent implements OnInit, OnDestroy {
 
   private initializeChat() {
     this.messageService.joinRoom(this.currentUserId);
-    this.loadUsers();
+    this.loadAllUsers();
+    this.loadMessagedUsers();
     
     this.subscriptions.push(
       this.messageService.getNewMessageUpdates().subscribe(message => {
@@ -79,22 +92,100 @@ export class ChatDeveloperComponent implements OnInit, OnDestroy {
     );
   }
 
-  loadUsers() {
+  loadAllUsers() {
     this.isLoading = true;
     forkJoin({
-      developers: this.developerService.fetchDevelopers(),
       managers: this.developerService.fetchManagers(),
+      developers: this.developerService.fetchDevelopers(),
+      clients: this.developerService.fetchClients(),
+      digitalMarketing: this.developerService.fetchDigitalMarketingMembers(),
+      contentCreators: this.developerService.fetchContentCreatorMembers(),
       admins: this.developerService.getAllAdmins()
     }).subscribe({
       next: (response) => {
-        this.developers = response.developers.filter((dev: { _id: string; }) => dev._id !== this.currentUserId);
-        this.managers = response.managers;
-        this.admins = response.admins?.admins || [];
+        this.allUsers = [
+          ...(Array.isArray(response.managers) ? response.managers : []).map((user: any) => ({
+            _id: user._id,
+            username: user.username,
+            role: 'manager',
+            email: user.email
+          })),
+          ...(Array.isArray(response.developers) ? response.developers : []).map((user: any) => ({
+            _id: user._id,
+            username: user.username,
+            role: 'developer',
+            email: user.email
+          })),
+          ...(Array.isArray(response.clients?.clients) ? response.clients.clients : []).map((user: any) => ({
+            _id: user._id,
+            username: user.clientName,
+            role: 'client',
+            email: user.email
+          })),
+          ...(Array.isArray(response.digitalMarketing?.data) ? response.digitalMarketing.data : []).map((user: any) => ({
+            _id: user._id,
+            username: user.username,
+            role: 'digitalMarketing',
+            email: user.email
+          })),
+          ...(Array.isArray(response.contentCreators?.data) ? response.contentCreators.data : []).map((user: any) => ({
+            _id: user._id,
+            username: user.username,
+            role: 'contentCreator',
+            email: user.email
+          })),
+          ...(Array.isArray(response.admins?.admins) ? response.admins.admins : []).map((user: any) => ({
+            _id: user._id,
+            username: user.username,
+            role: 'admin',
+            email: user.email
+          }))
+        ].filter(user => user._id !== this.currentUserId);
+
         this.isLoading = false;
       },
       error: (error) => {
         console.error('Error loading users:', error);
         this.isLoading = false;
+        this.allUsers = [];
+      }
+    });
+  }
+
+  loadMessagedUsers() {
+    this.messageService.getMessagedUsers().subscribe({
+      next: (response: any) => {
+        if (response.data && Array.isArray(response.data)) {
+          this.messagedUsers = [];
+          response.data.forEach((user: any) => {
+            this.messageService.getConversation(user._id).subscribe({
+              next: (messages) => {
+                const recentMessage = messages[messages.length - 1];
+                this.messagedUsers.push({
+                  _id: user._id,
+                  username: user.username,
+                  role: user.role,
+                  email: user.email,
+                  recentMessage: recentMessage ? {
+                    content: recentMessage.content,
+                    createdAt: recentMessage.createdAt,
+                    unread: !recentMessage.read && recentMessage.receiver.id === this.currentUserId
+                  } : undefined
+                });
+              },
+              error: (error) => {
+                console.error('Error loading conversation:', error);
+              }
+            });
+          });
+        } else {
+          console.error('Invalid response format from getMessagedUsers:', response);
+          this.messagedUsers = [];
+        }
+      },
+      error: (error) => {
+        console.error('Error loading messaged users:', error);
+        this.messagedUsers = [];
       }
     });
   }
@@ -143,32 +234,45 @@ export class ChatDeveloperComponent implements OnInit, OnDestroy {
   }
 
   sendMessage() {
-    if (!this.newMessage.trim() || !this.selectedUser) return;
-
-    this.isSending = true;
-    this.messageService.sendMessage(
-      this.selectedUser._id,
-      this.selectedUser.role,
-      this.newMessage.trim()
-    ).subscribe({
-      next: (message) => {
-        const currentCache = this.cacheService.getCachedMessages(
-          this.currentUserId,
-          this.selectedUser!._id
-        ) || [];
-        this.cacheService.setCachedMessages(
-          this.currentUserId,
-          this.selectedUser!._id,
-          [...currentCache, message]
-        );
-        this.newMessage = '';
-        this.isSending = false;
-      },
-      error: (error) => {
-        console.error('Error sending message:', error);
-        this.isSending = false;
-      }
-    });
+    if (this.newMessage.trim() && this.selectedUser && !this.isSending) {
+      this.isSending = true;
+      const messageContent = this.newMessage.trim();
+      this.newMessage = '';
+      
+      this.messageService.sendMessage(
+        this.selectedUser._id,
+        this.selectedUser.role,
+        messageContent
+      ).subscribe({
+        next: (message) => {
+          const isDuplicate = this.messages.some(m => m._id === message._id);
+          if (!isDuplicate) {
+            this.messages = [...this.messages, message];
+            
+            const currentCache = this.cacheService.getCachedMessages(
+              this.currentUserId,
+              this.selectedUser!._id
+            ) || [];
+            
+            this.cacheService.setCachedMessages(
+              this.currentUserId,
+              this.selectedUser!._id,
+              [...currentCache, message]
+            );
+            
+            this.loadMessagedUsers();
+            this.scrollToBottom();
+          }
+          
+          this.isSending = false;
+        },
+        error: (error) => {
+          console.error('Error sending message:', error);
+          this.isSending = false;
+          this.newMessage = messageContent;
+        }
+      });
+    }
   }
 
   markAsRead(messageId: string) {
@@ -181,6 +285,19 @@ export class ChatDeveloperComponent implements OnInit, OnDestroy {
 
   isMessageFromCurrentUser(message: any): boolean {
     return message.sender.id === this.currentUserId;
+  }
+
+  switchTab(tab: 'users' | 'messages') {
+    this.activeTab = tab;
+  }
+
+  private scrollToBottom(): void {
+    setTimeout(() => {
+      this.messagesContainer = document.querySelector('.messages-container');
+      if (this.messagesContainer) {
+        this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+      }
+    }, 100);
   }
 
   ngOnDestroy() {

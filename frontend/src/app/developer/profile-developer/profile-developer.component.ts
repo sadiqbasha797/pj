@@ -58,6 +58,13 @@ export class ProfileDeveloperComponent implements OnInit {
     }
   }
 
+  onResumeSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      this.editedProfile.resumeFile = file;
+    }
+  }
+
   toggleEdit() {
     this.isEditing = !this.isEditing;
     if (!this.isEditing) {
@@ -73,12 +80,20 @@ export class ProfileDeveloperComponent implements OnInit {
       formData.append('image', this.selectedImage);
     }
     
+    if (this.editedProfile.resumeFile) {
+      formData.append('resume', this.editedProfile.resumeFile);
+    }
+    
     if (this.editedProfile.username !== this.developer.username) {
       formData.append('username', this.editedProfile.username);
     }
     
     if (this.editedProfile.skills !== this.developer.skills) {
       formData.append('skills', this.editedProfile.skills);
+    }
+
+    if (this.editedProfile.experience !== this.developer.experience) {
+      formData.append('experience', this.editedProfile.experience);
     }
 
     this.developerService.updateProfile(formData).subscribe({

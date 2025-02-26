@@ -32,7 +32,7 @@ export class LoginCreatorComponent {
       next: (response) => {
         this.loading = false;
         localStorage.setItem('userId', response.user.id);
-        this.router.navigate(['/content-creator/profile']);
+        this.router.navigate(['/content-creator/tasks']);
       },
       error: (error) => {
         this.loading = false;

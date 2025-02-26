@@ -14,6 +14,7 @@ import { ManagerAuthGuard } from '../guards/manager-auth.guard';
 import { NotificationsManagerComponent } from './notifications-manager/notifications-manager.component';
 import { MarketingManagerComponent } from './marketing-manager/marketing-manager.component';
 import { UpdatesManagerComponent } from './updates-manager/updates-manager.component';
+import { TeamRequestManagerComponent } from './team-request-manager/team-request-manager.component';
 const routes: Routes = [
   { path: 'login', component: LoginManagerComponent },
   {
@@ -32,6 +33,7 @@ const routes: Routes = [
       { path: 'notifications', component: NotificationsManagerComponent },
       { path: 'marketing', component: MarketingManagerComponent },
       { path: 'updates', component: UpdatesManagerComponent },
+      { path: 'team-requests', component: TeamRequestManagerComponent },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   }

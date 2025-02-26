@@ -11,6 +11,11 @@ interface User {
   username: string;
   role: string;
   email: string;
+  recentMessage?: {
+    content: string;
+    createdAt: Date;
+    unread?: boolean;
+  };
 }
 
 @Component({
@@ -30,6 +35,10 @@ export class ChatComponent implements OnInit, OnDestroy {
   private subscriptions: Subscription[] = [];
   isTyping: any;
   isSending: boolean = false;
+  activeTab: 'users' | 'messages' = 'messages';
+  allUsers: User[] = [];
+  messagedUsers: User[] = [];
+  private messagesContainer: HTMLElement | null = null;
 
   constructor(
     private messageService: MessageService,
@@ -48,7 +57,8 @@ export class ChatComponent implements OnInit, OnDestroy {
     
     console.log('ngOnInit - Using User ID:', this.currentUserId);
     this.messageService.joinRoom(this.currentUserId);
-    this.loadUsers();
+    this.loadAllUsers();
+    this.loadMessagedUsers();
     
     this.subscriptions.push(
       this.messageService.getNewMessageUpdates().subscribe(message => {
@@ -67,31 +77,91 @@ export class ChatComponent implements OnInit, OnDestroy {
     );
   }
 
-  loadUsers() {
-    console.log('loadUsers - Current User ID:', this.currentUserId);
+  loadAllUsers() {
     this.isLoading = true;
-    // Use forkJoin to make parallel requests
     forkJoin({
       managers: this.adminService.getAllManagers(),
-      developers: this.adminService.getAllDevelopers()
+      developers: this.adminService.getAllDevelopers(),
+      clients: this.adminService.getAllClients(),
+      digitalMarketing: this.adminService.getAllDigitalMarketingMembers(),
+      contentCreators: this.adminService.getAllContentCreatorMembers()
     }).subscribe({
       next: (response) => {
-        // Combine and filter out current user
-        this.users = [
-          ...response.managers,
-          ...response.developers
-        ].filter(user => user._id !== this.currentUserId)
-         .map(user => ({
-           _id: user._id,
-           username: user.username,
-           role: user.role,
-           email: user.email
-         }));
+        // Combine all users and format them consistently
+        this.allUsers = [
+          ...response.managers.map((user: { _id: any; username: any; email: any; }) => ({
+            _id: user._id,
+            username: user.username,
+            role: 'manager',
+            email: user.email
+          })),
+          ...response.developers.map((user: { _id: any; username: any; email: any; }) => ({
+            _id: user._id,
+            username: user.username,
+            role: 'developer',
+            email: user.email
+          })),
+          ...response.clients.clients.map((user: { _id: any; clientName: any; email: any; }) => ({
+            _id: user._id,
+            username: user.clientName,
+            role: 'client',
+            email: user.email
+          })),
+          ...response.digitalMarketing.data.map((user: { _id: any; username: any; email: any; }) => ({
+            _id: user._id,
+            username: user.username,
+            role: 'digitalMarketing',
+            email: user.email
+          })),
+          ...response.contentCreators.data.map((user: { _id: any; username: any; email: any; }) => ({
+            _id: user._id,
+            username: user.username,
+            role: 'contentCreator',
+            email: user.email
+          }))
+        ].filter(user => user._id !== this.currentUserId);
+
         this.isLoading = false;
       },
       error: (error) => {
         console.error('Error loading users:', error);
         this.isLoading = false;
+      }
+    });
+  }
+
+  loadMessagedUsers() {
+    this.messageService.getMessagedUsers().subscribe({
+      next: (response: any) => {
+        // Check if response has data property and it's an array
+        if (response.data && Array.isArray(response.data)) {
+          this.messagedUsers = [];  // Clear existing messages
+          response.data.forEach((user: any) => {
+            this.messageService.getConversation(user._id).subscribe({
+              next: (messages) => {
+                const recentMessage = messages[messages.length - 1];
+                this.messagedUsers.push({
+                  _id: user._id,
+                  username: user.username,
+                  role: user.role,
+                  email: user.email,
+                  recentMessage: recentMessage ? {
+                    content: recentMessage.content,
+                    createdAt: recentMessage.createdAt,
+                    unread: !recentMessage.read && recentMessage.receiver.id === this.currentUserId
+                  } : undefined
+                });
+              }
+            });
+          });
+        } else {
+          console.error('Invalid response format from getMessagedUsers:', response);
+          this.messagedUsers = [];
+        }
+      },
+      error: (error) => {
+        console.error('Error loading messaged users:', error);
+        this.messagedUsers = [];
       }
     });
   }
@@ -118,6 +188,7 @@ export class ChatComponent implements OnInit, OnDestroy {
             this.markAsRead(message._id!);
           }
         });
+        this.scrollToBottom();
       } else {
         // If no cache, load from API
         console.log('Loading messages from API');
@@ -136,6 +207,7 @@ export class ChatComponent implements OnInit, OnDestroy {
                   this.markAsRead(message._id!);
                 }
               });
+              this.scrollToBottom();
             },
             error: (error) => {
               console.error('Error loading conversation:', error);
@@ -164,8 +236,11 @@ export class ChatComponent implements OnInit, OnDestroy {
             this.selectedUser!._id,
             [...currentCache, message]
           );
+          this.messages.push(message);
           this.newMessage = '';
           this.isSending = false;
+          this.loadMessagedUsers();
+          this.scrollToBottom();
         },
         error: (error) => {
           console.error('Error sending message:', error);
@@ -183,10 +258,23 @@ export class ChatComponent implements OnInit, OnDestroy {
     });
   }
 
+  switchTab(tab: 'users' | 'messages') {
+    this.activeTab = tab;
+  }
+
   ngOnDestroy() {
     // Clear message cache when component is destroyed
     this.cacheService.clearMessageCache(this.currentUserId);
     this.subscriptions.forEach(sub => sub.unsubscribe());
     this.messageService.disconnect();
+  }
+
+  private scrollToBottom(): void {
+    setTimeout(() => {
+      this.messagesContainer = document.querySelector('.messages-container');
+      if (this.messagesContainer) {
+        this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+      }
+    }, 100);
   }
 }

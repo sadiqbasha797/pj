@@ -1,20 +1,47 @@
 <div class="container mx-auto px-4 py-8">
   <!-- Task Information Card -->
-  <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg shadow-md p-6 mb-8" *ngIf="taskUpdates.length > 0">
+  <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg shadow-md p-6 mb-8" *ngIf="currentTask">
     <div class="flex justify-between items-start">
       <div>
+        <div class="flex items-center gap-2">
+          <!-- Premium Campaign Badge for non-zero budget -->
+          <div *ngIf="currentTask.budget > 0" class="flex items-center gap-2 bg-yellow-400 text-blue-900 px-3 py-1 rounded-full text-sm font-semibold shadow-lg mb-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Paid Campaign
+          </div>
+        </div>
+        
         <div class="flex items-center gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
           </svg>
-          <h1 class="text-2xl font-bold text-white">{{taskUpdates[0].taskId.taskName}}</h1>
+          <h1 class="text-2xl font-bold text-white">{{currentTask.taskName}}</h1>
         </div>
+        
         <p class="text-blue-100 mt-2 flex items-center gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          {{taskUpdates[0].taskId.taskDescription}}
+          {{currentTask.taskDescription}}
         </p>
+
+        <!-- Budget Metrics with premium styling for paid campaigns -->
+        <div class="mt-4 grid grid-cols-3 gap-4">
+          <div [class]="currentTask.budget > 0 ? 'bg-white/20 rounded-lg p-3 ring-2 ring-yellow-400 shadow-lg' : 'bg-white/10 rounded-lg p-3'">
+            <p [class]="currentTask.budget > 0 ? 'text-sm text-yellow-300' : 'text-sm text-blue-100'">Total Budget</p>
+            <p class="text-xl font-bold">₹{{totalBudget}}</p>
+          </div>
+          <div [class]="currentTask.budget > 0 ? 'bg-white/20 rounded-lg p-3 ring-2 ring-yellow-400 shadow-lg' : 'bg-white/10 rounded-lg p-3'">
+            <p [class]="currentTask.budget > 0 ? 'text-sm text-yellow-300' : 'text-sm text-blue-100'">Spent Budget</p>
+            <p class="text-xl font-bold">₹{{spentBudget}}</p>
+          </div>
+          <div [class]="currentTask.budget > 0 ? 'bg-white/20 rounded-lg p-3 ring-2 ring-yellow-400 shadow-lg' : 'bg-white/10 rounded-lg p-3'">
+            <p [class]="currentTask.budget > 0 ? 'text-sm text-yellow-300' : 'text-sm text-blue-100'">Remaining Budget</p>
+            <p class="text-xl font-bold">₹{{remainingBudget}}</p>
+          </div>
+        </div>
       </div>
       <div class="flex items-start gap-4">
         <!-- Status and Priority Badges -->
@@ -23,13 +50,13 @@
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
-            Priority: {{taskUpdates[0].taskId.priority}}
+            Priority: {{currentTask.priority}}
           </span>
           <span class="px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1 bg-white/20 text-white">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            Status: {{taskUpdates[0].taskId.status}}
+            Status: {{currentTask.status}}
           </span>
         </div>
         
@@ -708,6 +735,24 @@
                 </button>
               </li>
             </ul>
+          </div>
+        </div>
+
+        <!-- Inside the form -->
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-gray-700">
+            Budget Spent <span class="text-red-500">*</span>
+          </label>
+          <input 
+            type="number" 
+            formControlName="budget"
+            [max]="remainingBudget"
+            class="w-full h-11 rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4"
+            placeholder="Enter budget spent on this update"
+          >
+          <p class="text-xs text-gray-500">Available budget: ₹{{remainingBudget}}</p>
+          <div *ngIf="updateForm.get('budget')?.errors?.['max']" class="text-red-500 text-xs">
+            Budget cannot exceed remaining amount (₹{{remainingBudget}})
           </div>
         </div>
 

@@ -1,10 +1,28 @@
 <div class="flex h-[calc(90vh-64px)]">
   <!-- Users List -->
-  <div class="w-72 border-r border-gray-200">
-    <div class="p-6 border-b border-gray-200">
-      <h2 class="text-lg font-semibold text-gray-800">Messages</h2>
+  <div class="w-72 border-r border-gray-200 flex flex-col">
+    <!-- Tabs -->
+    <div class="flex border-b border-gray-200">
+      <button 
+        (click)="switchTab('users')"
+        class="flex-1 py-3 px-4 text-center font-medium"
+        [class.text-blue-600]="activeTab === 'users'"
+        [class.border-b-2]="activeTab === 'users'"
+        [class.border-blue-600]="activeTab === 'users'">
+        All Users
+      </button>
+      <button 
+        (click)="switchTab('messages')"
+        class="flex-1 py-3 px-4 text-center font-medium"
+        [class.text-blue-600]="activeTab === 'messages'"
+        [class.border-b-2]="activeTab === 'messages'"
+        [class.border-blue-600]="activeTab === 'messages'">
+        Messages
+      </button>
     </div>
-    <div class="overflow-y-auto h-full">
+
+    <!-- Users List Content -->
+    <div class="flex-1 overflow-y-auto">
       <!-- Loading State -->
       <div *ngIf="isLoading" class="p-4 text-center text-gray-500">
         <svg class="animate-spin h-5 w-5 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -14,18 +32,57 @@
         Loading users...
       </div>
 
+      <!-- Empty State -->
+      <div *ngIf="!isLoading && (activeTab === 'messages' ? messagedUsers.length === 0 : allUsers.length === 0)" 
+           class="p-4 text-center text-gray-500">
+        {{ activeTab === 'messages' ? 'No message history' : 'No users available' }}
+      </div>
+
       <!-- Users List -->
-      <div *ngFor="let user of users" 
+      <div *ngFor="let user of activeTab === 'users' ? allUsers : messagedUsers" 
            (click)="selectUser(user)"
            class="p-4 hover:bg-gray-50 cursor-pointer transition-colors duration-200"
            [class.bg-blue-50]="selectedUser?._id === user._id">
         <div class="flex items-center space-x-3">
-          <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-            <span class="text-blue-600 font-medium">{{user.username.charAt(0).toUpperCase()}}</span>
+          <div class="w-10 h-10 rounded-full flex items-center justify-center"
+               [ngClass]="{
+                 'bg-blue-100': user.role === 'manager',
+                 'bg-green-100': user.role === 'developer',
+                 'bg-purple-100': user.role === 'digitalMarketing',
+                 'bg-yellow-100': user.role === 'contentCreator',
+                 'bg-red-100': user.role === 'admin'
+               }">
+            <span [ngClass]="{
+                    'text-blue-600': user.role === 'manager',
+                    'text-green-600': user.role === 'developer',
+                    'text-purple-600': user.role === 'digitalMarketing',
+                    'text-yellow-600': user.role === 'contentCreator',
+                    'text-red-600': user.role === 'admin'
+                  }"
+                  class="font-medium">{{user.username.charAt(0).toUpperCase()}}</span>
           </div>
-          <div>
+          <div class="flex-1 min-w-0">
             <div class="font-medium text-gray-900">{{user.username}}</div>
-            <div class="text-sm text-gray-500">{{user.role}}</div>
+            <div class="text-sm text-gray-500">
+              {{user.role === 'digitalMarketing' ? 'Digital Marketing' : 
+                 user.role === 'contentCreator' ? 'Content Creator' : 
+                 user.role.charAt(0).toUpperCase() + user.role.slice(1)}}
+            </div>
+            <!-- Recent Message -->
+            <div *ngIf="user.recentMessage" class="mt-1">
+              <p class="text-sm text-gray-600 truncate">
+                {{user.recentMessage.content}}
+              </p>
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-gray-400">
+                  {{user.recentMessage.createdAt | date:'shortTime'}}
+                </span>
+                <!-- Unread indicator -->
+                <div *ngIf="user.recentMessage.unread" 
+                     class="w-2 h-2 rounded-full bg-blue-500">
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -48,18 +105,36 @@
       <!-- Chat Header -->
       <div class="p-4 border-b border-gray-200 bg-white">
         <div class="flex items-center space-x-3">
-          <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-            <span class="text-blue-600 font-medium">{{selectedUser.username.charAt(0).toUpperCase()}}</span>
+          <div class="w-10 h-10 rounded-full flex items-center justify-center"
+               [ngClass]="{
+                 'bg-blue-100': selectedUser.role === 'manager',
+                 'bg-green-100': selectedUser.role === 'developer',
+                 'bg-purple-100': selectedUser.role === 'digitalMarketing',
+                 'bg-yellow-100': selectedUser.role === 'contentCreator',
+                 'bg-red-100': selectedUser.role === 'client'
+               }">
+            <span [ngClass]="{
+                    'text-blue-600': selectedUser.role === 'manager',
+                    'text-green-600': selectedUser.role === 'developer',
+                    'text-purple-600': selectedUser.role === 'digitalMarketing',
+                    'text-yellow-600': selectedUser.role === 'contentCreator',
+                    'text-red-600': selectedUser.role === 'client'
+                  }"
+                  class="font-medium">{{selectedUser.username.charAt(0).toUpperCase()}}</span>
           </div>
           <div>
             <div class="font-medium text-gray-900">{{selectedUser.username}}</div>
-            <div class="text-sm text-gray-500">{{selectedUser.role}}</div>
+            <div class="text-sm text-gray-500">
+              {{selectedUser.role === 'digitalMarketing' ? 'Digital Marketing' : 
+                selectedUser.role === 'contentCreator' ? 'Content Creator' : 
+                selectedUser.role.charAt(0).toUpperCase() + selectedUser.role.slice(1)}}
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Messages Section -->
-      <div class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+      <div class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 messages-container">
         <div *ngFor="let message of messages" 
              class="w-full flex"
              [ngClass]="{
@@ -100,6 +175,17 @@
               <svg *ngIf="!message.read" class="w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
               </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Typing Indicator -->
+        <div *ngIf="isTyping" class="flex justify-start">
+          <div class="bg-gray-200 px-4 py-2 rounded-full">
+            <div class="flex space-x-1">
+              <div class="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
+              <div class="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+              <div class="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
             </div>
           </div>
         </div>

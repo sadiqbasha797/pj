@@ -9,7 +9,7 @@ import { CacheService } from './cache.service';
   providedIn: 'root'
 })
 export class DeveloperAuthService {
-  private apiUrl = 'http://localhost:3000/api/developer';
+  private apiUrl = 'https://projexinovps.projexino.com/api/developer';
 
   constructor(
     private http: HttpClient,

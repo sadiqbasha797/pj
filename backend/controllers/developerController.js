@@ -13,14 +13,27 @@ const { uploadToCloudinary, deleteFromCloudinary } = require('../utils/cloudinar
 
 const registerDeveloper = async (req, res) => {
   try {
-    const { username, password, email, skills } = req.body;
+    const { username, password, email, skills, experience } = req.body;
     const hashedPassword = await bcrypt.hash(password, 8);
+    
+    let resumeUrl = null;
+    if (req.file) {
+      const result = await uploadToCloudinary(req.file.path, {
+        folder: 'developer-resumes',
+        resource_type: 'raw' // For PDF files
+      });
+      resumeUrl = result.secure_url;
+    }
+
     const newDeveloper = new Developer({
       username,
       email,
       password: hashedPassword,
-      skills
+      skills,
+      experience,
+      resume: resumeUrl
     });
+    
     await newDeveloper.save();
     res.status(201).json({ message: 'Developer registered successfully', developer: newDeveloper });
   } catch (error) {
@@ -133,18 +146,34 @@ const updateDeveloperProfile = async (req, res) => {
     }
 
     // Handle profile image upload
-    if (req.file) {
-      const file = req.file;
-      const result = await uploadToCloudinary(file.path, {
+    if (req.files?.image) {
+      const imageFile = req.files.image[0];
+      const imageResult = await uploadToCloudinary(imageFile.path, {
         folder: 'developer-profiles',
         resource_type: 'auto'
       });
-      updates.image = result.secure_url;
+      updates.image = imageResult.secure_url;
 
       // Delete old profile image if it exists
       if (currentDeveloper.image) {
-        const publicId = currentDeveloper.image.split('/').slice(-2).join('/').split('.')[0];
-        await deleteFromCloudinary(publicId);
+        const imagePublicId = currentDeveloper.image.split('/').slice(-2).join('/').split('.')[0];
+        await deleteFromCloudinary(imagePublicId);
+      }
+    }
+
+    // Handle resume upload
+    if (req.files?.resume) {
+      const resumeFile = req.files.resume[0];
+      const resumeResult = await uploadToCloudinary(resumeFile.path, {
+        folder: 'developer-resumes',
+        resource_type: 'raw'
+      });
+      updates.resume = resumeResult.secure_url;
+
+      // Delete old resume if it exists
+      if (currentDeveloper.resume) {
+        const resumePublicId = currentDeveloper.resume.split('/').slice(-2).join('/').split('.')[0];
+        await deleteFromCloudinary(resumePublicId);
       }
     }
 
@@ -309,7 +338,7 @@ const fetchUserEvents = async (req, res) => {
 
 const applyForHoliday = async (req, res) => {
   const { startDate, endDate, reason } = req.body;
-  const developerId = req.developer._id; // Assuming req.developer is set after authentication
+  const developerId = req.developer._id;
   const developerName = req.developer.username;
   try {
       // Find the manager(s) assigned to this developer
@@ -323,7 +352,8 @@ const applyForHoliday = async (req, res) => {
           developerName: developerName,
           startDate,
           endDate,
-          reason
+          reason,
+          role: 'Developer'
       });
       await newHoliday.save();
 
@@ -331,20 +361,20 @@ const applyForHoliday = async (req, res) => {
       const newEvent = new CalendarEvent({
           title: "Holiday",
           description: reason,
-          eventDate: startDate, // Assuming the holiday is a single-day event or starts on this date
+          eventDate: startDate,
           createdBy: developerId,
-          onModel: 'Developer', // Assuming the calendar event model includes a reference to who created it
+          onModel: 'Developer',
           eventType: 'Holiday',
-          endDate : endDate,
+          endDate: endDate,
           projectId: newHoliday._id,
-          participants: [{ participantId: developerId, onModel: 'Developer' }] // In case the model expects participant details
+          participants: [{ participantId: developerId, onModel: 'Developer' }]
       });
       await newEvent.save();
 
       // Create individual notifications for admin and each manager
       const notification = new Notification({
-        recipient: null, // For admin
-        content: `Holiday request from ${req.developer.username}`,
+        recipient: null,
+        content: `Holiday request from ${req.developer.username} (Developer)`,
         type: 'Holiday',
         relatedId: newHoliday._id,
         read: false
@@ -355,7 +385,7 @@ const applyForHoliday = async (req, res) => {
       for (const managerId of managerIds) {
         const managerNotification = new Notification({
           recipient: managerId,
-          content: `Holiday request from ${req.developer.username}`,
+          content: `Holiday request from ${req.developer.username} (Developer)`,
           type: 'Holiday',
           relatedId: newHoliday._id,
           read: false
@@ -370,10 +400,13 @@ const applyForHoliday = async (req, res) => {
 };
 
 const fetchHolidays = async (req, res) => {
-  const developerId = req.developer._id; // Assuming req.user is set after authentication
+  const developerId = req.developer._id;
 
   try {
-      const holidays = await Holiday.find({ developer: developerId });
+      const holidays = await Holiday.find({ 
+          developer: developerId,
+          role: 'Developer'
+      });
       if (holidays.length === 0) {
           return res.status(404).json({ message: 'No holiday requests found' });
       }
@@ -390,7 +423,12 @@ const withdrawHoliday = async (req, res) => {
   try {
       // Update the holiday request to 'Withdrawn'
       const updatedHoliday = await Holiday.findOneAndUpdate(
-          { _id: holidayId, developer: developerId, status: { $ne: 'Approved' } }, // Ensure it's their own and not already approved
+          { 
+              _id: holidayId, 
+              developer: developerId,
+              role: 'Developer',
+              status: { $ne: 'Approved' }
+          },
           { status: 'Withdrawn' },
           { new: true }
       );
@@ -402,7 +440,7 @@ const withdrawHoliday = async (req, res) => {
       // Update or remove the corresponding calendar event
       const updatedEvent = await CalendarEvent.findOneAndUpdate(
           { projectId: holidayId },
-          { status: 'Not-Active', title: 'Withdrawn Holiday' }, // You might choose to delete the event instead
+          { status: 'Not-Active', title: 'Withdrawn Holiday' },
           { new: true }
       );
 

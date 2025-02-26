@@ -1,6 +1,6 @@
-<div class="container mx-auto px-4 py-8">
+<div class="container mx-auto lg:p-8">
   <!-- Header Section with Gradient -->
-  <div class="p-6">
+  <div class="py-4">
     <div class="relative rounded-lg overflow-hidden mb-6 bg-gradient-to-r from-teal-400 via-cyan-500 to-blue-600 p-6">
       <!-- Decorative shapes -->
       <div class="absolute inset-0">
@@ -11,7 +11,7 @@
 
       <!-- Header content -->
       <div class="relative">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div class="flex items-center gap-3">
             <div class="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
               <span class="material-icons text-white">campaign</span>
@@ -21,16 +21,16 @@
               <p class="text-teal-100">Manage marketing campaigns and content</p>
             </div>
           </div>
-          <div class="flex gap-3">
+          <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
             <!-- Revenue Button -->
             <button (click)="viewRevenue()" 
-                    class="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-all duration-300 group">
+                    class="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-all duration-300 group">
               <span class="material-icons text-white group-hover:rotate-180 transition-transform duration-500">monetization_on</span>
               <span class="text-sm font-medium">View Revenue</span>
             </button>
-            <!-- Existing Add Task Button -->
+            <!-- Add Task Button -->
             <button (click)="showForm = !showForm" 
-                    class="flex items-center gap-2 px-4 py-2 bg-white rounded-lg hover:bg-opacity-90 transition-all duration-300 group">
+                    class="flex items-center justify-center gap-2 px-4 py-2 bg-white rounded-lg hover:bg-opacity-90 transition-all duration-300 group">
               <span class="material-icons text-cyan-600 group-hover:rotate-180 transition-transform duration-500">add</span>
               <span class="text-sm font-medium text-cyan-600">Add Task</span>
             </button>
@@ -40,7 +40,7 @@
     </div>
 
     <!-- Task Form -->
-    <div *ngIf="showForm" class="bg-white rounded-xl shadow-lg p-8 mb-8 transition-all duration-300">
+    <div *ngIf="showForm" class="bg-white rounded-xl shadow-lg p-4 sm:p-8 mb-8 transition-all duration-300">
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold text-gray-800">
           {{ selectedTask ? 'Edit Task' : 'Create New Task' }}
@@ -56,7 +56,7 @@
         <div class="bg-gray-50 p-6 rounded-lg space-y-6">
           <h3 class="text-lg font-semibold text-gray-700 mb-4">Basic Information</h3>
           
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <!-- Task Name -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Task Name</label>
@@ -92,7 +92,7 @@
         <div class="bg-gray-50 p-6 rounded-lg space-y-6">
           <h3 class="text-lg font-semibold text-gray-700 mb-4">Timeline & Status</h3>
           
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <!-- Start Date -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
@@ -127,6 +127,19 @@
                 <option value="in-progress">In Progress</option>
                 <option value="completed">Completed</option>
               </select>
+            </div>
+
+            <!-- Budget -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Budget</label>
+              <div class="relative">
+                <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">₹</span>
+                <input type="number" 
+                       formControlName="budget" 
+                       min="0" 
+                       class="w-full pl-8 pr-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+                       [ngClass]="{'border-red-300': taskForm.get('budget')?.invalid && taskForm.get('budget')?.touched}">
+              </div>
             </div>
           </div>
         </div>
@@ -211,11 +224,19 @@
     </div>
 
     <!-- Tasks Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
       <div *ngFor="let task of marketingTasks" 
-           class="max-w-sm rounded-xl shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px] hover:shadow-[rgba(0,_0,_0,_0.2)_0px_10px_20px] transition-all duration-300 hover:-translate-y-1 bg-white dark:bg-gray-800 relative">
-        <div class="px-6 py-4">
-          <div class="flex justify-between items-start mb-2">
+           class="rounded-xl shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px] hover:shadow-[rgba(0,_0,_0,_0.2)_0px_10px_20px] transition-all duration-300 hover:-translate-y-1 bg-white dark:bg-gray-800 relative"
+           [ngClass]="{'border-2 border-gradient-to-r from-amber-300 via-yellow-400 to-amber-500': task.budget > 0}"
+           [style]="task.budget > 0 ? 'background-origin: border-box; background-clip: padding-box, border-box;' : ''">
+        <!-- Premium Badge for Paid Campaigns -->
+        <div *ngIf="task.budget > 0" 
+             class="absolute -top-2 -right-2 bg-gradient-to-r from-amber-500 to-yellow-400 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg z-10 flex items-center gap-1">
+          <span class="material-icons text-sm">workspace_premium</span>
+          <span>₹{{task.budget | number:'1.0-0'}}</span>
+        </div>
+        <div class="px-4 sm:px-6 py-4">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-2">
             <div class="font-bold text-xl text-gray-800 dark:text-white hover:text-blue-500 transition-colors duration-300">
               {{task.taskName}}
             </div>
@@ -228,52 +249,47 @@
               {{task.status}}
             </span>
           </div>
-          <p class="text-gray-700 dark:text-gray-300 text-base line-clamp-2 mb-4">
-            Project: {{task.projectId?.title}}
-          </p>
-          <div class="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
-            <div class="flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-              <span>{{task.assignedTo?.length}}</span>
-            </div>
-            <div class="flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              <span>{{task.endDate | date:'shortDate'}}</span>
-            </div>
-            <div class="flex items-center">
-              <span class="material-icons text-sm mr-1" [ngClass]="{
-                'text-red-500': task.priority === 'high',
-                'text-yellow-500': task.priority === 'medium',
-                'text-green-500': task.priority === 'low'
-              }">flag</span>
-              <span class="capitalize">{{task.priority}}</span>
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between text-sm text-gray-600 dark:text-gray-400 gap-2 sm:gap-0">
+            <div class="flex items-center gap-4">
+              <div class="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                <span>{{task.assignedTo?.length}}</span>
+              </div>
+              <div class="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span>{{task.endDate | date:'shortDate'}}</span>
+              </div>
+              <div class="flex items-center">
+                <span class="material-icons text-sm mr-1" [ngClass]="{
+                  'text-red-500': task.priority === 'high',
+                  'text-yellow-500': task.priority === 'medium',
+                  'text-green-500': task.priority === 'low'
+                }">flag</span>
+                <span class="capitalize">{{task.priority}}</span>
+              </div>
             </div>
           </div>
         </div>
-        <!-- Action buttons -->
         <div class="pb-16">
-          <div class="absolute bottom-4 right-6 flex">
+          <div class="absolute bottom-4 right-4 sm:right-6 flex gap-2">
             <button (click)="viewTask(task)" 
-                    class="px-4 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 transition duration-300 text-sm">
+                    class="p-2 sm:px-4 sm:py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 transition duration-300 text-sm rounded">
               <span class="material-icons text-sm">visibility</span>
             </button>
             <button (click)="editTask(task)" 
-                    class="px-4 py-1.5 bg-green-50 text-green-600 hover:bg-green-100 transition duration-300 text-sm">
+                    class="p-2 sm:px-4 sm:py-1.5 bg-green-50 text-green-600 hover:bg-green-100 transition duration-300 text-sm rounded">
               <span class="material-icons text-sm">edit</span>
             </button>
             <button (click)="deleteTask(task._id)" 
-                    class="px-4 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 transition duration-300 text-sm">
+                    class="p-2 sm:px-4 sm:py-1.5 bg-red-50 text-red-600 hover:bg-red-100 transition duration-300 text-sm rounded">
               <span class="material-icons text-sm">delete</span>
             </button>
           </div>
         </div>
-        <!-- Blue line animation -->
-        <div class="absolute bottom-0 left-0 w-full h-1 bg-blue-500 transition-all duration-300 ease-in-out" 
-             [ngStyle]="{'width': hoveredTaskId === task._id ? '100%' : '0%'}"></div>
       </div>
     </div>
 
@@ -284,10 +300,9 @@
 
     <!-- View Task Modal -->
     <div *ngIf="showViewModal && selectedViewTask" 
-         class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-      <div class="bg-white rounded-2xl shadow-xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-        <!-- Modal Header -->
-        <div class="sticky top-0 bg-white px-6 py-4 border-b border-gray-100">
+         class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+        <div class="sticky top-0 bg-white px-4 sm:px-6 py-4 border-b border-gray-100">
           <div class="flex justify-between items-center">
             <div>
               <h2 class="text-2xl font-bold text-gray-800">{{selectedViewTask.taskName}}</h2>
@@ -299,12 +314,9 @@
             </button>
           </div>
         </div>
-
-        <!-- Modal Content -->
-        <div class="p-6 space-y-8">
-          <!-- Project & Description Section -->
+        
+        <div class="p-4 sm:p-6 space-y-6 sm:space-y-8">
           <div class="space-y-6">
-            <!-- Project -->
             <div class="flex items-start gap-3">
               <div class="p-2 bg-blue-50 rounded-lg">
                 <span class="material-icons text-blue-600">folder</span>
@@ -315,7 +327,6 @@
               </div>
             </div>
 
-            <!-- Description -->
             <div class="flex items-start gap-3">
               <div class="p-2 bg-purple-50 rounded-lg">
                 <span class="material-icons text-purple-600">description</span>
@@ -327,10 +338,8 @@
             </div>
           </div>
 
-          <!-- Timeline Section -->
           <div class="bg-gray-50 rounded-xl p-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <!-- Start Date -->
               <div class="flex items-center gap-3">
                 <div class="p-2 bg-green-50 rounded-lg">
                   <span class="material-icons text-green-600">event</span>
@@ -341,7 +350,6 @@
                 </div>
               </div>
 
-              <!-- Due Date -->
               <div class="flex items-center gap-3">
                 <div class="p-2 bg-red-50 rounded-lg">
                   <span class="material-icons text-red-600">event_busy</span>
@@ -354,9 +362,7 @@
             </div>
           </div>
 
-          <!-- Status & Priority Section -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Status -->
             <div class="flex items-center gap-3">
               <div class="p-2 bg-yellow-50 rounded-lg">
                 <span class="material-icons text-yellow-600">hourglass_empty</span>
@@ -378,7 +384,6 @@
               </div>
             </div>
 
-            <!-- Priority -->
             <div class="flex items-center gap-3">
               <div class="p-2 bg-orange-50 rounded-lg">
                 <span class="material-icons text-orange-600">flag</span>
@@ -396,9 +401,29 @@
                 </span>
               </div>
             </div>
+
+            <!-- Budget Display -->
+            <div class="flex items-center gap-3">
+              <div class="p-2 bg-amber-50 rounded-lg">
+                <span class="material-icons text-amber-600">payments</span>
+              </div>
+              <div>
+                <h3 class="text-sm font-medium text-gray-500">Campaign Budget</h3>
+                <div class="flex items-center gap-2">
+                  <span *ngIf="selectedViewTask.budget > 0" 
+                        class="mt-1 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-amber-100 text-amber-800">
+                    <span class="material-icons text-sm mr-1">currency_rupee</span>
+                    {{selectedViewTask.budget | number:'1.0-0'}}
+                  </span>
+                  <span *ngIf="selectedViewTask.budget === 0" 
+                        class="mt-1 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+                    Unpaid Campaign
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <!-- Team Members Section -->
           <div class="space-y-4">
             <div class="flex items-center gap-3">
               <div class="p-2 bg-indigo-50 rounded-lg">
@@ -428,7 +453,6 @@
             </div>
           </div>
 
-          <!-- Documents Section -->
           <div *ngIf="selectedViewTask.relatedDocs?.length" class="space-y-4">
             <div class="flex items-center gap-3">
               <div class="p-2 bg-teal-50 rounded-lg">
@@ -453,12 +477,10 @@
           </div>
         </div>
 
-        <!-- Modal Footer -->
-        <div class="sticky bottom-0 bg-white px-6 py-4 border-t border-gray-100">
-          <div class="flex justify-end gap-3">
-            <!-- Add View Updates button -->
+        <div class="sticky bottom-0 bg-white px-4 sm:px-6 py-4 border-t border-gray-100">
+          <div class="flex flex-col sm:flex-row justify-end gap-3">
             <button (click)="viewUpdates(selectedViewTask._id)" 
-                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center gap-2">
+                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center justify-center gap-2">
               <span class="material-icons text-sm">update</span>
               View Updates
             </button>
@@ -472,3 +494,22 @@
     </div>
   </div>
 </div>
+
+<style>
+.border-gradient-to-r {
+  border-image: linear-gradient(to right, #fcd34d, #fbbf24, #f59e0b) 1;
+  animation: borderShine 2s linear infinite;
+}
+
+@keyframes borderShine {
+  0% {
+    border-image: linear-gradient(to right, #fcd34d, #fbbf24, #f59e0b) 1;
+  }
+  50% {
+    border-image: linear-gradient(to right, #f59e0b, #fcd34d, #fbbf24) 1;
+  }
+  100% {
+    border-image: linear-gradient(to right, #fbbf24, #f59e0b, #fcd34d) 1;
+  }
+}
+</style>

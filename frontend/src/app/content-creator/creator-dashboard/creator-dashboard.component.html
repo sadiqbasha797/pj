@@ -1,0 +1,132 @@
+<div class="p-6 bg-gray-50 min-h-screen">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="flex justify-center items-center h-screen">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+  </div>
+
+  <div *ngIf="!loading" class="space-y-6">
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <!-- Tasks Card -->
+      <div class="bg-white p-4 rounded-xl shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px] hover:shadow-[rgba(0,_0,_0,_0.2)_0px_10px_20px] transition-all duration-300 hover:-translate-y-1">
+        <div class="flex items-center gap-3">
+          <div class="p-2 bg-blue-50 rounded-lg">
+            <span class="material-icons text-blue-500">assignment_turned_in</span>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">Tasks</p>
+            <p class="text-lg font-semibold text-gray-800">{{totalTasks}}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Meetings Card -->
+      <div class="bg-white p-4 rounded-xl shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px] hover:shadow-[rgba(0,_0,_0,_0.2)_0px_10px_20px] transition-all duration-300 hover:-translate-y-1">
+        <div class="flex items-center gap-3">
+          <div class="p-2 bg-purple-50 rounded-lg">
+            <span class="material-icons text-purple-500">groups</span>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">Meetings</p>
+            <p class="text-lg font-semibold text-gray-800">{{totalMeetings}}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Events Card -->
+      <div class="bg-white p-4 rounded-xl shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px] hover:shadow-[rgba(0,_0,_0,_0.2)_0px_10px_20px] transition-all duration-300 hover:-translate-y-1">
+        <div class="flex items-center gap-3">
+          <div class="p-2 bg-green-50 rounded-lg">
+            <span class="material-icons text-green-500">event_available</span>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">Events</p>
+            <p class="text-lg font-semibold text-gray-800">{{totalEvents}}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Leaves Card -->
+      <div class="bg-white p-4 rounded-xl shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px] hover:shadow-[rgba(0,_0,_0,_0.2)_0px_10px_20px] transition-all duration-300 hover:-translate-y-1">
+        <div class="flex items-center gap-3">
+          <div class="p-2 bg-yellow-50 rounded-lg">
+            <span class="material-icons text-yellow-500">event_busy</span>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">Leaves</p>
+            <p class="text-lg font-semibold text-gray-800">{{totalHolidays}}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Task Status Chart -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-semibold text-gray-700 mb-4">Task Status Distribution</h3>
+        <div class="chart-container" style="position: relative; height:300px; width:100%">
+          <canvas id="taskStatusChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Event Type Chart -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-semibold text-gray-700 mb-4">Events by Type</h3>
+        <div class="chart-container" style="position: relative; height:300px; width:100%">
+          <canvas id="eventTypeChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Activities Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Recent Tasks -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-semibold text-gray-700 mb-4">Recent Tasks</h3>
+        <div class="space-y-4">
+          <div *ngFor="let task of tasks.slice(0, 5)" class="border-b pb-3">
+            <div class="flex justify-between items-start">
+              <div>
+                <h4 class="font-medium text-gray-800">{{task.taskName}}</h4>
+                <p class="text-sm text-gray-500">{{task.taskDescription}}</p>
+              </div>
+              <span [class]="'text-xs px-2 py-1 rounded-full ' + getStatusColor(task.status)">
+                {{task.status}}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Meetings -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-semibold text-gray-700 mb-4">Upcoming Meetings</h3>
+        <div class="space-y-4">
+          <div *ngFor="let meeting of meetings.slice(0, 5)" class="border-b pb-3">
+            <h4 class="font-medium text-gray-800">{{meeting.title}}</h4>
+            <p class="text-sm text-gray-500">{{meeting.description}}</p>
+            <p class="text-xs text-gray-400 mt-1">{{formatDate(meeting.eventDate)}}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Events -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <h3 class="text-lg font-semibold text-gray-700 mb-4">Recent Events</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div *ngFor="let event of events.slice(0, 6)" class="border rounded-lg p-4">
+          <h4 class="font-medium text-gray-800">{{event.title}}</h4>
+          <p class="text-sm text-gray-500">{{event.description}}</p>
+          <div class="flex justify-between items-center mt-2">
+            <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+              {{event.eventType}}
+            </span>
+            <span class="text-xs text-gray-400">{{formatDate(event.eventDate)}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

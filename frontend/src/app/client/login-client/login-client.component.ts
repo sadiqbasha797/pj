@@ -42,13 +42,14 @@ export class LoginClientComponent implements OnInit {
 
     this.clientAuthService.login(this.loginData).subscribe({
       next: (response) => {
-        // Store email in localStorage if needed
-        if (response && response.email) {
-          localStorage.setItem('email', response.email);
-        }
-        // Navigate to projects page
+        console.log('Login successful, response:', response);
+        console.log('Stored values after login:', {
+          clientToken: localStorage.getItem('clientToken'),
+          userId: localStorage.getItem('userId'),
+          userRole: localStorage.getItem('userRole')
+        });
+        
         this.router.navigate(['/client/projects']).then(() => {
-          // Optional: Reload the page to ensure all guards are re-evaluated
           window.location.reload();
         });
       },

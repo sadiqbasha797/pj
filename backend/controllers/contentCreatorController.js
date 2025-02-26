@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Notification = require('../models/Notification');
 const CalendarEvent = require('../models/calendarEvent');
+const Holiday = require('../models/Holiday');
 
 // Register a new content creator
 const registerContentCreator = async (req, res) => {
@@ -354,7 +355,8 @@ const getParticipatingMeetings = async (req, res) => {
                     participantId: userId,
                     onModel: 'ContentCreator'
                 }
-            }
+            },
+            eventType: 'Meeting'
         })
         .populate({
             path: 'createdBy',
@@ -366,7 +368,7 @@ const getParticipatingMeetings = async (req, res) => {
             select: 'username email -_id',
             refPath: 'participants.onModel'
         })
-        .sort({ eventDate: 1 }); // Sort by date ascending
+        .sort({ eventDate: 1 });
 
         if (meetings.length === 0) {
             return res.status(404).json({
@@ -388,6 +390,202 @@ const getParticipatingMeetings = async (req, res) => {
     }
 };
 
+// Fetch all events for content creator
+const getContentCreatorEvents = async (req, res) => {
+    try {
+        const userId = req.contentCreator._id;
+
+        // Find events where the content creator is either the creator or a participant
+        const events = await CalendarEvent.find({
+            $or: [
+                { 
+                    'participants': {
+                        $elemMatch: {
+                            participantId: userId,
+                            onModel: 'ContentCreator'
+                        }
+                    }
+                },
+                {
+                    createdBy: userId,
+                    onModel: 'ContentCreator'
+                }
+            ]
+        })
+        .populate({
+            path: 'createdBy',
+            select: 'username email _id', // Include _id in the select
+            refPath: 'onModel'
+        })
+        .populate({
+            path: 'participants.participantId',
+            select: 'username email _id', // Include _id in the select
+            refPath: 'participants.onModel'
+        })
+        .populate({
+            path: 'projectId',
+            select: 'title description -_id'
+        })
+        .sort({ eventDate: 1 }); // Sort by date ascending
+
+        if (events.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'No events found'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: events
+        });
+    } catch (error) {
+        console.error('Error fetching content creator events:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching events',
+            error: error.message
+        });
+    }
+};
+
+// Apply for holiday/leave
+const applyForHoliday = async (req, res) => {
+    const { startDate, endDate, reason } = req.body;
+    const creatorId = req.contentCreator._id;
+    const creatorName = req.contentCreator.username;
+
+    try {
+        const newHoliday = new Holiday({
+            developer: creatorId,
+            developerName: creatorName,
+            startDate,
+            endDate,
+            reason,
+            role: 'ContentCreator'
+        });
+        await newHoliday.save();
+
+        // Create a corresponding calendar event
+        const newEvent = new CalendarEvent({
+            title: "Holiday",
+            description: reason,
+            eventDate: startDate,
+            createdBy: creatorId,
+            onModel: 'ContentCreator',
+            eventType: 'Holiday',
+            endDate: endDate,
+            projectId: newHoliday._id,
+            participants: [{ participantId: creatorId, onModel: 'ContentCreator' }]
+        });
+        await newEvent.save();
+
+        // Create notification for admin
+        const notification = new Notification({
+            recipient: null,
+            content: `Holiday request from ${creatorName} (Content Creator)`,
+            type: 'Holiday',
+            relatedId: newHoliday._id,
+            read: false
+        });
+        await notification.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Holiday request submitted successfully',
+            data: {
+                holiday: newHoliday,
+                event: newEvent
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error submitting holiday request',
+            error: error.message
+        });
+    }
+};
+
+// Withdraw holiday request
+const withdrawHoliday = async (req, res) => {
+    const holidayId = req.params.holidayId;
+    const creatorId = req.contentCreator._id;
+
+    try {
+        // Update the holiday request to 'Withdrawn'
+        const updatedHoliday = await Holiday.findOneAndUpdate(
+            { 
+                _id: holidayId, 
+                developer: creatorId,
+                role: 'ContentCreator',
+                status: { $ne: 'Approved' }
+            },
+            { status: 'Withdrawn' },
+            { new: true }
+        );
+
+        if (!updatedHoliday) {
+            return res.status(404).json({
+                success: false,
+                message: 'Holiday request not found or already approved'
+            });
+        }
+
+        // Update the corresponding calendar event
+        const updatedEvent = await CalendarEvent.findOneAndUpdate(
+            { projectId: holidayId },
+            { status: 'Not-Active', title: 'Withdrawn Holiday' },
+            { new: true }
+        );
+
+        res.status(200).json({
+            success: true,
+            message: 'Holiday withdrawn successfully',
+            data: {
+                holiday: updatedHoliday,
+                event: updatedEvent
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error withdrawing holiday',
+            error: error.message
+        });
+    }
+};
+
+// Fetch all holidays for the content creator
+const fetchHolidays = async (req, res) => {
+    const creatorId = req.contentCreator._id;
+
+    try {
+        const holidays = await Holiday.find({ 
+            developer: creatorId,
+            role: 'ContentCreator'
+        });
+        
+        if (holidays.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'No holiday requests found'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: holidays
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching holiday requests',
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     registerContentCreator,
     login,
@@ -398,5 +596,9 @@ module.exports = {
     markAllNotificationsAsRead,
     getAllContentCreatorMembers,
     adminDeleteContentCreator,
-    getParticipatingMeetings
+    getParticipatingMeetings,
+    getContentCreatorEvents,
+    applyForHoliday,
+    withdrawHoliday,
+    fetchHolidays
 };

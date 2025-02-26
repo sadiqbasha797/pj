@@ -7,7 +7,7 @@ import { tap, catchError, map } from 'rxjs/operators';
   providedIn: 'root'
 })
 export class AdminService {
-  private apiUrl = 'http://localhost:3000/api/admin'; // Ensure this matches your backend URL
+  private apiUrl = 'http://localhost:4000/api/admin'; // Ensure this matches your backend URL
 
   constructor(private http: HttpClient) { }
 
@@ -404,5 +404,14 @@ export class AdminService {
 
   getTasksByUserId(userId: string): Observable<any> {
     return this.http.get(`${this.apiUrl}/marketing-user-task/${userId}`, { headers: this.getHeaders() });
+  }
+
+  // Team request APIs
+  getPendingRequests(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/pending-requests`, { headers: this.getHeaders() });
+  }
+
+  handleTeamRequest(requestId: string, status: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}/team-request/${requestId}`, { status }, { headers: this.getHeaders() });
   }
 }

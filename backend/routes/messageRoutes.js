@@ -8,5 +8,6 @@ router.post('/send', messageAuth, messageController.sendMessage);
 router.get('/conversation/:otherUserId', messageAuth, messageController.getConversation);
 router.patch('/read/:messageId', messageAuth, messageController.markAsRead);
 router.get('/unread', messageAuth, messageController.getUnreadCount);
+router.get('/users', messageAuth, messageController.getMessagedUsers);
 
 module.exports = router; 

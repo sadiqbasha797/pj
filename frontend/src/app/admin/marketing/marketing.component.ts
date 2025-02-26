@@ -39,7 +39,8 @@ hoveredTaskId: any;
       endDate: ['', Validators.required],
       status: ['pending'],
       assignedTo: [[], Validators.required],
-      relatedDocs: [[]]
+      relatedDocs: [[]],
+      budget: [0, [Validators.required, Validators.min(0)]]
     });
   }
 
@@ -184,7 +185,7 @@ hoveredTaskId: any;
     
     // Correctly format the assignedTo array
     const assignedTo = task.assignedTo.map((member: any) => ({
-      id: member.id._id || member.id, // Handle both populated and unpopulated cases
+      id: member.id._id || member.id,
       role: member.role
     }));
 
@@ -196,7 +197,8 @@ hoveredTaskId: any;
       startDate: startDate,
       endDate: endDate,
       status: task.status,
-      assignedTo: assignedTo
+      assignedTo: assignedTo,
+      budget: task.budget
     });
 
     // Scroll to form
@@ -235,7 +237,8 @@ hoveredTaskId: any;
     this.taskForm.reset({
       priority: 'medium',
       status: 'pending',
-      assignedTo: []
+      assignedTo: [],
+      budget: 0
     });
     this.selectedTask = null;
     this.showForm = false;

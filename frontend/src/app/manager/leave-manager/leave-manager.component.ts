@@ -5,23 +5,41 @@ import { FormsModule } from '@angular/forms';
 
 interface Holiday {
   _id: string;
-  developer: {
-    _id: string;
-    username: string;
-    email: string;
-  };
+  developer: string;
   developerName: string;
   startDate: string;
   endDate: string;
   reason: string;
   status: string;
   appliedOn: string;
+  role?: 'Developer' | 'DigitalMarketingRole' | 'ContentCreator';
+  createdAt?: string;
+  updatedAt?: string;
+  approvedBy?: {
+    name: string;
+    role: string;
+    approvedDate: string;
+  };
 }
 
 interface ManagerProfile {
   developers: {
     developerId: string;
     developerName: string;
+    assignedOn: string;
+    _id: string;
+  }[];
+  digitalMarketingRoles: {
+    roleId: string;
+    roleName: string;
+    marketerName: string;
+    assignedOn: string;
+    _id: string;
+  }[];
+  contentCreators: {
+    roleId: string;
+    roleName: string;
+    creatorName: string;
     assignedOn: string;
     _id: string;
   }[];
@@ -50,7 +68,11 @@ export class LeaveManagerComponent implements OnInit {
     this.loading = true;
     this.managerService.getManagerProfile().subscribe({
       next: (profile: ManagerProfile) => {
-        this.assignedDeveloperIds = profile.developers.map(dev => dev.developerId);
+        this.assignedDeveloperIds = [
+          ...profile.developers.map(dev => dev.developerId),
+          ...profile.digitalMarketingRoles.map(marketer => marketer.roleId),
+          ...profile.contentCreators.map(creator => creator.roleId)
+        ];
         this.loadHolidays();
       },
       error: (error) => {
@@ -67,7 +89,7 @@ export class LeaveManagerComponent implements OnInit {
       next: (data: Holiday[]) => {
         // Filter holidays to only show assigned developers
         this.holidays = data.filter(holiday => 
-          this.assignedDeveloperIds.includes(holiday.developer._id)
+          this.assignedDeveloperIds.includes(holiday.developer)
         );
         this.loading = false;
       },
@@ -105,5 +127,9 @@ export class LeaveManagerComponent implements OnInit {
     const end = new Date(endDate);
     const diffTime = Math.abs(end.getTime() - start.getTime());
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+  }
+
+  getDeveloperEmail(developer: string): string {
+    return 'Email not available';
   }
 }

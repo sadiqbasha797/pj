@@ -6,6 +6,7 @@ import { AdminService } from '../../services/admin.service';
 import { LoaderService } from '../../services/loader.service';
 import Swal from 'sweetalert2';
 import { TaskComponent } from '../task/task.component';
+import * as XLSX from 'xlsx';
 
 interface Developer {
   _id: string;
@@ -480,5 +481,29 @@ loadAssignedDevelopers(projectId: string) {
       this.showErrorAlert('Unable to load assigned developers');
     }
   });
+}
+
+downloadProjectsExcel() {
+  // Prepare the data for Excel
+  const excelData = this.projects.map(project => ({
+    'Project Title': project.title,
+    'Description': project.description,
+    'Deadline': new Date(project.deadline).toLocaleDateString(),
+    'Status': project.status,
+    'Assigned To': project.assignedTo.map(devId => this.getDeveloperName(devId)).join(', '),
+    'Created At': new Date(project.createdAt).toLocaleString(),
+    'Last Updated': new Date(project.updatedAt).toLocaleString(),
+    'Documents Count': project.relatedDocs.length
+  }));
+
+  // Create worksheet
+  const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+  // Create workbook
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Projects');
+
+  // Generate Excel file
+  XLSX.writeFile(workbook, 'projects_report.xlsx');
 }
 }

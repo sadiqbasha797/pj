@@ -12,6 +12,7 @@ interface Task {
   startDate: string;
   endDate: string;
   leads: number;
+  budget: number;
   projectId: {
     title: string;
     description: string;
@@ -22,6 +23,13 @@ interface Task {
   }>;
 }
 
+interface Project {
+  title: string;
+  description: string;
+  tasks: Task[];
+  isExpanded: boolean;
+}
+
 @Component({
   selector: 'app-task',
   standalone: true,
@@ -30,6 +38,7 @@ interface Task {
   styleUrl: './task.component.css'
 })
 export class TaskComponent implements OnInit {
+  projects: Project[] = [];
   tasks: Task[] = [];
   loading: boolean = false;
   error: string | null = null;
@@ -48,8 +57,27 @@ export class TaskComponent implements OnInit {
     this.error = null;
 
     this.marketerService.getAssignedMarketingTasks().subscribe({
-      next: (response) => {
+      next: (response: { tasks: Task[] }) => {
         this.tasks = response.tasks;
+
+        // Group tasks by project
+        const groupedTasks = response.tasks.reduce((acc: { [key: string]: Task[] }, task: Task) => {
+          const projectTitle = task.projectId.title;
+          if (!acc[projectTitle]) {
+            acc[projectTitle] = [];
+          }
+          acc[projectTitle].push(task);
+          return acc;
+        }, {});
+
+        // Convert to projects array with proper typing
+        this.projects = Object.entries(groupedTasks).map(([title, tasks]): Project => ({
+          title,
+          description: tasks[0].projectId.description,
+          tasks: tasks,
+          isExpanded: false
+        }));
+
         this.loading = false;
       },
       error: (error) => {
@@ -58,6 +86,10 @@ export class TaskComponent implements OnInit {
         console.error('Error loading tasks:', error);
       }
     });
+  }
+
+  toggleProject(project: Project): void {
+    project.isExpanded = !project.isExpanded;
   }
 
   getStatusClass(status: string): string {

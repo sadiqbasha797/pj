@@ -11,6 +11,8 @@ const { createNotification,notifyCreation,notifyUpdate,leaveUpdateNotification,l
 const { uploadToCloudinary, deleteFromCloudinary } = require('../utils/cloudinary');
 const DigitalMarketingRole = require('../models/digitalMarketingRole');
 const ContentCreator = require('../models/contentCreator');
+const ManagerRequest = require('../models/managerRequest');
+const Admin = require('../models/Admin');
 
 // Email configuration
 const transporter = nodemailer.createTransport({
@@ -73,25 +75,27 @@ const registerManager = async (req, res) => {
       }
     })).then(results => results.filter(Boolean));
 
-    // Process digital marketing roles
+    // Process digital marketing roles with marketer name
     const processedMarketingRoles = await Promise.all(digitalMarketingRoles.map(async (roleId) => {
       const role = await DigitalMarketingRole.findById(roleId);
       if (role) {
         return {
           roleId: role._id,
-          roleName: role.name,
+          roleName: role.role,
+          marketerName: role.username,
           assignedOn: new Date()
         };
       }
     })).then(results => results.filter(Boolean));
 
-    // Process content creators
+    // Process content creators with creator name
     const processedContentCreators = await Promise.all(contentCreators.map(async (creatorId) => {
       const creator = await ContentCreator.findById(creatorId);
       if (creator) {
         return {
           roleId: creator._id,
-          roleName: creator.name,
+          roleName: creator.role,
+          creatorName: creator.username,
           assignedOn: new Date()
         };
       }
@@ -384,6 +388,107 @@ const markAllNotificationsAsRead = async (req, res) => {
   }
 };
 
+const createTeamRequest = async (req, res) => {
+  try {
+    const managerId = req.manager.id;
+    const { requestType, memberId, notes } = req.body;
+
+    // Determine the correct member model based on requestType
+    let memberModel;
+    switch (requestType) {
+      case 'developer':
+        memberModel = 'Developer';
+        break;
+      case 'digitalMarketer':
+        memberModel = 'DigitalMarketingRole';
+        break;
+      case 'contentCreator':
+        memberModel = 'ContentCreator';
+        break;
+      default:
+        return res.status(400).json({ message: 'Invalid request type' });
+    }
+
+    const request = new ManagerRequest({
+      manager: managerId,
+      requestType,
+      memberId,
+      memberModel,
+      notes
+    });
+
+    await request.save();
+
+    // Get admin email
+    const admin = await Admin.findOne({});
+    if (admin && admin.email) {
+      // Send email to admin
+      const mailOptions = {
+        from: 'khanbasha7777777@gmail.com',
+        to: admin.email,
+        subject: 'New Team Member Request',
+        text: `
+A new team member request has been submitted:
+
+Manager: ${req.manager.username}
+Request Type: ${requestType}
+Notes: ${notes || 'No additional notes'}
+
+Please review this request in the admin dashboard.`
+      };
+
+      transporter.sendMail(mailOptions, function(error, info) {
+        if (error) {
+          console.log('Error sending email:', error);
+        } else {
+          console.log('Email sent to admin:', info.response);
+        }
+      });
+    }
+
+    // Create notification for admin
+    await createNotification(
+      [null],
+      `New team member request from manager ${req.manager.username}`,
+      'team_request',
+      request._id
+    );
+
+    res.status(201).json({
+      message: 'Team member request created successfully',
+      request
+    });
+
+  } catch (error) {
+    console.error('Request creation error:', error);
+    res.status(500).json({
+      message: 'Error creating team member request',
+      error: error.message
+    });
+  }
+};
+
+const getManagerRequests = async (req, res) => {
+  try {
+    const managerId = req.manager.id;
+    const requests = await ManagerRequest.find({ manager: managerId })
+      .populate('manager', 'username email')
+      .populate('memberId')
+      .sort({ requestDate: -1 });
+
+    res.status(200).json({
+      requests
+    });
+
+  } catch (error) {
+    console.error('Error fetching requests:', error);
+    res.status(500).json({
+      message: 'Error fetching manager requests',
+      error: error.message
+    });
+  }
+};
+
 // Export all controller functions at the end
 module.exports = {
   getNonVerifiedDevelopers,
@@ -396,5 +501,7 @@ module.exports = {
   deleteDeveloper,
   updateManagerMedia,
   getManagerNotifications,
-  markAllNotificationsAsRead
+  markAllNotificationsAsRead,
+  createTeamRequest,
+  getManagerRequests
 };

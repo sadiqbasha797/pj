@@ -4,6 +4,7 @@ import { RouterModule, Router } from '@angular/router';
 import { ManagerService } from '../../services/manager.service';
 
 interface Notification {
+  createdAt: string | number | Date;
   _id: string;
   content: string;
   read: boolean;
@@ -41,7 +42,7 @@ export class NotificationsManagerComponent implements OnInit {
       next: (response) => {
         this.notifications = response.notifications.map((notification: Notification) => ({
           ...notification,
-          time: new Date(notification.date).toLocaleString()
+          time: new Date(notification.createdAt).toLocaleString()
         }));
         this.unreadCount = this.notifications.filter(n => !n.read).length;
         this.loading = false;

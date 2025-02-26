@@ -68,6 +68,7 @@ const sendTaskUpdateEmail = async (task, updateDetails) => {
 Update Details:
 Description: ${updateDetails.description}
 Period: ${new Date(updateDetails.startDate).toLocaleDateString()} to ${new Date(updateDetails.endDate).toLocaleDateString()}
+Budget: ${updateDetails.budget ? `$${updateDetails.budget}` : 'Not specified'}
 Updated By: ${updateDetails.updatedBy.name}${leadsInfoText}${attachmentsText}
 
 You can view the complete update in the system.`
@@ -85,7 +86,7 @@ You can view the complete update in the system.`
 // Create a new task update
 const createTaskUpdate = async (req, res) => {
     try {
-        const { taskId, description, startDate, endDate, leadsInfo } = req.body;
+        const { taskId, description, startDate, endDate, leadsInfo, budget } = req.body;
         const files = req.files;
         let attachments = [];
 
@@ -149,6 +150,7 @@ const createTaskUpdate = async (req, res) => {
             description,
             startDate,
             endDate,
+            budget,
             attachments,
             leadsInfo: parsedLeadsInfo,
             updatedBy,
@@ -162,6 +164,7 @@ const createTaskUpdate = async (req, res) => {
             description,
             startDate,
             endDate,
+            budget,
             leadsInfo: parsedLeadsInfo,
             updatedBy,
             attachments
@@ -425,7 +428,7 @@ const updateTaskUpdate = async (req, res) => {
             return res.status(401).json({ message: 'User not authenticated' });
         }
 
-        const { description, leadsInfo } = req.body;
+        const { description, leadsInfo, budget } = req.body;
         const files = req.files;
 
         const taskUpdate = await TaskUpdate.findById(id).populate('taskId');
@@ -465,6 +468,7 @@ const updateTaskUpdate = async (req, res) => {
 
         // Update other fields
         taskUpdate.description = description || taskUpdate.description;
+        taskUpdate.budget = budget !== undefined ? budget : taskUpdate.budget;
         if (leadsInfo) {
             taskUpdate.leadsInfo = JSON.parse(leadsInfo);
         }

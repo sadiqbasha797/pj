@@ -17,11 +17,13 @@ const ManagerSchema = new mongoose.Schema({
   digitalMarketingRoles: [{
     roleId: { type: mongoose.Schema.Types.ObjectId, ref: 'DigitalMarketingRole' },
     roleName: { type: String },
+    marketerName: { type: String },
     assignedOn: { type: Date, default: Date.now }
   }],
   contentCreators: [{
     roleId: { type: mongoose.Schema.Types.ObjectId, ref: 'ContentCreator' },
     roleName: { type: String },
+    creatorName: { type: String },
     assignedOn: { type: Date, default: Date.now }
   }]
 });

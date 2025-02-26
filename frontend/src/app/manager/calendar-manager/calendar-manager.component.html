@@ -101,7 +101,11 @@
 
   <!-- Calendar Section -->
   <div class="bg-white rounded-2xl border border-gray-100/50 shadow-xl shadow-gray-100/10 overflow-hidden">
-    <full-calendar [options]="calendarOptions" class="p-6"></full-calendar>
+    <full-calendar 
+      #calendar
+      [options]="calendarOptions"
+      class="p-6">
+    </full-calendar>
   </div>
 </div>
 
@@ -369,6 +373,21 @@
               </select>
               <button type="button" 
                       (click)="addParticipant(contentSelect.value, 'content-creator')"
+                      class="bg-blue-500 hover:bg-blue-600 text-white px-4 rounded-lg">
+                Add
+              </button>
+            </div>
+
+            <!-- Admin Selection -->
+            <div class="flex gap-2">
+              <select #adminSelect class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg">
+                <option value="">Select Admin</option>
+                <option *ngFor="let admin of admins" [value]="admin._id">
+                  {{admin.username}} (Admin)
+                </option>
+              </select>
+              <button type="button" 
+                      (click)="addParticipant(adminSelect.value, 'Admin')"
                       class="bg-blue-500 hover:bg-blue-600 text-white px-4 rounded-lg">
                 Add
               </button>

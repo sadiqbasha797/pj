@@ -5,7 +5,8 @@ import { ProjectsClientComponent } from './projects-client/projects-client.compo
 import { MeetingsComponent } from './meetings/meetings.component';
 import { LoginClientComponent } from './login-client/login-client.component';
 import { ClientAuthGuard } from '../guards/client-auth.guard';
-
+import { ProfileClientComponent } from './profile-client/profile-client.component';
+import { NotificationsClientComponent } from './notifications-client/notifications-client.component';
 const routes: Routes = [
   { path: 'login', component: LoginClientComponent },
   {
@@ -15,6 +16,8 @@ const routes: Routes = [
     children: [
       { path: 'projects', component: ProjectsClientComponent },
       { path: 'meetings', component: MeetingsComponent },
+      { path: 'profile', component: ProfileClientComponent },
+      { path: 'notifications', component: NotificationsClientComponent },
       { path: '', redirectTo: 'projects', pathMatch: 'full' }
     ]
   }
