@@ -1,0 +1,148 @@
+<div class="sidebar bg-gradient-to-br from-white via-white/90 to-white/80 h-screen fixed left-0 top-0 transition-all duration-300 ease-in-out flex flex-col shadow-lg"
+     [ngClass]="{'w-72': !isCollapsed, 'w-20': isCollapsed, 'hidden': isCollapsed && isMobile}">
+  <div class="flex-grow overflow-y-auto" [ngClass]="{'items-center': isCollapsed}">
+    <div class="p-4 bg-white relative overflow-hidden border-b border-gray-100">
+      <!-- Decorative corner elements -->
+      <div class="absolute inset-0">
+        <div class="absolute left-0 bottom-0 w-16 h-16" 
+             style="background: linear-gradient(45deg, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                    linear-gradient(-45deg, rgba(99, 102, 241, 0.12) 25%, transparent 50%);
+                    clip-path: polygon(0 0, 100% 100%, 0 100%);">
+        </div>
+        <div class="absolute right-0 top-0 w-16 h-16" 
+             style="background: linear-gradient(225deg, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+                    linear-gradient(135deg, rgba(59, 130, 246, 0.12) 25%, transparent 50%);
+                    clip-path: polygon(100% 0, 0 0, 100% 100%);">
+        </div>
+      </div>
+
+      <div class="absolute inset-0 bg-gradient-to-br from-blue-50/10 via-transparent to-indigo-50/10"></div>
+      
+      <div class="flex justify-between items-center relative z-10">
+        <div class="flex items-center gap-2">
+          <div class="px-2 rounded-xl backdrop-blur-sm border border-blue-100/30 hover:shadow-xl transition-all duration-300">
+            <img src="https://img.freepik.com/free-vector/abstract-logo-made-with-rounded-squares_1043-52.jpg" 
+                 alt="Logo" 
+                 class="h-8 w-8 transform hover:scale-110 transition-transform duration-300" 
+                 [ngClass]="{'mx-auto': isCollapsed}">
+          </div>
+          <div class="space-y-1" [ngClass]="{'hidden': isCollapsed}">
+            <h2 class="text-xl font-black text-gray-800">HR Panel</h2>
+            <div class="flex space-x-1">
+              <div class="h-0.5 w-12 bg-blue-400/50 rounded-full"></div>
+              <div class="h-0.5 w-6 bg-indigo-400/50 rounded-full"></div>
+              <div class="h-0.5 w-3 bg-violet-400/50 rounded-full"></div>
+            </div>
+          </div>
+        </div>
+        <button *ngIf="isMobile" (click)="onCloseSidebar()" class="text-blue-500 hover:text-blue-700">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M18 6L6 18M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <nav class="p-6">
+      <ul class="space-y-1.5" [ngClass]="{'flex flex-col items-center': isCollapsed}">
+        <!-- Dashboard 
+        <li>
+          <a routerLink="/hr/dashboard" routerLinkActive="bg-gradient-to-r from-blue-100/50 to-indigo-100/50 text-blue-700" 
+             class="group flex items-center py-2.5 px-4 rounded-xl hover:bg-blue-50/40 transition-all duration-300">
+            <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-indigo-100 to-blue-50">
+              <svg class="h-5 w-5 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5zM14 5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V5z"/>
+              </svg>
+            </div>
+            <span [ngClass]="{'hidden': isCollapsed, 'ml-3 font-medium': !isCollapsed}">Dashboard</span>
+          </a>
+        </li>
+      -->
+        <!-- Users Management -->
+        <li>
+          <a routerLink="/hr/users" routerLinkActive="bg-gradient-to-r from-blue-100/50 to-indigo-100/50 text-blue-700"
+             class="group flex items-center py-2.5 px-4 rounded-xl hover:bg-blue-50/40 transition-all duration-300">
+            <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-100 to-green-50">
+              <svg class="h-5 w-5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+              </svg>
+            </div>
+            <span [ngClass]="{'hidden': isCollapsed, 'ml-3 font-medium': !isCollapsed}">Users</span>
+          </a>
+        </li>
+
+        <!-- Team Requests -->
+        <li>
+          <a routerLink="/hr/team-requests" routerLinkActive="bg-gradient-to-r from-blue-100/50 to-indigo-100/50 text-blue-700"
+             class="group flex items-center py-2.5 px-4 rounded-xl hover:bg-blue-50/40 transition-all duration-300">
+            <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-purple-100 to-violet-50">
+              <svg class="h-5 w-5 text-purple-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+              </svg>
+            </div>
+            <span [ngClass]="{'hidden': isCollapsed, 'ml-3 font-medium': !isCollapsed}">Team Requests</span>
+            <span *ngIf="pendingRequestsCount > 0 && !isCollapsed" 
+                  class="ml-auto bg-purple-100 text-purple-600 text-xs px-2 py-0.5 rounded-full">
+              {{ pendingRequestsCount }}
+            </span>
+          </a>
+        </li>
+
+        <!-- Payroll -->
+        <li>
+          <a routerLink="/hr/payslip" routerLinkActive="bg-gradient-to-r from-blue-100/50 to-indigo-100/50 text-blue-700"
+             class="group flex items-center py-2.5 px-4 rounded-xl hover:bg-blue-50/40 transition-all duration-300">
+            <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-yellow-100 to-amber-50">
+              <svg class="h-5 w-5 text-yellow-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <span [ngClass]="{'hidden': isCollapsed, 'ml-3 font-medium': !isCollapsed}">Payroll</span>
+          </a>
+        </li>
+
+        <li>
+          <a routerLink="/hr/recruitment" routerLinkActive="bg-gradient-to-r from-blue-100/50 to-indigo-100/50 text-blue-700"
+             class="group flex items-center py-2.5 px-4 rounded-xl hover:bg-blue-50/40 transition-all duration-300">
+            <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-yellow-100 to-amber-50">
+              <svg class="h-5 w-5 text-yellow-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <span [ngClass]="{'hidden': isCollapsed, 'ml-3 font-medium': !isCollapsed}">Recruitment</span>
+          </a>
+        </li>
+
+        <!--leave-->
+        <li>
+          <a routerLink="/hr/leaves" routerLinkActive="bg-gradient-to-r from-blue-100/50 to-indigo-100/50 text-blue-700"
+             class="group flex items-center py-2.5 px-4 rounded-xl hover:bg-blue-50/40 transition-all duration-300">
+            <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-yellow-100 to-amber-50">
+              <svg class="h-5 w-5 text-yellow-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <span [ngClass]="{'hidden': isCollapsed, 'ml-3 font-medium': !isCollapsed}">Leave request's</span>
+          </a>
+        </li>
+
+      </ul>
+    </nav>
+  </div>
+
+  <!-- Footer -->
+  <div class="mt-auto border-t border-blue-100/50">
+    <div class="p-4" [ngClass]="{'text-center': isCollapsed}">
+      <!-- User Info -->
+      <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-blue-50/50 transition-all duration-300" [ngClass]="{'justify-center': isCollapsed}">
+        <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-400 to-indigo-400 flex items-center justify-center text-white text-sm font-medium">
+          H
+        </div>
+        <div class="flex-grow" *ngIf="!isCollapsed">
+          <div class="text-sm font-medium text-gray-700">HR Manager</div>
+          <div class="text-xs text-gray-500">hr.company.com</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

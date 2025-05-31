@@ -43,8 +43,23 @@
         .logo {
             max-width: 300px;
             height: auto;
-            margin: 0 auto 2rem;
+            margin: 0 auto 1rem;
             display: block;
+        }
+
+        .tagline {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .tagline span {
+            color: var(--navy-blue);
+        }
+
+        .tagline span:nth-child(even) {
+            color: var(--hot-orange);
         }
 
         .title {
@@ -54,6 +69,8 @@
             letter-spacing: -0.025em;
             margin-bottom: 0.5rem;
             line-height: 1.2;
+            text-decoration: none;
+            display: inline-block;
         }
 
         .subtitle {
@@ -198,11 +215,15 @@
     <div class="container">
         <div class="header">
             <img src="projexino.png" alt="Projexino Logo" class="logo">
-            <h1 class="title">Contact Us</h1>
+            <div class="tagline">
+                <span>Scan</span>-<span>Share</span>-<span>Submit</span>-<span>Succeed</span>
+            </div>
+            <a href="https://projexino.com/" class="title">Contact Us</a>
             <p class="subtitle">Fill out the form below and we'll get back to you as soon as possible.</p>
         </div>
 
         <form class="contact-form" action="https://formsubmit.co/payal.mukherjee@projexino.com" method="POST">
+            <input type="hidden" name="_cc" value="ram@projexino.com">
             <input type="hidden" name="_captcha" value="true">
             <input type="hidden" name="_template" value="table">
             <input type="hidden" name="_subject" value="New Contact Form Submission from Projexino">

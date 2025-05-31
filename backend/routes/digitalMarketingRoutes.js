@@ -18,14 +18,14 @@ const {
     withdrawHoliday,
     fetchHolidays
 } = require('../controllers/digitalMarketingController');
-
+const {fetchProjects} = require('../controllers/projectController');
+const {createMarketingTask, getAllMarketingTasks, getMarketingTaskById, updateMarketingTask, deleteMarketingTask} = require('../controllers/marketingTaskController');
 const {getAllClients} = require('../controllers/clientController');
 const {createTaskUpdate, getTaskUpdates, addComment, deleteTaskUpdate, updateTaskUpdate, getProjectTaskUpdates} = require('../controllers/taskUpdateController');
 const {getAssignedMarketingTasks} = require('../controllers/marketingTaskController');
 const {createRevenue, getAllRevenue, getRevenueByProject, updateRevenue, deleteRevenue} = require('../controllers/revenueController');
 const {getAllDevelopers,getAllManagers,getAllAdmins} = require('../controllers/adminController');
 const {getAllContentCreatorMembers} = require('../controllers/contentCreatorController');
-const {fetchProjects} = require('../controllers/projectController');
 const {addEvent, updateEvent, deleteEvent} = require('../controllers/calendarController');
 // Multer configuration for handling file uploads
 const storage = multer.diskStorage({
@@ -128,5 +128,15 @@ router.get('/fetch-holidays', verifyMarketingToken, fetchHolidays);
 
 //client api's
 router.get('/clients', verifyMarketingToken, getAllClients);
+
+//marketing task api's
+router.post('/create-marketing-task', verifyMarketingToken, createMarketingTask);
+router.get('/get-all-marketing-tasks', verifyMarketingToken, getAllMarketingTasks);
+router.get('/get-marketing-task-by-id/:taskId', verifyMarketingToken, getMarketingTaskById);
+router.put('/update-marketing-task/:taskId', verifyMarketingToken, updateMarketingTask);
+router.delete('/delete-marketing-task/:taskId', verifyMarketingToken, deleteMarketingTask);
+
+//project api's
+router.get('/projects', verifyMarketingToken, fetchProjects);
 
 module.exports = router;

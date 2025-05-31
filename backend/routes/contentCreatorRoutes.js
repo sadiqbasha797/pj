@@ -18,6 +18,7 @@ const {
     withdrawHoliday,
     fetchHolidays
 } = require('../controllers/contentCreatorController');
+const {createMarketingTask, getAllMarketingTasks, getMarketingTaskById, updateMarketingTask, deleteMarketingTask} = require('../controllers/marketingTaskController');
 const {getAllClients} = require('../controllers/clientController');
 const {addEvent, updateEvent, deleteEvent} = require('../controllers/calendarController');
 const {getAllAdmins, getAllDevelopers, getAllManagers} = require('../controllers/adminController');
@@ -129,4 +130,10 @@ router.get('/fetch-holidays', verifyContentCreatorToken, fetchHolidays);
 //client api's
 router.get('/clients', verifyContentCreatorToken, getAllClients);
 
+//marketing task api's
+router.post('/create-marketing-task', verifyContentCreatorToken, createMarketingTask);
+router.get('/get-all-marketing-tasks', verifyContentCreatorToken, getAllMarketingTasks);
+router.get('/get-marketing-task-by-id/:taskId', verifyContentCreatorToken, getMarketingTaskById);
+router.put('/update-marketing-task/:taskId', verifyContentCreatorToken, updateMarketingTask);
+router.delete('/delete-marketing-task/:taskId', verifyContentCreatorToken, deleteMarketingTask);
 module.exports = router;

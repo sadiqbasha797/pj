@@ -394,7 +394,9 @@ const approveOrDenyHoliday = async (req, res) => {
     const { status } = req.body;
 
     if (!['Approved', 'Denied'].includes(status)) {
-      return res.status(400).json({ message: 'Invalid status. Only "Approved" or "Denied" are valid statuses.' });
+      return res.status(400).json({ 
+        message: 'Invalid status. Only "Approved" or "Denied" are valid statuses.' 
+      });
     }
 
     // Create update object
@@ -403,8 +405,18 @@ const approveOrDenyHoliday = async (req, res) => {
     // Add approver details if status is 'Approved'
     if (status === 'Approved') {
       // Determine the approver's role and details
-      const approverRole = req.admin ? 'admin' : 'manager';
-      const approverName = req.admin ? req.admin.username : req.manager.username;
+      let approverRole, approverName;
+      
+      if (req.admin) {
+        approverRole = 'admin';
+        approverName = req.admin.username;
+      } else if (req.hr) {
+        approverRole = 'hr';
+        approverName = req.hr.name;
+      } else if (req.manager) {
+        approverRole = 'manager';
+        approverName = req.manager.username;
+      }
       
       updateData.approvedBy = {
         name: approverName,
@@ -417,26 +429,66 @@ const approveOrDenyHoliday = async (req, res) => {
       holidayId, 
       updateData,
       { new: true }
-    );
+    ).populate('developer', 'username email');
 
     if (!holiday) {
       return res.status(404).json({ message: 'Holiday request not found' });
     }
 
-    // Create notification for the developer
-    const notification = new Notification({
-      recipient: holiday.developer,
-      content: `Your holiday request has been ${status.toLowerCase()}${status === 'Approved' ? ` by ${updateData.approvedBy.name} (${updateData.approvedBy.role})` : ''}`,
-      type: 'Holiday',
-      relatedId: holiday._id,
-      read: false
+    // Send email notification to developer
+    const mailOptions = {
+      from: 'khanbasha7777777@gmail.com',
+      to: holiday.developer.email,
+      subject: `Holiday Request ${status}`,
+      text: `
+Dear ${holiday.developer.username},
+
+Your holiday request for ${new Date(holiday.startDate).toLocaleDateString()} to ${new Date(holiday.endDate).toLocaleDateString()} has been ${status.toLowerCase()}.
+
+${status === 'Approved' ? `Approved by: ${updateData.approvedBy.name} (${updateData.approvedBy.role})` : ''}
+${holiday.notes ? `Notes: ${holiday.notes}` : ''}
+
+Best regards,
+HR Department
+      `
+    };
+
+    transporter.sendMail(mailOptions, function(error, info) {
+      if (error) {
+        console.log('Error sending email:', error);
+      } else {
+        console.log('Email sent:', info.response);
+      }
     });
-    await notification.save();
+
+    // Create notification for the developer
+    await createNotification(
+      [holiday.developer._id],
+      `Your holiday request has been ${status.toLowerCase()}${status === 'Approved' ? ` by ${updateData.approvedBy.name} (${updateData.approvedBy.role})` : ''}`,
+      'holiday_status',
+      holiday._id
+    );
+
+    // Create notification for the approver
+    const approverId = req.admin?._id || req.hr?.id || req.manager?._id;
+    await createNotification(
+      [approverId],
+      `Holiday request for ${holiday.developer.username} has been ${status.toLowerCase()}`,
+      'holiday_processed',
+      holiday._id
+    );
 
     const action = status === 'Approved' ? 'approved' : 'denied';
-    res.status(200).json({ message: `Holiday ${action} successfully`, holiday });
+    res.status(200).json({ 
+      message: `Holiday ${action} successfully`, 
+      holiday 
+    });
   } catch (error) {
-    res.status(500).json({ message: `Error ${status.toLowerCase()} holiday`, error: error.message });
+    console.error('Error processing holiday request:', error);
+    res.status(500).json({ 
+      message: `Error processing holiday request`, 
+      error: error.message 
+    });
   }
 };
 

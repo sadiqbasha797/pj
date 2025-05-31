@@ -71,10 +71,12 @@ export class ChatDeveloperComponent implements OnInit, OnDestroy {
   }
 
   private initializeChat() {
-    this.messageService.joinRoom(this.currentUserId);
     this.loadAllUsers();
     this.loadMessagedUsers();
-    
+    this.setupMessageListener();
+  }
+
+  private setupMessageListener() {
     this.subscriptions.push(
       this.messageService.getNewMessageUpdates().subscribe(message => {
         if (message && 
@@ -82,10 +84,25 @@ export class ChatDeveloperComponent implements OnInit, OnDestroy {
              (message.receiver.id === this.selectedUser?._id))) {
           const isDuplicate = this.messages.some(m => m._id === message._id);
           if (!isDuplicate) {
-            this.messages.push(message);
+            this.messages = [...this.messages, message];
             if (message.receiver.id === this.currentUserId) {
               this.markAsRead(message._id!);
             }
+            
+            // Update cache
+            const currentCache = this.cacheService.getCachedMessages(
+              this.currentUserId,
+              this.selectedUser!._id
+            ) || [];
+            
+            this.cacheService.setCachedMessages(
+              this.currentUserId,
+              this.selectedUser!._id,
+              [...currentCache, message]
+            );
+            
+            this.scrollToBottom();
+            this.loadMessagedUsers(); // Refresh the users list
           }
         }
       })

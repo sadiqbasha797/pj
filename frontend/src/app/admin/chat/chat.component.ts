@@ -33,12 +33,13 @@ export class ChatComponent implements OnInit, OnDestroy {
   currentUserId: string = '';
   isLoading: boolean = true;
   private subscriptions: Subscription[] = [];
-  isTyping: any;
+  isTyping: boolean = false;
   isSending: boolean = false;
   activeTab: 'users' | 'messages' = 'messages';
   allUsers: User[] = [];
   messagedUsers: User[] = [];
   private messagesContainer: HTMLElement | null = null;
+  private messageUpdateSubscription: Subscription | null = null;
 
   constructor(
     private messageService: MessageService,
@@ -46,7 +47,6 @@ export class ChatComponent implements OnInit, OnDestroy {
     private cacheService: CacheService
   ) {
     this.currentUserId = localStorage.getItem('userId') || '';
-    console.log('Constructor - Current User ID:', this.currentUserId);
   }
 
   ngOnInit() {
@@ -55,26 +55,60 @@ export class ChatComponent implements OnInit, OnDestroy {
       return;
     }
     
-    console.log('ngOnInit - Using User ID:', this.currentUserId);
-    this.messageService.joinRoom(this.currentUserId);
     this.loadAllUsers();
     this.loadMessagedUsers();
-    
-    this.subscriptions.push(
-      this.messageService.getNewMessageUpdates().subscribe(message => {
-        if (message && 
-            ((message.sender.id === this.selectedUser?._id) || 
-             (message.receiver.id === this.selectedUser?._id))) {
-          const isDuplicate = this.messages.some(m => m._id === message._id);
-          if (!isDuplicate) {
-            this.messages.push(message);
-            if (message.receiver.id === this.currentUserId) {
-              this.markAsRead(message._id!);
+    this.setupMessageListener();
+  }
+
+  private setupMessageListener() {
+    this.messageUpdateSubscription = this.messageService.getNewMessageUpdates()
+      .subscribe(message => {
+        if (message) {
+          // Handle new message
+          if (this.selectedUser && 
+              (message.sender.id === this.selectedUser._id || 
+               message.receiver.id === this.selectedUser._id)) {
+            // Add message to current conversation
+            const isDuplicate = this.messages.some(m => m._id === message._id);
+            if (!isDuplicate) {
+              this.messages.push(message);
+              this.scrollToBottom();
+              
+              // Mark message as read if we're the receiver
+              if (message.receiver.id === this.currentUserId) {
+                this.markAsRead(message._id!);
+              }
             }
           }
+          
+          // Update messaged users list to show latest message
+          this.updateMessagedUsersList(message);
         }
-      })
-    );
+      });
+  }
+
+  private updateMessagedUsersList(newMessage: any) {
+    const userId = newMessage.sender.id === this.currentUserId ? 
+                  newMessage.receiver.id : 
+                  newMessage.sender.id;
+
+    const existingUserIndex = this.messagedUsers.findIndex(u => u._id === userId);
+    
+    if (existingUserIndex > -1) {
+      // Update existing user's recent message
+      this.messagedUsers[existingUserIndex].recentMessage = {
+        content: newMessage.content,
+        createdAt: newMessage.createdAt,
+        unread: !newMessage.read && newMessage.receiver.id === this.currentUserId
+      };
+      
+      // Move this user to the top of the list
+      const [user] = this.messagedUsers.splice(existingUserIndex, 1);
+      this.messagedUsers.unshift(user);
+    } else {
+      // If it's a new conversation, reload the messaged users list
+      this.loadMessagedUsers();
+    }
   }
 
   loadAllUsers() {
@@ -87,7 +121,6 @@ export class ChatComponent implements OnInit, OnDestroy {
       contentCreators: this.adminService.getAllContentCreatorMembers()
     }).subscribe({
       next: (response) => {
-        // Combine all users and format them consistently
         this.allUsers = [
           ...response.managers.map((user: { _id: any; username: any; email: any; }) => ({
             _id: user._id,
@@ -133,9 +166,8 @@ export class ChatComponent implements OnInit, OnDestroy {
   loadMessagedUsers() {
     this.messageService.getMessagedUsers().subscribe({
       next: (response: any) => {
-        // Check if response has data property and it's an array
         if (response.data && Array.isArray(response.data)) {
-          this.messagedUsers = [];  // Clear existing messages
+          this.messagedUsers = [];
           response.data.forEach((user: any) => {
             this.messageService.getConversation(user._id).subscribe({
               next: (messages) => {
@@ -154,9 +186,6 @@ export class ChatComponent implements OnInit, OnDestroy {
               }
             });
           });
-        } else {
-          console.error('Invalid response format from getMessagedUsers:', response);
-          this.messagedUsers = [];
         }
       },
       error: (error) => {
@@ -173,40 +202,26 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   loadConversation() {
     if (this.selectedUser) {
-      // Try to get messages from cache first
       const cachedMessages = this.cacheService.getCachedMessages(
         this.currentUserId,
         this.selectedUser._id
       );
 
       if (cachedMessages) {
-        console.log('Loading messages from cache');
         this.messages = cachedMessages;
-        // Still mark unread messages as read
-        cachedMessages.forEach(message => {
-          if (!message.read && message.receiver.id === this.currentUserId) {
-            this.markAsRead(message._id!);
-          }
-        });
+        this.markUnreadMessagesAsRead();
         this.scrollToBottom();
       } else {
-        // If no cache, load from API
-        console.log('Loading messages from API');
         this.messageService.getConversation(this.selectedUser._id)
           .subscribe({
             next: (messages) => {
               this.messages = messages;
-              // Cache the messages
               this.cacheService.setCachedMessages(
                 this.currentUserId,
                 this.selectedUser!._id,
                 messages
               );
-              messages.forEach(message => {
-                if (!message.read && message.receiver.id === this.currentUserId) {
-                  this.markAsRead(message._id!);
-                }
-              });
+              this.markUnreadMessagesAsRead();
               this.scrollToBottom();
             },
             error: (error) => {
@@ -217,8 +232,16 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
   }
 
+  private markUnreadMessagesAsRead() {
+    this.messages.forEach(message => {
+      if (!message.read && message.receiver.id === this.currentUserId) {
+        this.markAsRead(message._id!);
+      }
+    });
+  }
+
   sendMessage() {
-    if (this.newMessage.trim() && this.selectedUser) {
+    if (this.newMessage.trim() && this.selectedUser && !this.isSending) {
       this.isSending = true;
       this.messageService.sendMessage(
         this.selectedUser._id,
@@ -226,20 +249,19 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.newMessage.trim()
       ).subscribe({
         next: (message) => {
-          // Update cache with new message
           const currentCache = this.cacheService.getCachedMessages(
             this.currentUserId,
             this.selectedUser!._id
           ) || [];
+          
           this.cacheService.setCachedMessages(
             this.currentUserId,
             this.selectedUser!._id,
             [...currentCache, message]
           );
-          this.messages.push(message);
+          
           this.newMessage = '';
           this.isSending = false;
-          this.loadMessagedUsers();
           this.scrollToBottom();
         },
         error: (error) => {
@@ -262,13 +284,6 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.activeTab = tab;
   }
 
-  ngOnDestroy() {
-    // Clear message cache when component is destroyed
-    this.cacheService.clearMessageCache(this.currentUserId);
-    this.subscriptions.forEach(sub => sub.unsubscribe());
-    this.messageService.disconnect();
-  }
-
   private scrollToBottom(): void {
     setTimeout(() => {
       this.messagesContainer = document.querySelector('.messages-container');
@@ -276,5 +291,14 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
       }
     }, 100);
+  }
+
+  ngOnDestroy() {
+    this.cacheService.clearMessageCache(this.currentUserId);
+    if (this.messageUpdateSubscription) {
+      this.messageUpdateSubscription.unsubscribe();
+    }
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+    this.messageService.disconnect();
   }
 }

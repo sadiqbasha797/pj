@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Business Card Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen font-['Poppins']">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Input Form -->
+        <div class="max-w-md mx-auto bg-white rounded-lg shadow-lg p-4 sm:p-6 mb-8">
+            <h1 class="text-xl sm:text-2xl font-semibold text-gray-800 mb-6">Business Card Generator</h1>
+            <form id="cardForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Full Name</label>
+                    <input type="text" id="fullName" class="mt-1 block w-full px-4 py-3 rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 transition-colors">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Job Title</label>
+                    <input type="text" id="jobTitle" class="mt-1 block w-full px-4 py-3 rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 transition-colors">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" id="email" class="mt-1 block w-full px-4 py-3 rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 transition-colors">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Phone</label>
+                    <input type="tel" id="phone" class="mt-1 block w-full px-4 py-3 rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 transition-colors">
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 text-white py-3 px-4 rounded-md hover:bg-indigo-700 transition-colors mt-6">
+                    Generate Card
+                </button>
+            </form>
+        </div>
+
+        <!-- Modal Background -->
+        <div id="cardModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-2 sm:p-6">
+            <!-- Modal Content -->
+            <div class="bg-white p-3 sm:p-6 rounded-lg shadow-xl w-[95%] max-w-md mx-auto">
+                <div class="flex justify-between items-center mb-3 sm:mb-6">
+                    <h2 class="text-lg sm:text-xl font-semibold text-gray-800">Your Business Card</h2>
+                    <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <!-- Card Preview in Modal -->
+                <div id="modalCardPreview" class="w-full">
+                    <!-- The business card will be cloned here -->
+                </div>
+                <div class="mt-4 sm:mt-6 flex justify-end space-x-3">
+                    <button onclick="downloadCard()" class="px-4 py-2 sm:px-6 sm:py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors text-sm sm:text-base">
+                        Download Card
+                    </button>
+                    <button onclick="closeModal()" class="px-4 py-2 sm:px-6 sm:py-3 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors text-sm sm:text-base">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hidden Business Card Preview -->
+        <div class="max-w-md mx-auto hidden">
+            <div id="businessCard" class="bg-gradient-to-r from-indigo-500 to-purple-500 p-3 sm:p-6 rounded-lg shadow-xl aspect-video">
+                <div class="h-full flex flex-col justify-between text-white">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <h2 id="previewName" class="text-lg sm:text-2xl font-bold mb-0.5 sm:mb-1">Your Name</h2>
+                            <p id="previewTitle" class="text-xs sm:text-sm font-medium text-indigo-100">Job Title</p>
+                        </div>
+                        <img src="projexino.png" alt="Company Logo" class="h-6 sm:h-12 w-auto object-contain drop-shadow-[0_0_12px_rgba(255,255,255,1)] filter brightness-125">
+                    </div>
+                    <div class="flex justify-between items-end pb-2">
+                        <div class="border-t border-white/20 pt-2 sm:pt-4 mt-2 sm:mt-4 flex-1">
+                            <div class="text-[11px] sm:text-sm space-y-0.5 sm:space-y-1">
+                                <p id="previewEmail">email@example.com</p>
+                                <p id="previewPhone">+1 234 567 890</p>
+                                <p class="text-[9px] sm:text-xs mt-1 sm:mt-2 text-indigo-100">P No 305 Sa Society Khanamet, Kondapur, Hyderabad, Telangana 500084</p>
+                            </div>
+                        </div>
+                        <div id="qrcode" class="ml-2 sm:ml-4 bg-white p-1 rounded-md w-14 h-14 sm:w-[4.5rem] sm:h-[4.5rem] flex items-center justify-center"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="pb-8 sm:pb-12"><!-- Extra padding at bottom of page --></div>
+
+    <script>
+        function showModal() {
+            const modal = document.getElementById('cardModal');
+            const modalPreview = document.getElementById('modalCardPreview');
+            const card = document.getElementById('businessCard');
+            
+            // Clone the card and add it to the modal
+            modalPreview.innerHTML = '';
+            modalPreview.appendChild(card.cloneNode(true));
+            
+            // Show modal
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            // Generate QR code in the cloned card
+            const qrcodeContainer = modalPreview.querySelector('#qrcode');
+            qrcodeContainer.innerHTML = '';
+            
+            // Adjust QR code size based on screen width
+            const qrSize = window.innerWidth < 640 ? 56 : 72;
+            new QRCode(qrcodeContainer, {
+                text: 'https://contact.projexino.com/',
+                width: qrSize,
+                height: qrSize,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.L
+            });
+
+            // Center the QR code
+            const qrImg = qrcodeContainer.querySelector('img');
+            if (qrImg) {
+                qrImg.style.margin = 'auto';
+            }
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('cardModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        async function downloadCard() {
+            const card = document.querySelector('#modalCardPreview #businessCard');
+            try {
+                const canvas = await html2canvas(card, {
+                    scale: 2,
+                    backgroundColor: null,
+                    logging: false
+                });
+                
+                const link = document.createElement('a');
+                link.download = 'business-card.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            } catch (error) {
+                console.error('Error generating card image:', error);
+            }
+        }
+
+        document.getElementById('cardForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Update preview
+            document.getElementById('previewName').textContent = document.getElementById('fullName').value || 'Your Name';
+            document.getElementById('previewTitle').textContent = document.getElementById('jobTitle').value || 'Job Title';
+            document.getElementById('previewEmail').textContent = document.getElementById('email').value || 'email@example.com';
+            document.getElementById('previewPhone').textContent = document.getElementById('phone').value || '+1 234 567 890';
+            
+            // Show modal with card
+            showModal();
+        });
+
+        // Close modal when clicking outside
+        document.getElementById('cardModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

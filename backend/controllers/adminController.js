@@ -546,6 +546,7 @@ const handleTeamRequest = async (req, res) => {
   try {
     const { requestId } = req.params;
     const { status, notes } = req.body;
+    const handledBy = req.hr ? 'HR' : 'Admin'; // Check if request is handled by HR or Admin
 
     if (!['approved', 'rejected'].includes(status)) {
       return res.status(400).json({ message: 'Invalid status' });
@@ -567,6 +568,7 @@ const handleTeamRequest = async (req, res) => {
     request.status = status;
     request.responseDate = new Date();
     request.notes = notes || request.notes;
+    request.handledBy = handledBy;
 
     // If approved, add member to manager's team
     if (status === 'approved') {
@@ -603,6 +605,14 @@ const handleTeamRequest = async (req, res) => {
                         manager.contentCreators.length;
       
       await manager.save();
+
+      // Create notification for the team member
+      await createNotification(
+        [request.memberId._id],
+        `You have been added to ${manager.username}'s team`,
+        'team_assignment',
+        manager._id
+      );
     }
 
     await request.save();
@@ -613,7 +623,7 @@ const handleTeamRequest = async (req, res) => {
       to: request.manager.email,
       subject: `Team Member Request ${status.toUpperCase()}`,
       text: `
-Your team member request has been ${status}:
+Your team member request has been ${status} by ${handledBy}:
 
 Request Type: ${request.requestType}
 ${status === 'approved' ? 'Member has been added to your team.' : ''}
@@ -633,8 +643,17 @@ You can view the details in your dashboard.`
     // Create notification for manager
     await createNotification(
       [request.manager._id],
-      `Your team member request has been ${status}`,
+      `Your team member request has been ${status} by ${handledBy}`,
       'team_request_response',
+      request._id
+    );
+
+    // Create notification for HR/Admin
+    const adminNotificationRecipient = req.hr ? req.hr.id : req.admin.id;
+    await createNotification(
+      [adminNotificationRecipient],
+      `Team request ${status} for manager ${request.manager.username}`,
+      'team_request_handled',
       request._id
     );
 

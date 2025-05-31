@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
-import { io, Socket } from 'socket.io-client';
+import { map } from 'rxjs/operators';
 
 interface Message {
   _id?: string;
@@ -22,59 +22,69 @@ interface Message {
   providedIn: 'root'
 })
 export class MessageService {
-  getRecentChats(): Observable<any[]> {
-    return this.http.get<any[]>(
-      `${this.apiUrl}/users`,
-      { headers: this.getHeaders() }
-    );
-  }
-  private socket: Socket;
+  private ws: WebSocket | null = null;
   private apiUrl = 'http://localhost:4000/api/message';
   private unreadCount = new BehaviorSubject<number>(0);
   private newMessage = new BehaviorSubject<Message | null>(null);
+  private wsUrl = 'ws://localhost:4000';
 
   constructor(private http: HttpClient) {
-    this.socket = io('http://localhost:4000');
-    this.setupSocketListeners();
-    this.getUnreadCount().subscribe();
+    this.initializeWebSocket();
   }
 
-  private setupSocketListeners(): void {
-    this.socket.on('newMessage', (data: { message: Message, receiverId: string }) => {
-      this.newMessage.next(data.message);
-      this.getUnreadCount().subscribe();
-    });
+  private initializeWebSocket(): void {
+    const token = this.getToken();
+    if (!token) {
+      console.error('No token available for WebSocket connection');
+      return;
+    }
+
+    this.ws = new WebSocket(`${this.wsUrl}?token=${token}`);
+
+    this.ws.onopen = () => {
+      console.log('WebSocket Connected');
+    };
+
+    this.ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'newMessage') {
+          this.newMessage.next(data.data);
+          this.getUnreadCount().subscribe();
+        }
+      } catch (error) {
+        console.error('Error processing WebSocket message:', error);
+      }
+    };
+
+    this.ws.onclose = () => {
+      console.log('WebSocket disconnected. Attempting to reconnect...');
+      setTimeout(() => this.initializeWebSocket(), 5000);
+    };
+
+    this.ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+  }
+
+  private getToken(): string | null {
+    return localStorage.getItem('managerToken') || 
+           localStorage.getItem('adminToken') || 
+           localStorage.getItem('developerToken') ||
+           localStorage.getItem('marketerToken') ||
+           localStorage.getItem('digitalMarketingToken') ||
+           localStorage.getItem('contentCreatorToken') ||
+           localStorage.getItem('clientToken');
   }
 
   private getHeaders(): HttpHeaders {
-    const token = 
-      localStorage.getItem('managerToken') || 
-      localStorage.getItem('adminToken') || 
-      localStorage.getItem('developerToken') ||
-      localStorage.getItem('marketerToken') ||
-      localStorage.getItem('digitalMarketingToken') ||
-      localStorage.getItem('contentCreatorToken') ||
-      localStorage.getItem('clientToken');
-    
-    if (!token) {
-      console.warn('No authentication token found in localStorage:', {
-        managerToken: localStorage.getItem('managerToken'),
-        adminToken: localStorage.getItem('adminToken'),
-        developerToken: localStorage.getItem('developerToken'),
-        marketerToken: localStorage.getItem('marketerToken'),
-        digitalMarketingToken: localStorage.getItem('digitalMarketingToken'),
-        contentCreatorToken: localStorage.getItem('contentCreatorToken'),
-        clientToken: localStorage.getItem('clientToken')
-      });
-    }
-    
+    const token = this.getToken();
     return new HttpHeaders()
       .set('Authorization', `Bearer ${token}`)
       .set('Content-Type', 'application/json');
   }
 
   sendMessage(receiverId: string, receiverRole: string, content: string): Observable<Message> {
-    // Map frontend role names to backend role names
     const roleMapping: { [key: string]: string } = {
       'admin': 'admin',
       'manager': 'manager',
@@ -86,18 +96,33 @@ export class MessageService {
     };
 
     const mappedRole = roleMapping[receiverRole] || receiverRole;
-    
     const payload = {
       receiverId,
       receiverRole: mappedRole,
       content
     };
+
+    // Send through WebSocket for immediate delivery
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      this.ws.send(JSON.stringify({
+        type: 'message',
+        data: payload
+      }));
+    }
     
+    // Send through HTTP for persistence
     return this.http.post<Message>(
       `${this.apiUrl}/send`, 
       payload, 
       { headers: this.getHeaders() }
     );
+  }
+
+  disconnect(): void {
+    if (this.ws) {
+      this.ws.close();
+      this.ws = null;
+    }
   }
 
   getConversation(otherUserId: string): Observable<Message[]> {
@@ -116,22 +141,12 @@ export class MessageService {
   }
 
   getUnreadCount(): Observable<number> {
-    return new Observable(observer => {
-      this.http.get<{ unreadCount: number }>(
-        `${this.apiUrl}/unread`,
-        { headers: this.getHeaders() }
-      ).subscribe({
-        next: (response) => {
-          this.unreadCount.next(response.unreadCount);
-          observer.next(response.unreadCount);
-          observer.complete();
-        },
-        error: (error) => {
-          console.error('Error fetching unread count:', error);
-          observer.error(error);
-        }
-      });
-    });
+    return this.http.get<{ unreadCount: number }>(
+      `${this.apiUrl}/unread`,
+      { headers: this.getHeaders() }
+    ).pipe(
+      map(response => response.unreadCount)
+    );
   }
 
   getUnreadCountUpdates(): Observable<number> {
@@ -140,16 +155,6 @@ export class MessageService {
 
   getNewMessageUpdates(): Observable<Message | null> {
     return this.newMessage.asObservable();
-  }
-
-  joinRoom(userId: string): void {
-    this.socket.emit('join', userId);
-  }
-
-  disconnect(): void {
-    if (this.socket) {
-      this.socket.disconnect();
-    }
   }
 
   getMessagedUsers(): Observable<any[]> {

@@ -62,10 +62,13 @@ export class ChatManagerComponent implements OnInit, OnDestroy {
     }
     
     console.log('ngOnInit - Using User ID:', this.currentUserId);
-    this.messageService.joinRoom(this.currentUserId);
     this.loadUsers();
     this.loadMessagedUsers();
-    
+    this.setupMessageListener();
+  }
+
+  private setupMessageListener() {
+    // Listen for new messages
     this.subscriptions.push(
       this.messageService.getNewMessageUpdates().subscribe(message => {
         if (message && 
@@ -77,12 +80,27 @@ export class ChatManagerComponent implements OnInit, OnDestroy {
             if (message.receiver.id === this.currentUserId) {
               this.markAsRead(message._id!);
             }
+            
+            // Update cache
+            const currentCache = this.cacheService.getCachedMessages(
+              this.currentUserId,
+              this.selectedUser!._id
+            ) || [];
+            
+            this.cacheService.setCachedMessages(
+              this.currentUserId,
+              this.selectedUser!._id,
+              [...currentCache, message]
+            );
+            
             this.scrollToBottom();
+            this.loadMessagedUsers(); // Refresh the users list
           }
         }
       })
     );
 
+    // Listen for unread count updates
     this.subscriptions.push(
       this.messageService.getUnreadCountUpdates().subscribe(count => {
         console.log('Unread messages count:', count);

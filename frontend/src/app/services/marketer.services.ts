@@ -188,4 +188,28 @@ export class MarketerService {
   fetchHolidays(): Observable<any> {
     return this.http.get(`${this.apiUrl}/fetch-holidays`, { headers: this.getHeaders() });
   }
+
+  // Marketing Task APIs
+  createMarketingTask(taskData: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/create-marketing-task`, taskData, { headers: this.getHeaders() });
+  }
+
+  getAllMarketingTasks(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/get-all-marketing-tasks`, { headers: this.getHeaders() });
+  }
+
+  getMarketingTaskById(taskId: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/get-marketing-task-by-id/${taskId}`, { headers: this.getHeaders() });
+  }
+
+  updateMarketingTask(taskId: string, taskData: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/update-marketing-task/${taskId}`, taskData, { headers: this.getHeaders() });
+  }
+
+  deleteMarketingTask(taskId: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/delete-marketing-task/${taskId}`, { headers: this.getHeaders() });
+  }
+  fetchProjects(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/projects`, { headers: this.getHeaders() });
+  }
 }

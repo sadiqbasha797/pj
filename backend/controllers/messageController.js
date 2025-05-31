@@ -66,28 +66,42 @@ const messageController = {
                 createdAt: new Date()
             };
 
-            // Emit socket event immediately
-            if (req.app.get('io')) {
-                req.app.get('io').to(receiverId.toString()).emit('newMessage', {
-                    message: messageData,
-                    receiverId
+            // Send WebSocket message immediately
+            const ws = req.app.get('wss');
+            if (ws) {
+                // Broadcast to all clients - they will filter based on receiverId
+                ws.clients.forEach(client => {
+                    if (client.userId === receiverId.toString()) {
+                        client.send(JSON.stringify({
+                            type: 'newMessage',
+                            data: messageData
+                        }));
+                    }
                 });
             }
 
-            // Create and save message in background
-            const newMessage = new Message(messageData);
-            await newMessage.save();
+            // Store message in database asynchronously
+            Promise.all([
+                // Save message
+                (async () => {
+                    const newMessage = new Message(messageData);
+                    await newMessage.save();
+                })(),
+                
+                // Send email notification
+                (async () => {
+                    const receiver = await getUserById(receiverId, receiverRole);
+                    if (receiver?.email) {
+                        await sendMessageNotification(
+                            receiver.email,
+                            req.user.username,
+                            content
+                        );
+                    }
+                })()
+            ]).catch(err => console.error('Background task error:', err));
 
-            // Send email notification in background
-            const receiver = await getUserById(receiverId, receiverRole);
-            if (receiver && receiver.email) {
-                sendMessageNotification(
-                    receiver.email,
-                    req.user.username,
-                    content
-                ).catch(err => console.error('Email notification error:', err));
-            }
-
+            // Respond immediately after sending WebSocket message
             res.status(201).json(messageData);
         } catch (error) {
             console.error('Error in sendMessage:', error);

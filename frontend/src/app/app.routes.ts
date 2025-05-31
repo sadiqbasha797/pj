@@ -10,6 +10,10 @@ export const routes: Routes = [
     loadChildren: () => import('./admin/admin-routing.module').then(m => m.AdminRoutingModule)
   },
   { 
+    path: 'hr', 
+    loadChildren: () => import('./hr/hr-routing.module').then(m => m.HrRoutingModule)
+  },
+  { 
     path: 'manager', 
     loadChildren: () => import('./manager/manager-routing.module').then(m => m.ManagerRoutingModule)
   },

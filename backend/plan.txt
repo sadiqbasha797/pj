@@ -1,26 +1,18 @@
--> Create task assign model for digital marketing and content writing
-    * create a new task update model for digital marketing and content writing and store the updates
-    the task update model should contain the following fields:
-    task id
-    task name
-    task description
-    task status
-    task priority
-    task update date
-    task assignee
-    task assignee name
-    task comments
-    task progress
-    task attachments
-    task leads information
+recurting module
 
-    * the task can be created by the digital marketing and content writing team
-    
--> create a model called revenue for the digital marketing and content writing team to update revenue generated from each project and task
-    * the model should contain the following fields:
-    project id
-    task id
-    project revenue
-    project status
-    revenue details
+candidate
 
+name, email, resume, education details, skills, role applied for,
+applied date, status, address, createdby(hr/admin)
+
+jobs
+
+role, salary offered, vacancies, description, dates, attachments, createdby(hr/admin)
+
+interview
+
+name, candidate details(id, name, email), interview date, interview status, interview link, created by (hr/admin)
+
+offer letter
+
+candidate information(id, name, email), date, joining date

@@ -1,0 +1,514 @@
+<!-- Main Container -->
+<div class="min-h-screen bg-gray-100 p-6">
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-800">Recruitment Management</h1>
+      <p class="text-gray-600">Manage jobs, candidates, interviews, and offer letters</p>
+    </div>
+  
+    <!-- Success/Error Messages -->
+    <div *ngIf="successMessage" class="mb-4 p-4 bg-green-100 text-green-700 rounded-lg">
+      {{ successMessage }}
+    </div>
+    <div *ngIf="errorMessage" class="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
+      {{ errorMessage }}
+    </div>
+  
+    <!-- Tab Navigation -->
+    <div class="mb-6 border-b border-gray-200">
+      <nav class="flex space-x-4">
+        <button 
+          [ngClass]="{'text-blue-600 border-b-2 border-blue-600': activeTab === 'jobs',
+                      'text-gray-500 hover:text-gray-700': activeTab !== 'jobs'}"
+          class="py-2 px-4 font-medium"
+          (click)="setActiveTab('jobs')">
+          Jobs
+        </button>
+        <button 
+          [ngClass]="{'text-blue-600 border-b-2 border-blue-600': activeTab === 'candidates',
+                      'text-gray-500 hover:text-gray-700': activeTab !== 'candidates'}"
+          class="py-2 px-4 font-medium"
+          (click)="setActiveTab('candidates')">
+          Candidates
+        </button>
+        <button 
+          [ngClass]="{'text-blue-600 border-b-2 border-blue-600': activeTab === 'interviews',
+                      'text-gray-500 hover:text-gray-700': activeTab !== 'interviews'}"
+          class="py-2 px-4 font-medium"
+          (click)="setActiveTab('interviews')">
+          Interviews
+        </button>
+        <button 
+          [ngClass]="{'text-blue-600 border-b-2 border-blue-600': activeTab === 'offerLetters',
+                      'text-gray-500 hover:text-gray-700': activeTab !== 'offerLetters'}"
+          class="py-2 px-4 font-medium"
+          (click)="setActiveTab('offerLetters')">
+          Offer Letters
+        </button>
+      </nav>
+    </div>
+  
+    <!-- Loading Spinner -->
+    <div *ngIf="isLoading" class="flex justify-center items-center h-64">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    </div>
+  
+    <!-- Jobs Tab -->
+    <div *ngIf="activeTab === 'jobs' && !isLoading" class="space-y-6">
+      <!-- Job Form -->
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-xl font-semibold mb-4">{{ selectedJob ? 'Edit Job' : 'Create New Job' }}</h2>
+        <form [formGroup]="jobForm" (ngSubmit)="onSubmitJob()" class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Role</label>
+              <input type="text" formControlName="role" 
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            </div>
+            
+            <div formGroupName="salaryOffered">
+              <label class="block text-sm font-medium text-gray-700">Salary Range</label>
+              <div class="flex space-x-2">
+                <input type="number" formControlName="min" placeholder="Min" 
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                <input type="number" formControlName="max" placeholder="Max"
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+              </div>
+            </div>
+  
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Vacancies</label>
+              <input type="number" formControlName="vacancies"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            </div>
+  
+            <div formGroupName="dates">
+              <label class="block text-sm font-medium text-gray-700">Deadline</label>
+              <input type="date" formControlName="deadline"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            </div>
+          </div>
+  
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Description</label>
+            <textarea formControlName="description" rows="4"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+          </div>
+  
+          <div class="flex justify-end space-x-3">
+            <button type="button" (click)="resetJobForm()"
+              class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+              Cancel
+            </button>
+            <button type="submit" [disabled]="!jobForm.valid"
+              class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50">
+              {{ selectedJob ? 'Update Job' : 'Create Job' }}
+            </button>
+          </div>
+        </form>
+      </div>
+  
+      <!-- Jobs List -->
+      <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Salary Range</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vacancies</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deadline</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr *ngFor="let job of jobs">
+              <td class="px-6 py-4 whitespace-nowrap">{{ job.role }}</td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                {{ job.salaryOffered.min }} - {{ job.salaryOffered.max }} {{ job.salaryOffered.currency }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">{{ job.vacancies }}</td>
+              <td class="px-6 py-4 whitespace-nowrap">{{ job.dates.deadline | date }}</td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span [ngClass]="{
+                  'bg-green-100 text-green-800': job.status === 'active',
+                  'bg-red-100 text-red-800': job.status === 'closed',
+                  'bg-yellow-100 text-yellow-800': job.status === 'draft'
+                }" class="px-2 py-1 rounded-full text-xs font-medium">
+                  {{ job.status }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <button (click)="editJob(job)" class="text-blue-600 hover:text-blue-900 mr-3">Edit</button>
+                <button (click)="deleteJob(job._id)" class="text-red-600 hover:text-red-900">Delete</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  
+    <!-- Candidates Tab -->
+    <div *ngIf="activeTab === 'candidates' && !isLoading" class="space-y-6">
+      <!-- Similar structure as Jobs tab, but with candidate-specific fields -->
+      <!-- Candidate Form -->
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-xl font-semibold mb-4">{{ selectedCandidate ? 'Edit Candidate' : 'Add New Candidate' }}</h2>
+        <form [formGroup]="candidateForm" (ngSubmit)="onSubmitCandidate()" class="space-y-4">
+          <!-- Basic Info -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Name</label>
+              <input type="text" formControlName="name"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Email</label>
+              <input type="email" formControlName="email"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            </div>
+          </div>
+  
+          <!-- Resume Upload -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Resume</label>
+            <input type="file" (change)="onFileSelected($event, 'resume')" accept=".pdf,.doc,.docx"
+              class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+          </div>
+  
+          <!-- Job Selection -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Apply for Job</label>
+            <select formControlName="jobId"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+              <option value="">Select a job</option>
+              <option *ngFor="let job of jobs" [value]="job._id">{{ job.role }}</option>
+            </select>
+          </div>
+  
+          <!-- Form Actions -->
+          <div class="flex justify-end space-x-3">
+            <button type="button" (click)="resetCandidateForm()"
+              class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+              Cancel
+            </button>
+            <button type="submit" [disabled]="!candidateForm.valid"
+              class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50">
+              {{ selectedCandidate ? 'Update Candidate' : 'Add Candidate' }}
+            </button>
+          </div>
+        </form>
+      </div>
+  
+      <!-- Candidates List -->
+      <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applied For</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr *ngFor="let candidate of candidates">
+              <td class="px-6 py-4 whitespace-nowrap">{{ candidate.name }}</td>
+              <td class="px-6 py-4 whitespace-nowrap">{{ candidate.email }}</td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                {{ candidate.jobsApplied[0]?.job?.role || 'N/A' }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span [ngClass]="{
+                  'bg-yellow-100 text-yellow-800': candidate.jobsApplied[0]?.status === 'pending',
+                  'bg-blue-100 text-blue-800': candidate.jobsApplied[0]?.status === 'shortlisted',
+                  'bg-green-100 text-green-800': candidate.jobsApplied[0]?.status === 'selected',
+                  'bg-red-100 text-red-800': candidate.jobsApplied[0]?.status === 'rejected'
+                }" class="px-2 py-1 rounded-full text-xs font-medium">
+                  {{ candidate.jobsApplied[0]?.status }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <button (click)="scheduleInterview(candidate)" class="text-green-600 hover:text-green-900 mr-3">
+                  Schedule Interview
+                </button>
+                <button (click)="editCandidate(candidate)" class="text-blue-600 hover:text-blue-900 mr-3">Edit</button>
+                <button (click)="deleteCandidate(candidate._id)" class="text-red-600 hover:text-red-900">Delete</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  
+    <!-- Interviews Tab -->
+    <div *ngIf="activeTab === 'interviews' && !isLoading" class="space-y-6">
+      <!-- Interview Form -->
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-xl font-semibold mb-4">Schedule Interview</h2>
+        <form [formGroup]="interviewForm" (ngSubmit)="onSubmitInterview()" class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Interview Title</label>
+              <input type="text" formControlName="name"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                [ngClass]="{'border-red-500': isFormControlInvalid(interviewForm, 'name')}">
+              <span class="text-red-500 text-xs" *ngIf="isFormControlInvalid(interviewForm, 'name')">
+                {{ getFormControlError(interviewForm, 'name') }}
+              </span>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Candidate</label>
+              <select formControlName="candidate.id"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                [ngClass]="{'border-red-500': isFormControlInvalid(interviewForm, 'candidate.id')}"
+                (change)="onCandidateSelect($event)">
+                <option value="">Select a candidate</option>
+                <option *ngFor="let candidate of candidates" [value]="candidate._id">
+                  {{ candidate.name }}
+                </option>
+              </select>
+              <span class="text-red-500 text-xs" *ngIf="isFormControlInvalid(interviewForm, 'candidate.id')">
+                Please select a candidate
+              </span>
+            </div>
+  
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Interview Date & Time</label>
+              <input type="datetime-local" formControlName="interviewDate"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                [ngClass]="{'border-red-500': isFormControlInvalid(interviewForm, 'interviewDate')}">
+              <span class="text-red-500 text-xs" *ngIf="isFormControlInvalid(interviewForm, 'interviewDate')">
+                Please select interview date and time
+              </span>
+            </div>
+  
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Interview Link</label>
+              <input type="text" formControlName="interviewLink"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            </div>
+          </div>
+  
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Additional Notes</label>
+            <textarea formControlName="additionalNotes" rows="3"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+          </div>
+  
+          <div class="flex justify-end space-x-3">
+            <button type="button" (click)="resetInterviewForm()"
+              class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+              Cancel
+            </button>
+            <button type="submit" [disabled]="!interviewForm.valid || isLoading"
+              class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50">
+              {{ isLoading ? 'Scheduling...' : (selectedInterview ? 'Update Interview' : 'Schedule Interview') }}
+            </button>
+          </div>
+        </form>
+      </div>
+  
+      <!-- Interviews List -->
+      <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Candidate</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr *ngFor="let interview of interviews">
+              <td class="px-6 py-4 whitespace-nowrap">{{ interview.name }}</td>
+              <td class="px-6 py-4 whitespace-nowrap">{{ interview.candidate.name }}</td>
+              <td class="px-6 py-4 whitespace-nowrap">{{ interview.interviewDate | date:'medium' }}</td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span [ngClass]="{
+                  'bg-yellow-100 text-yellow-800': interview.interviewStatus === 'scheduled',
+                  'bg-green-100 text-green-800': interview.interviewStatus === 'completed',
+                  'bg-red-100 text-red-800': interview.interviewStatus === 'cancelled',
+                  'bg-blue-100 text-blue-800': interview.interviewStatus === 'rescheduled'
+                }" class="px-2 py-1 rounded-full text-xs font-medium">
+                  {{ interview.interviewStatus }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <button (click)="updateInterviewStatus(interview)" class="text-blue-600 hover:text-blue-900 mr-3">
+                  Update Status
+                </button>
+                <button (click)="deleteInterview(interview._id)" class="text-red-600 hover:text-red-900">
+                  Delete
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  
+    <!-- Offer Letters Tab -->
+    <div *ngIf="activeTab === 'offerLetters' && !isLoading" class="space-y-6">
+      <!-- Offer Letter Form -->
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-xl font-semibold mb-4">Generate Offer Letter</h2>
+        <form [formGroup]="offerLetterForm" (ngSubmit)="onSubmitOfferLetter()" class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Candidate</label>
+              <select formControlName="candidate.id"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                [ngClass]="{'border-red-500': isFormControlInvalid(offerLetterForm, 'candidate.id')}"
+                (change)="onOfferLetterCandidateSelect($event)">
+                <option value="">Select a candidate</option>
+                <option *ngFor="let candidate of candidates" [value]="candidate._id">
+                  {{ candidate.name }}
+                </option>
+              </select>
+              <span class="text-red-500 text-xs" *ngIf="isFormControlInvalid(offerLetterForm, 'candidate.id')">
+                Please select a candidate
+              </span>
+            </div>
+  
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Position</label>
+              <select formControlName="offerDetails.position"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                [ngClass]="{'border-red-500': isFormControlInvalid(offerLetterForm, 'offerDetails.position')}">
+                <option value="">Select a position</option>
+                <option *ngFor="let job of jobs" [value]="job.role">
+                  {{ job.role }}
+                </option>
+              </select>
+              <span class="text-red-500 text-xs" *ngIf="isFormControlInvalid(offerLetterForm, 'offerDetails.position')">
+                Please select a position
+              </span>
+            </div>
+  
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" formGroupName="offerDetails">
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Salary</label>
+                <input type="number" formControlName="salary"
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  [ngClass]="{'border-red-500': isFormControlInvalid(offerLetterForm.get('offerDetails'), 'salary')}">
+                <span class="text-red-500 text-xs" *ngIf="isFormControlInvalid(offerLetterForm.get('offerDetails'), 'salary')">
+                  Please enter a valid salary amount
+                </span>
+              </div>
+  
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Location</label>
+                <input type="text" formControlName="location"
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  [ngClass]="{'border-red-500': isFormControlInvalid(offerLetterForm.get('offerDetails'), 'location')}">
+                <span class="text-red-500 text-xs" *ngIf="isFormControlInvalid(offerLetterForm.get('offerDetails'), 'location')">
+                  Please enter the location
+                </span>
+              </div>
+            </div>
+  
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Joining Date</label>
+              <input type="date" formControlName="joiningDate"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            </div>
+  
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Valid Till</label>
+              <input type="date" formControlName="validTill"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            </div>
+          </div>
+  
+          <div class="flex justify-end space-x-3">
+            <button type="button" (click)="resetOfferLetterForm()"
+              class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+              Cancel
+            </button>
+            <button type="submit" 
+              [disabled]="offerLetterForm.invalid || isLoading"
+              class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50">
+              {{ isLoading ? 'Generating...' : 'Generate Offer Letter' }}
+            </button>
+          </div>
+        </form>
+      </div>
+  
+      <!-- Offer Letters List -->
+      <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Candidate</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Position</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joining Date</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr *ngFor="let offer of offerLetters">
+              <td class="px-6 py-4 whitespace-nowrap">{{ offer.candidate.name }}</td>
+              <td class="px-6 py-4 whitespace-nowrap">{{ offer.offerDetails.position }}</td>
+              <td class="px-6 py-4 whitespace-nowrap">{{ offer.joiningDate | date }}</td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span [ngClass]="{
+                  'bg-yellow-100 text-yellow-800': offer.status === 'pending',
+                  'bg-green-100 text-green-800': offer.status === 'accepted',
+                  'bg-red-100 text-red-800': offer.status === 'rejected'
+                }" class="px-2 py-1 rounded-full text-xs font-medium">
+                  {{ offer.status }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <a [href]="offer.offerLetterUrl" target="_blank" 
+                  class="text-blue-600 hover:text-blue-900 mr-3">View</a>
+                <button (click)="deleteOfferLetter(offer._id)" class="text-red-600 hover:text-red-900">
+                  Delete
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+<!-- Status Update Modal -->
+<div *ngIf="showStatusModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+  <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+    <div class="mt-3 text-center">
+      <h3 class="text-lg leading-6 font-medium text-gray-900">Update Interview Status</h3>
+      <div class="mt-2 px-7 py-3">
+        <p class="text-sm text-gray-500">
+          Select the new status for this interview
+        </p>
+        <div class="mt-4 space-y-2">
+          <div *ngFor="let status of interviewStatusOptions" class="flex items-center justify-center">
+            <button 
+              (click)="confirmStatusUpdate(status)"
+              class="w-full px-4 py-2 text-sm font-medium rounded-md"
+              [ngClass]="{
+                'bg-blue-50 text-blue-700 hover:bg-blue-100': selectedInterviewForStatus?.interviewStatus !== status,
+                'bg-blue-600 text-white': selectedInterviewForStatus?.interviewStatus === status
+              }">
+              {{ status | titlecase }}
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="items-center px-4 py-3">
+        <button
+          (click)="closeStatusModal()"
+          class="px-4 py-2 bg-gray-200 text-gray-800 text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-300">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

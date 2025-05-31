@@ -66,27 +66,54 @@ const createMarketingTask = async (req, res) => {
             budget
         } = req.body;
         
-        // Parse assignedTo if it's a string
-        let assignedTo;
-        try {
-            assignedTo = typeof req.body.assignedTo === 'string' 
-                ? JSON.parse(req.body.assignedTo) 
-                : req.body.assignedTo;
-        } catch (error) {
-            return res.status(400).json({ 
-                message: 'Invalid assignedTo format',
-                error: error.message 
-            });
-        }
-
-        // Get creator info based on user type
+        // Determine creator type and set assignedTo
         let createdBy;
+        let assignedTo;
+
         if (req.admin) {
             createdBy = req.admin._id;
+            // Parse assignedTo if it's a string
+            try {
+                assignedTo = typeof req.body.assignedTo === 'string' 
+                    ? JSON.parse(req.body.assignedTo) 
+                    : req.body.assignedTo;
+            } catch (error) {
+                return res.status(400).json({ 
+                    message: 'Invalid assignedTo format',
+                    error: error.message 
+                });
+            }
         } else if (req.manager) {
             createdBy = req.manager._id;
+            // Parse assignedTo if it's a string
+            try {
+                assignedTo = typeof req.body.assignedTo === 'string' 
+                    ? JSON.parse(req.body.assignedTo) 
+                    : req.body.assignedTo;
+            } catch (error) {
+                return res.status(400).json({ 
+                    message: 'Invalid assignedTo format',
+                    error: error.message 
+                });
+            }
+        } else if (req.marketingUser) {
+            createdBy = req.marketingUser._id;
+            // Set creator as the only assignee
+            assignedTo = [{
+                id: req.marketingUser._id,
+                role: 'DigitalMarketingRole'
+            }];
+        } else if (req.contentCreator) {
+            createdBy = req.contentCreator._id;
+            // Set creator as the only assignee
+            assignedTo = [{
+                id: req.contentCreator._id,
+                role: 'ContentCreator'
+            }];
         } else {
-            return res.status(403).json({ message: 'Only admins and managers can create tasks' });
+            return res.status(403).json({ 
+                message: 'Unauthorized to create tasks' 
+            });
         }
 
         const files = req.files;
@@ -124,7 +151,9 @@ const createMarketingTask = async (req, res) => {
             eventDate: startDate,
             endDate: endDate,
             createdBy,
-            onModel: req.admin ? 'Admin' : 'Manager',
+            onModel: req.admin ? 'Admin' : 
+                    req.manager ? 'Manager' : 
+                    req.marketingUser ? 'DigitalMarketingRole' : 'ContentCreator',
             eventType: 'Task',
             projectId,
             participants: assignedTo.map(assignee => ({
@@ -134,13 +163,15 @@ const createMarketingTask = async (req, res) => {
         });
         await newEvent.save();
 
-        // Send email notifications
-        await sendEmailToAssignees(assignedTo, {
-            taskName,
-            taskDescription,
-            startDate,
-            endDate
-        });
+        // Send email notifications only if there are assignees other than the creator
+        if (!req.marketingUser && !req.contentCreator) {
+            await sendEmailToAssignees(assignedTo, {
+                taskName,
+                taskDescription,
+                startDate,
+                endDate
+            });
+        }
 
         // Create notifications for assignees
         for (const assignee of assignedTo) {

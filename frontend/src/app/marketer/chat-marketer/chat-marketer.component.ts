@@ -50,34 +50,14 @@ export class ChatMarketerComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    // Check if user is authenticated
-    const token = localStorage.getItem('marketerToken');
-    if (!token) {
-      console.error('User not authenticated');
-      // Handle unauthenticated state (e.g., redirect to login)
+    if (!this.currentUserId) {
+      console.error('No user ID found in localStorage');
       return;
     }
-
-    this.currentUserId = localStorage.getItem('userId') || '';
-    this.messageService.joinRoom(this.currentUserId);
+    
     this.loadAllUsers();
     this.loadMessagedUsers();
-    
-    this.subscriptions.push(
-      this.messageService.getNewMessageUpdates().subscribe(message => {
-        if (message && 
-            ((message.sender.id === this.selectedUser?._id) || 
-             (message.receiver.id === this.selectedUser?._id))) {
-          const isDuplicate = this.messages.some(m => m._id === message._id);
-          if (!isDuplicate) {
-            this.messages.push(message);
-            if (message.receiver.id === this.currentUserId) {
-              this.markAsRead(message._id!);
-            }
-          }
-        }
-      })
-    );
+    this.setupMessageListener();
   }
 
   loadAllUsers() {
@@ -276,5 +256,48 @@ export class ChatMarketerComponent implements OnInit, OnDestroy {
         this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
       }
     }, 100);
+  }
+
+  private setupMessageListener() {
+    const subscription = this.messageService.getNewMessageUpdates()
+      .subscribe(message => {
+        if (message) {
+          // Handle new message
+          if (this.selectedUser && 
+              (message.sender.id === this.selectedUser._id || 
+               message.receiver.id === this.selectedUser._id)) {
+            // Add message to current conversation if not duplicate
+            const isDuplicate = this.messages.some(m => m._id === message._id);
+            if (!isDuplicate) {
+              this.messages = [...this.messages, message];
+              
+              // Mark as read if we're the receiver
+              if (message.receiver.id === this.currentUserId) {
+                this.markAsRead(message._id!);
+              }
+              
+              // Update cache
+              const currentCache = this.cacheService.getCachedMessages(
+                this.currentUserId,
+                this.selectedUser._id
+              ) || [];
+              
+              this.cacheService.setCachedMessages(
+                this.currentUserId,
+                this.selectedUser._id,
+                [...currentCache, message]
+              );
+              
+              this.scrollToBottom();
+            }
+          }
+          
+          // Update messaged users list
+          this.loadMessagedUsers();
+        }
+      });
+
+    // Add subscription to be cleaned up on destroy
+    this.subscriptions.push(subscription);
   }
 }

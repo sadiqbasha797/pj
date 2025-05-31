@@ -9,7 +9,7 @@ import { CacheService } from './cache.service';
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'https://projexinovps.projexino.com/api/admin'; // Update this to your actual API URL
+  private apiUrl = 'http://localhost:4000/api/admin'; // Update this to your actual API URL
 
   constructor(
     private http: HttpClient,

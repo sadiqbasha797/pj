@@ -9,7 +9,7 @@ import { CacheService } from './cache.service';
   providedIn: 'root'
 })
 export class ManagerAuthService {
-  private apiUrl = 'https://projexinovps.projexino.com/api/manager'; // Update with your manager API endpoint
+  private apiUrl = 'http://localhost:4000/api/manager'; // Update with your manager API endpoint
 
   constructor(
     private http: HttpClient,
