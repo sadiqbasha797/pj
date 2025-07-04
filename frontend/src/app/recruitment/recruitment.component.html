@@ -1,46 +1,52 @@
 <!-- Main Container -->
-<div class="min-h-screen bg-gray-100 p-6">
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 p-8">
     <!-- Header -->
-    <div class="mb-8">
-      <h1 class="text-3xl font-bold text-gray-800">Recruitment Management</h1>
-      <p class="text-gray-600">Manage jobs, candidates, interviews, and offer letters</p>
+    <div class="mb-12 text-center">
+      <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 mb-3">Recruitment Management</h1>
+      <p class="text-gray-600 text-lg">Streamline your hiring process with our comprehensive recruitment solution</p>
     </div>
   
     <!-- Success/Error Messages -->
-    <div *ngIf="successMessage" class="mb-4 p-4 bg-green-100 text-green-700 rounded-lg">
+    <div *ngIf="successMessage" class="mb-4 p-4 bg-green-50 text-green-700 rounded-xl border border-green-200 flex items-center shadow-sm">
+      <svg class="h-5 w-5 mr-2 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
       {{ successMessage }}
     </div>
-    <div *ngIf="errorMessage" class="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
+    <div *ngIf="errorMessage" class="mb-4 p-4 bg-red-50 text-red-700 rounded-xl border border-red-200 flex items-center shadow-sm">
+      <svg class="h-5 w-5 mr-2 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
       {{ errorMessage }}
     </div>
   
     <!-- Tab Navigation -->
-    <div class="mb-6 border-b border-gray-200">
-      <nav class="flex space-x-4">
+    <div class="mb-8 max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
+      <nav class="flex justify-center p-2 space-x-1 bg-gray-50">
         <button 
-          [ngClass]="{'text-blue-600 border-b-2 border-blue-600': activeTab === 'jobs',
-                      'text-gray-500 hover:text-gray-700': activeTab !== 'jobs'}"
-          class="py-2 px-4 font-medium"
+          [ngClass]="{'bg-blue-600 text-white shadow-lg': activeTab === 'jobs',
+                      'text-gray-600 hover:bg-gray-100': activeTab !== 'jobs'}"
+          class="py-3 px-6 font-medium rounded-lg transition-all duration-200 ease-in-out hover:bg-opacity-90"
           (click)="setActiveTab('jobs')">
           Jobs
         </button>
         <button 
-          [ngClass]="{'text-blue-600 border-b-2 border-blue-600': activeTab === 'candidates',
-                      'text-gray-500 hover:text-gray-700': activeTab !== 'candidates'}"
+          [ngClass]="{'bg-blue-600 text-white shadow-lg': activeTab === 'candidates',
+                      'text-gray-600 hover:bg-gray-100': activeTab !== 'candidates'}"
           class="py-2 px-4 font-medium"
           (click)="setActiveTab('candidates')">
           Candidates
         </button>
         <button 
-          [ngClass]="{'text-blue-600 border-b-2 border-blue-600': activeTab === 'interviews',
-                      'text-gray-500 hover:text-gray-700': activeTab !== 'interviews'}"
+          [ngClass]="{'bg-blue-600 text-white shadow-lg': activeTab === 'interviews',
+                      'text-gray-600 hover:bg-gray-100': activeTab !== 'interviews'}"
           class="py-2 px-4 font-medium"
           (click)="setActiveTab('interviews')">
           Interviews
         </button>
         <button 
-          [ngClass]="{'text-blue-600 border-b-2 border-blue-600': activeTab === 'offerLetters',
-                      'text-gray-500 hover:text-gray-700': activeTab !== 'offerLetters'}"
+          [ngClass]="{'bg-blue-600 text-white shadow-lg': activeTab === 'offerLetters',
+                      'text-gray-600 hover:bg-gray-100': activeTab !== 'offerLetters'}"
           class="py-2 px-4 font-medium"
           (click)="setActiveTab('offerLetters')">
           Offer Letters
@@ -50,49 +56,59 @@
   
     <!-- Loading Spinner -->
     <div *ngIf="isLoading" class="flex justify-center items-center h-64">
-      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div class="relative w-20 h-20">
+        <div class="absolute top-0 left-0 w-full h-full border-4 border-blue-200 rounded-full animate-pulse"></div>
+        <div class="absolute top-0 left-0 w-full h-full border-4 border-blue-600 rounded-full animate-spin border-t-transparent"></div>
+      </div>
     </div>
   
     <!-- Jobs Tab -->
-    <div *ngIf="activeTab === 'jobs' && !isLoading" class="space-y-6">
+    <div *ngIf="activeTab === 'jobs' && !isLoading" class="max-w-6xl mx-auto space-y-8">
       <!-- Job Form -->
-      <div class="bg-white p-6 rounded-lg shadow-md">
-        <h2 class="text-xl font-semibold mb-4">{{ selectedJob ? 'Edit Job' : 'Create New Job' }}</h2>
+      <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
+        <h2 class="text-2xl font-bold mb-6 flex items-center">
+          <span class="text-blue-600 mr-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+          </span>
+          {{ selectedJob ? 'Edit Job' : 'Create New Job' }}
+        </h2>
         <form [formGroup]="jobForm" (ngSubmit)="onSubmitJob()" class="space-y-4">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label class="block text-sm font-medium text-gray-700">Role</label>
+              <label class="block text-sm font-semibold text-gray-700 mb-1.5">Role</label>
               <input type="text" formControlName="role" 
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                class="block w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition duration-200 ease-in-out">
             </div>
             
             <div formGroupName="salaryOffered">
-              <label class="block text-sm font-medium text-gray-700">Salary Range</label>
+              <label class="block text-sm font-semibold text-gray-700 mb-1.5">Salary Range</label>
               <div class="flex space-x-2">
                 <input type="number" formControlName="min" placeholder="Min" 
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                  class="block w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition duration-200 ease-in-out">
                 <input type="number" formControlName="max" placeholder="Max"
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                  class="block w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition duration-200 ease-in-out">
               </div>
             </div>
   
             <div>
-              <label class="block text-sm font-medium text-gray-700">Vacancies</label>
+              <label class="block text-sm font-semibold text-gray-700 mb-1.5">Vacancies</label>
               <input type="number" formControlName="vacancies"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                class="block w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition duration-200 ease-in-out">
             </div>
   
             <div formGroupName="dates">
               <label class="block text-sm font-medium text-gray-700">Deadline</label>
               <input type="date" formControlName="deadline"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                class="block w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition duration-200 ease-in-out">
             </div>
           </div>
   
           <div>
             <label class="block text-sm font-medium text-gray-700">Description</label>
             <textarea formControlName="description" rows="4"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+              class="block w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition duration-200 ease-in-out"></textarea>
           </div>
   
           <div class="flex justify-end space-x-3">
@@ -109,11 +125,30 @@
       </div>
   
       <!-- Jobs List -->
-      <div class="bg-white rounded-lg shadow-md overflow-hidden">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
+      <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+        <div class="p-6 border-b border-gray-100">
+          <div class="flex justify-between items-center">
+            <h3 class="text-xl font-bold text-gray-800">Available Positions</h3>
+            <div class="flex space-x-2">
+              <button class="px-4 py-2 text-sm bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition duration-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                </svg>
+                Filter
+              </button>
+              <button class="px-4 py-2 text-sm bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition duration-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+                </svg>
+                Sort
+              </button>
+            </div>
+          </div>
+        </div>
+        <table class="min-w-full divide-y divide-gray-100">
+          <thead class="bg-gray-50 text-gray-600">
             <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+              <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Role</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Salary Range</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vacancies</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deadline</th>
@@ -123,7 +158,7 @@
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
             <tr *ngFor="let job of jobs">
-              <td class="px-6 py-4 whitespace-nowrap">{{ job.role }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{{ job.role }}</td>
               <td class="px-6 py-4 whitespace-nowrap">
                 {{ job.salaryOffered.min }} - {{ job.salaryOffered.max }} {{ job.salaryOffered.currency }}
               </td>
@@ -131,16 +166,31 @@
               <td class="px-6 py-4 whitespace-nowrap">{{ job.dates.deadline | date }}</td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <span [ngClass]="{
-                  'bg-green-100 text-green-800': job.status === 'active',
-                  'bg-red-100 text-red-800': job.status === 'closed',
-                  'bg-yellow-100 text-yellow-800': job.status === 'draft'
-                }" class="px-2 py-1 rounded-full text-xs font-medium">
+                  'bg-green-100 text-green-700 ring-green-400': job.status === 'active',
+                  'bg-red-100 text-red-700 ring-red-400': job.status === 'closed',
+                  'bg-yellow-100 text-yellow-700 ring-yellow-400': job.status === 'draft'
+                }" class="px-3 py-1 rounded-full text-xs font-semibold ring-1 ring-opacity-30 inline-flex items-center">
+                  <span class="w-1.5 h-1.5 rounded-full mr-1.5" [ngClass]="{
+                    'bg-green-500': job.status === 'active',
+                    'bg-red-500': job.status === 'closed',
+                    'bg-yellow-500': job.status === 'draft'
+                  }"></span>
                   {{ job.status }}
                 </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <button (click)="editJob(job)" class="text-blue-600 hover:text-blue-900 mr-3">Edit</button>
-                <button (click)="deleteJob(job._id)" class="text-red-600 hover:text-red-900">Delete</button>
+                <button (click)="editJob(job)" class="inline-flex items-center px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition duration-200 mr-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  Edit
+                </button>
+                <button (click)="deleteJob(job._id)" class="inline-flex items-center px-3 py-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition duration-200">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  Delete
+                </button>
               </td>
             </tr>
           </tbody>
@@ -149,14 +199,21 @@
     </div>
   
     <!-- Candidates Tab -->
-    <div *ngIf="activeTab === 'candidates' && !isLoading" class="space-y-6">
+    <div *ngIf="activeTab === 'candidates' && !isLoading" class="max-w-6xl mx-auto space-y-8">
       <!-- Similar structure as Jobs tab, but with candidate-specific fields -->
       <!-- Candidate Form -->
-      <div class="bg-white p-6 rounded-lg shadow-md">
-        <h2 class="text-xl font-semibold mb-4">{{ selectedCandidate ? 'Edit Candidate' : 'Add New Candidate' }}</h2>
+      <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
+        <h2 class="text-2xl font-bold mb-6 flex items-center">
+          <span class="text-blue-600 mr-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+            </svg>
+          </span>
+          {{ selectedCandidate ? 'Edit Candidate' : 'Add New Candidate' }}
+        </h2>
         <form [formGroup]="candidateForm" (ngSubmit)="onSubmitCandidate()" class="space-y-4">
           <!-- Basic Info -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label class="block text-sm font-medium text-gray-700">Name</label>
               <input type="text" formControlName="name"
@@ -170,17 +227,30 @@
           </div>
   
           <!-- Resume Upload -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Resume</label>
-            <input type="file" (change)="onFileSelected($event, 'resume')" accept=".pdf,.doc,.docx"
-              class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+          <div class="col-span-2">
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Resume</label>
+            <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-blue-400 transition-colors duration-200">
+              <div class="space-y-1 text-center">
+                <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                  <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <div class="flex text-sm text-gray-600">
+                  <label for="file-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+                    <span>Upload a file</span>
+                    <input id="file-upload" type="file" class="sr-only" (change)="onFileSelected($event, 'resume')" accept=".pdf,.doc,.docx">
+                  </label>
+                  <p class="pl-1">or drag and drop</p>
+                </div>
+                <p class="text-xs text-gray-500">PDF, DOC up to 10MB</p>
+              </div>
+            </div>
           </div>
   
           <!-- Job Selection -->
           <div>
             <label class="block text-sm font-medium text-gray-700">Apply for Job</label>
             <select formControlName="jobId"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+              class="block w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition duration-200 ease-in-out">
               <option value="">Select a job</option>
               <option *ngFor="let job of jobs" [value]="job._id">{{ job.role }}</option>
             </select>
@@ -201,7 +271,26 @@
       </div>
   
       <!-- Candidates List -->
-      <div class="bg-white rounded-lg shadow-md overflow-hidden">
+      <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+        <div class="p-6 border-b border-gray-100">
+          <div class="flex justify-between items-center">
+            <h3 class="text-xl font-bold text-gray-800">Candidate Applications</h3>
+            <div class="flex space-x-2">
+              <button class="px-4 py-2 text-sm bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition duration-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                </svg>
+                Filter
+              </button>
+              <button class="px-4 py-2 text-sm bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition duration-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+                </svg>
+                Sort
+              </button>
+            </div>
+          </div>
+        </div>
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
@@ -221,11 +310,17 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <span [ngClass]="{
-                  'bg-yellow-100 text-yellow-800': candidate.jobsApplied[0]?.status === 'pending',
-                  'bg-blue-100 text-blue-800': candidate.jobsApplied[0]?.status === 'shortlisted',
-                  'bg-green-100 text-green-800': candidate.jobsApplied[0]?.status === 'selected',
-                  'bg-red-100 text-red-800': candidate.jobsApplied[0]?.status === 'rejected'
-                }" class="px-2 py-1 rounded-full text-xs font-medium">
+                  'bg-yellow-100 text-yellow-700 ring-yellow-400': candidate.jobsApplied[0]?.status === 'pending',
+                  'bg-blue-100 text-blue-700 ring-blue-400': candidate.jobsApplied[0]?.status === 'shortlisted',
+                  'bg-green-100 text-green-700 ring-green-400': candidate.jobsApplied[0]?.status === 'selected',
+                  'bg-red-100 text-red-700 ring-red-400': candidate.jobsApplied[0]?.status === 'rejected'
+                }" class="px-3 py-1 rounded-full text-xs font-semibold ring-1 ring-opacity-30 inline-flex items-center">
+                  <span class="w-1.5 h-1.5 rounded-full mr-1.5" [ngClass]="{
+                    'bg-yellow-500': candidate.jobsApplied[0]?.status === 'pending',
+                    'bg-blue-500': candidate.jobsApplied[0]?.status === 'shortlisted',
+                    'bg-green-500': candidate.jobsApplied[0]?.status === 'selected',
+                    'bg-red-500': candidate.jobsApplied[0]?.status === 'rejected'
+                  }"></span>
                   {{ candidate.jobsApplied[0]?.status }}
                 </span>
               </td>
@@ -243,18 +338,25 @@
     </div>
   
     <!-- Interviews Tab -->
-    <div *ngIf="activeTab === 'interviews' && !isLoading" class="space-y-6">
+    <div *ngIf="activeTab === 'interviews' && !isLoading" class="max-w-6xl mx-auto space-y-8">
       <!-- Interview Form -->
-      <div class="bg-white p-6 rounded-lg shadow-md">
-        <h2 class="text-xl font-semibold mb-4">Schedule Interview</h2>
+      <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
+        <h2 class="text-2xl font-bold mb-6 flex items-center">
+          <span class="text-blue-600 mr-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </span>
+          Schedule Interview
+        </h2>
         <form [formGroup]="interviewForm" (ngSubmit)="onSubmitInterview()" class="space-y-4">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label class="block text-sm font-medium text-gray-700">Interview Title</label>
+              <label class="block text-sm font-semibold text-gray-700 mb-1.5">Interview Title</label>
               <input type="text" formControlName="name"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                class="block w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition duration-200 ease-in-out"
                 [ngClass]="{'border-red-500': isFormControlInvalid(interviewForm, 'name')}">
-              <span class="text-red-500 text-xs" *ngIf="isFormControlInvalid(interviewForm, 'name')">
+              <span class="text-red-500 text-xs mt-1" *ngIf="isFormControlInvalid(interviewForm, 'name')">
                 {{ getFormControlError(interviewForm, 'name') }}
               </span>
             </div>
@@ -276,27 +378,27 @@
             </div>
   
             <div>
-              <label class="block text-sm font-medium text-gray-700">Interview Date & Time</label>
+              <label class="block text-sm font-semibold text-gray-700 mb-1.5">Interview Date & Time</label>
               <input type="datetime-local" formControlName="interviewDate"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                class="block w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition duration-200 ease-in-out"
                 [ngClass]="{'border-red-500': isFormControlInvalid(interviewForm, 'interviewDate')}">
-              <span class="text-red-500 text-xs" *ngIf="isFormControlInvalid(interviewForm, 'interviewDate')">
+              <span class="text-red-500 text-xs mt-1" *ngIf="isFormControlInvalid(interviewForm, 'interviewDate')">
                 Please select interview date and time
               </span>
             </div>
   
             <div>
-              <label class="block text-sm font-medium text-gray-700">Interview Link</label>
+              <label class="block text-sm font-semibold text-gray-700 mb-1.5">Interview Link</label>
               <input type="text" formControlName="interviewLink"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                class="block w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition duration-200 ease-in-out">
             </div>
           </div>
   
           <div>
-            <label class="block text-sm font-medium text-gray-700">Additional Notes</label>
-            <textarea formControlName="additionalNotes" rows="3"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
-          </div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1.5">Additional Notes</label>
+              <textarea formControlName="additionalNotes" rows="3"
+                class="block w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition duration-200 ease-in-out"></textarea>
+            </div>
   
           <div class="flex justify-end space-x-3">
             <button type="button" (click)="resetInterviewForm()"
@@ -312,7 +414,26 @@
       </div>
   
       <!-- Interviews List -->
-      <div class="bg-white rounded-lg shadow-md overflow-hidden">
+      <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+        <div class="p-6 border-b border-gray-100">
+          <div class="flex justify-between items-center">
+            <h3 class="text-xl font-bold text-gray-800">Scheduled Interviews</h3>
+            <div class="flex space-x-2">
+              <button class="px-4 py-2 text-sm bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition duration-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                </svg>
+                Filter
+              </button>
+              <button class="px-4 py-2 text-sm bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition duration-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+                </svg>
+                Sort
+              </button>
+            </div>
+          </div>
+        </div>
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
@@ -330,19 +451,31 @@
               <td class="px-6 py-4 whitespace-nowrap">{{ interview.interviewDate | date:'medium' }}</td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <span [ngClass]="{
-                  'bg-yellow-100 text-yellow-800': interview.interviewStatus === 'scheduled',
-                  'bg-green-100 text-green-800': interview.interviewStatus === 'completed',
-                  'bg-red-100 text-red-800': interview.interviewStatus === 'cancelled',
-                  'bg-blue-100 text-blue-800': interview.interviewStatus === 'rescheduled'
-                }" class="px-2 py-1 rounded-full text-xs font-medium">
+                  'bg-yellow-100 text-yellow-700 ring-yellow-400': interview.interviewStatus === 'scheduled',
+                  'bg-green-100 text-green-700 ring-green-400': interview.interviewStatus === 'completed',
+                  'bg-red-100 text-red-700 ring-red-400': interview.interviewStatus === 'cancelled',
+                  'bg-blue-100 text-blue-700 ring-blue-400': interview.interviewStatus === 'rescheduled'
+                }" class="px-3 py-1 rounded-full text-xs font-semibold ring-1 ring-opacity-30 inline-flex items-center">
+                  <span class="w-1.5 h-1.5 rounded-full mr-1.5" [ngClass]="{
+                    'bg-yellow-500': interview.interviewStatus === 'scheduled',
+                    'bg-green-500': interview.interviewStatus === 'completed',
+                    'bg-red-500': interview.interviewStatus === 'cancelled',
+                    'bg-blue-500': interview.interviewStatus === 'rescheduled'
+                  }"></span>
                   {{ interview.interviewStatus }}
                 </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <button (click)="updateInterviewStatus(interview)" class="text-blue-600 hover:text-blue-900 mr-3">
+                <button (click)="updateInterviewStatus(interview)" class="inline-flex items-center px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition duration-200 mr-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
                   Update Status
                 </button>
-                <button (click)="deleteInterview(interview._id)" class="text-red-600 hover:text-red-900">
+                <button (click)="deleteInterview(interview._id)" class="inline-flex items-center px-3 py-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition duration-200">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
                   Delete
                 </button>
               </td>
@@ -358,11 +491,11 @@
       <div class="bg-white p-6 rounded-lg shadow-md">
         <h2 class="text-xl font-semibold mb-4">Generate Offer Letter</h2>
         <form [formGroup]="offerLetterForm" (ngSubmit)="onSubmitOfferLetter()" class="space-y-4">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label class="block text-sm font-medium text-gray-700">Candidate</label>
+              <label class="block text-sm font-semibold text-gray-700 mb-1.5">Candidate</label>
               <select formControlName="candidate.id"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                class="block w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition duration-200 ease-in-out"
                 [ngClass]="{'border-red-500': isFormControlInvalid(offerLetterForm, 'candidate.id')}"
                 (change)="onOfferLetterCandidateSelect($event)">
                 <option value="">Select a candidate</option>
@@ -370,69 +503,75 @@
                   {{ candidate.name }}
                 </option>
               </select>
-              <span class="text-red-500 text-xs" *ngIf="isFormControlInvalid(offerLetterForm, 'candidate.id')">
+              <span class="text-red-500 text-xs mt-1" *ngIf="isFormControlInvalid(offerLetterForm, 'candidate.id')">
                 Please select a candidate
               </span>
             </div>
   
             <div>
-              <label class="block text-sm font-medium text-gray-700">Position</label>
+              <label class="block text-sm font-semibold text-gray-700 mb-1.5">Position</label>
               <select formControlName="offerDetails.position"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                class="block w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition duration-200 ease-in-out"
                 [ngClass]="{'border-red-500': isFormControlInvalid(offerLetterForm, 'offerDetails.position')}">
                 <option value="">Select a position</option>
                 <option *ngFor="let job of jobs" [value]="job.role">
                   {{ job.role }}
                 </option>
               </select>
-              <span class="text-red-500 text-xs" *ngIf="isFormControlInvalid(offerLetterForm, 'offerDetails.position')">
+              <span class="text-red-500 text-xs mt-1" *ngIf="isFormControlInvalid(offerLetterForm, 'offerDetails.position')">
                 Please select a position
               </span>
             </div>
   
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" formGroupName="offerDetails">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6" formGroupName="offerDetails">
               <div>
-                <label class="block text-sm font-medium text-gray-700">Salary</label>
+                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Salary</label>
                 <input type="number" formControlName="salary"
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  class="block w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition duration-200 ease-in-out"
                   [ngClass]="{'border-red-500': isFormControlInvalid(offerLetterForm.get('offerDetails'), 'salary')}">
-                <span class="text-red-500 text-xs" *ngIf="isFormControlInvalid(offerLetterForm.get('offerDetails'), 'salary')">
+                <span class="text-red-500 text-xs mt-1" *ngIf="isFormControlInvalid(offerLetterForm.get('offerDetails'), 'salary')">
                   Please enter a valid salary amount
                 </span>
               </div>
   
               <div>
-                <label class="block text-sm font-medium text-gray-700">Location</label>
+                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Location</label>
                 <input type="text" formControlName="location"
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  class="block w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition duration-200 ease-in-out"
                   [ngClass]="{'border-red-500': isFormControlInvalid(offerLetterForm.get('offerDetails'), 'location')}">
-                <span class="text-red-500 text-xs" *ngIf="isFormControlInvalid(offerLetterForm.get('offerDetails'), 'location')">
+                <span class="text-red-500 text-xs mt-1" *ngIf="isFormControlInvalid(offerLetterForm.get('offerDetails'), 'location')">
                   Please enter the location
                 </span>
               </div>
             </div>
   
             <div>
-              <label class="block text-sm font-medium text-gray-700">Joining Date</label>
+              <label class="block text-sm font-semibold text-gray-700 mb-1.5">Joining Date</label>
               <input type="date" formControlName="joiningDate"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                class="block w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition duration-200 ease-in-out">
             </div>
   
             <div>
-              <label class="block text-sm font-medium text-gray-700">Valid Till</label>
+              <label class="block text-sm font-semibold text-gray-700 mb-1.5">Valid Till</label>
               <input type="date" formControlName="validTill"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                class="block w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition duration-200 ease-in-out">
             </div>
           </div>
   
           <div class="flex justify-end space-x-3">
             <button type="button" (click)="resetOfferLetterForm()"
-              class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+              class="px-6 py-3 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 transition duration-200 flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
               Cancel
             </button>
             <button type="submit" 
               [disabled]="offerLetterForm.invalid || isLoading"
-              class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50">
+              class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition duration-200 flex items-center shadow-md">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
               {{ isLoading ? 'Generating...' : 'Generate Offer Letter' }}
             </button>
           </div>
