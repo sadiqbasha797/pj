@@ -1,0 +1,39 @@
+pipeline {
+    agent any
+
+    environment {
+        NODE_ENV = "production"
+    }
+
+    stages {
+        stage('Clone') {
+            steps {
+                git 'https://github.com/sadiqbasha797/pj.git'
+            }
+        }
+
+        stage('Install Backend') {
+            steps {
+                dir('backend') {
+                    sh 'npm install'
+                    sh 'pm2 restart backend || pm2 start index.js --name backend'
+                }
+            }
+        }
+
+        stage('Build Frontend') {
+            steps {
+                dir('frontend') {
+                    sh 'npm install'
+                    sh 'npm run build -- --configuration production'
+                }
+            }
+        }
+
+        stage('Deploy Frontend') {
+            steps {
+                sh 'cp -r frontend/dist/frontend/browser/* /var/www/html/'
+            }
+        }
+    }
+}
