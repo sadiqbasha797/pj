@@ -53,4 +53,12 @@ export class DeveloperAuthService {
       return null;
     }
   }
+
+  initiatePasswordReset(email: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/initiate-password-reset`, { email });
+  }
+
+  resetPassword(resetData: { email: string; otp: string; newPassword: string }): Observable<any> {
+    return this.http.post(`${this.apiUrl}/reset-password`, resetData);
+  }
 } 

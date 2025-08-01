@@ -44,9 +44,16 @@
         </div>
 
         <div class="space-y-2">
-          <label class="block text-sm font-medium text-gray-700">Project ID</label>
-          <input type="text" formControlName="projectId" 
-                 class="w-full p-2 border rounded-md focus:ring-blue-500 focus:border-blue-500">
+          <label class="block text-sm font-medium text-gray-700">Project</label>
+          <select formControlName="projectId" class="w-full p-2 border rounded-md focus:ring-blue-500 focus:border-blue-500">
+            <option value="" disabled selected>Select a project</option>
+            <option *ngFor="let project of projectsList" [value]="project._id">
+              {{ project.title }}
+            </option>
+          </select>
+          <div *ngIf="taskForm.get('projectId')?.invalid && (taskForm.get('projectId')?.dirty || taskForm.get('projectId')?.touched)" class="text-red-500 text-xs mt-1">
+            Project is required.
+          </div>
         </div>
 
         <div class="space-y-2">

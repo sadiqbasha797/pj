@@ -58,4 +58,12 @@ export class ManagerAuthService {
     this.cacheService.clearCache();
     this.router.navigate(['/manager/login']);
   }
+
+  // Forgot/Reset Password
+  forgotPassword(email: string) {
+    return this.http.post(`${this.apiUrl}/forgot-password`, { email });
+  }
+  resetPassword(data: { email: string; otp: string; newPassword: string }) {
+    return this.http.post(`${this.apiUrl}/reset-password`, data);
+  }
 } 

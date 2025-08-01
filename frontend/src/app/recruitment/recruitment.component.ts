@@ -38,6 +38,12 @@ export class RecruitmentComponent implements OnInit {
   errorMessage: string = '';
   successMessage: string = '';
 
+  // Form visibility states
+  jobFormVisible: boolean = false;
+  candidateFormVisible: boolean = false;
+  interviewFormVisible: boolean = false;
+  offerLetterFormVisible: boolean = false;
+
   // New properties
   showStatusModal: boolean = false;
   selectedInterviewForStatus: any = null;
@@ -182,6 +188,7 @@ export class RecruitmentComponent implements OnInit {
 
   editJob(job: any) {
     this.selectedJob = job;
+    this.jobFormVisible = true;
     this.jobForm.patchValue({
       role: job.role,
       salaryOffered: {
@@ -269,6 +276,7 @@ export class RecruitmentComponent implements OnInit {
 
   editCandidate(candidate: any) {
     this.selectedCandidate = candidate;
+    this.candidateFormVisible = true;
     this.candidateForm.patchValue({
       name: candidate.name,
       email: candidate.email,
@@ -345,6 +353,7 @@ export class RecruitmentComponent implements OnInit {
 
   scheduleInterview(candidate: any) {
     this.setActiveTab('interviews');
+    this.interviewFormVisible = true;
     this.interviewForm.patchValue({
       candidate: {
         id: candidate._id,
@@ -456,6 +465,25 @@ export class RecruitmentComponent implements OnInit {
     });
   }
 
+  // Utility Methods
+  resetJobForm() {
+    this.jobForm.reset();
+    this.selectedJob = null;
+    this.jobFormVisible = false;
+  }
+
+  resetCandidateForm() {
+    this.candidateForm.reset();
+    this.selectedCandidate = null;
+    this.candidateFormVisible = false;
+  }
+
+  resetInterviewForm() {
+    this.interviewForm.reset();
+    this.selectedInterview = null;
+    this.interviewFormVisible = false;
+  }
+
   resetOfferLetterForm() {
     this.offerLetterForm.reset({
       offerDate: new Date().toISOString().split('T')[0],
@@ -467,22 +495,36 @@ export class RecruitmentComponent implements OnInit {
       }
     });
     this.offerLetterForm.markAsUntouched();
+    this.offerLetterFormVisible = false;
   }
 
-  // Utility Methods
-  resetJobForm() {
-    this.jobForm.reset();
-    this.selectedJob = null;
+  // Form visibility toggle methods
+  toggleJobForm() {
+    this.jobFormVisible = !this.jobFormVisible;
+    if (!this.jobFormVisible) {
+      this.resetJobForm();
+    }
   }
 
-  resetCandidateForm() {
-    this.candidateForm.reset();
-    this.selectedCandidate = null;
+  toggleCandidateForm() {
+    this.candidateFormVisible = !this.candidateFormVisible;
+    if (!this.candidateFormVisible) {
+      this.resetCandidateForm();
+    }
   }
 
-  resetInterviewForm() {
-    this.interviewForm.reset();
-    this.selectedInterview = null;
+  toggleInterviewForm() {
+    this.interviewFormVisible = !this.interviewFormVisible;
+    if (!this.interviewFormVisible) {
+      this.resetInterviewForm();
+    }
+  }
+
+  toggleOfferLetterForm() {
+    this.offerLetterFormVisible = !this.offerLetterFormVisible;
+    if (!this.offerLetterFormVisible) {
+      this.resetOfferLetterForm();
+    }
   }
 
   onFileSelected(event: any, formControlName: string) {
@@ -498,6 +540,12 @@ export class RecruitmentComponent implements OnInit {
     this.activeTab = tab;
     this.clearMessages();
     this.resetForms();
+    
+    // Hide all forms when switching tabs
+    this.jobFormVisible = false;
+    this.candidateFormVisible = false;
+    this.interviewFormVisible = false;
+    this.offerLetterFormVisible = false;
     
     // Load necessary data for different tabs
     if (tab === 'offerLetters') {

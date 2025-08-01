@@ -212,4 +212,12 @@ export class MarketerService {
   fetchProjects(): Observable<any> {
     return this.http.get(`${this.apiUrl}/projects`, { headers: this.getHeaders() });
   }
+
+  // Forgot/Reset Password
+  forgotPassword(email: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/forgot-password`, { email });
+  }
+  resetPassword(data: { email: string; otp: string; newPassword: string }): Observable<any> {
+    return this.http.post(`${this.apiUrl}/reset-password`, data);
+  }
 }

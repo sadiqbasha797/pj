@@ -67,6 +67,7 @@ const {getAllMembers,adminDeleteUser,register} = require('../controllers/digital
 const {createRevenue, deleteRevenue, updateRevenue,getRevenueByProject,getAllRevenue} = require('../controllers/revenueController');
 const {getAllContentCreatorMembers,adminDeleteContentCreator,registerContentCreator} = require('../controllers/contentCreatorController');
 const {getTasksByUserId} = require('../controllers/marketingTaskController');
+const { sendProjectRemindersNow } = require('../utils/projectReminderJob');
 // Register a new admin
 router.post('/register', registerAdmin);
 router.post('/register-manager', verifyAdminToken, registerManager);
@@ -224,4 +225,9 @@ router.get('/marketing-user-task/:userId', verifyAdminToken, getTasksByUserId);
 // Add these routes to your admin routes
 router.get('/pending-requests', verifyAdminToken, getPendingRequests);
 router.put('/team-request/:requestId', verifyAdminToken, handleTeamRequest);
+// Test route to trigger project reminder emails manually
+router.get('/project-reminder-test', async (req, res) => {
+  const result = await sendProjectRemindersNow();
+  res.json(result);
+});
 module.exports = router;

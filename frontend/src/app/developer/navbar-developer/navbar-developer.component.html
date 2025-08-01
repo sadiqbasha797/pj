@@ -1,16 +1,11 @@
-<nav class="transition-all duration-300 ease-in-out shadow-lg border-b
-           dark:bg-gray-900 bg-white
-           dark:border-indigo-500/30 border-gray-200"
+<nav class="transition-all duration-300 ease-in-out shadow-lg border-b bg-blue-50 border-blue-200"
      [ngClass]="{'ml-72': !isSidebarCollapsed, 'ml-20': isSidebarCollapsed && !isMobile, 'ml-0': isMobile}">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex justify-between h-16">
       <!-- Left Section -->
       <div class="flex items-center space-x-4">
         <button (click)="onToggleSidebar()" 
-                class="dark:text-indigo-400 text-gray-600 
-                       dark:hover:text-indigo-300 hover:text-gray-800 
-                       focus:outline-none dark:focus:bg-gray-800/40 focus:bg-gray-100 
-                       dark:focus:text-indigo-300 focus:text-gray-800 p-2 rounded-lg">
+                class="text-blue-600 hover:text-blue-800 focus:outline-none focus:bg-blue-100 focus:text-blue-800 p-2 rounded-lg">
           <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
@@ -18,21 +13,19 @@
 
         <!-- Date and Time Display -->
         <div class="flex items-center space-x-4">
-          <div class="flex items-center dark:bg-indigo-900/20 bg-gray-100 px-3 py-1.5 rounded-lg 
-                      dark:border-indigo-500/30 border-gray-200 border">
-            <svg class="h-5 w-5 mr-2 dark:text-indigo-300 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="flex items-center bg-orange-100 px-3 py-1.5 rounded-lg border-orange-300 border">
+            <svg class="h-5 w-5 mr-2 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                     d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-            <span class="text-sm font-medium dark:text-indigo-300 text-gray-600">{{currentDate}}</span>
+            <span class="text-sm font-medium text-orange-700">{{currentDate}}</span>
           </div>
-          <div class="flex items-center dark:bg-indigo-900/20 bg-gray-100 px-3 py-1.5 rounded-lg 
-                      dark:border-indigo-500/30 border-gray-200 border">
-            <svg class="h-5 w-5 mr-2 dark:text-indigo-300 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="flex items-center bg-green-100 px-3 py-1.5 rounded-lg border-green-300 border">
+            <svg class="h-5 w-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                     d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span class="text-sm font-medium dark:text-indigo-300 text-gray-600">{{currentTime}}</span>
+            <span class="text-sm font-medium text-green-700">{{currentTime}}</span>
           </div>
         </div>
       </div>
@@ -43,7 +36,7 @@
         <div class="relative flex-1 max-w-lg">
           <div class="relative">
             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <svg class="h-5 w-5 dark:text-indigo-400 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="h-5 w-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                       d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
@@ -53,48 +46,22 @@
                    type="text"
                    placeholder="Search tasks, projects..."
                    class="block w-full pl-10 pr-3 py-2 border rounded-lg leading-5 transition-colors duration-200
-                          dark:border-indigo-500/30 border-gray-200
-                          dark:bg-gray-800/40 bg-gray-50
-                          dark:placeholder-gray-500 placeholder-gray-400
-                          dark:text-gray-200 text-gray-700
-                          focus:outline-none 
-                          dark:focus:bg-gray-800/60 focus:bg-white
-                          focus:ring-2 focus:ring-gray-200 focus:border-gray-200 
+                          border-blue-200 bg-blue-50 placeholder-blue-400 text-blue-900
+                          focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-200 focus:border-blue-200 
                           sm:text-sm">
           </div>
 
           <!-- Search Results -->
           <div *ngIf="isSearchResultsVisible && searchResults.length > 0"
-               class="absolute mt-1 w-full rounded-lg shadow-lg max-h-96 overflow-y-auto z-50 
-                      dark:bg-gray-800 bg-white
-                      dark:border-indigo-500/30 border-gray-200 border">
+               class="absolute mt-1 w-full rounded-lg shadow-lg max-h-96 overflow-y-auto z-50 bg-white border-blue-200 border">
             <!-- Search results content -->
           </div>
         </div>
 
-        <!-- Theme Toggle -->
-        <button (click)="toggleTheme()"
-                class="p-2 rounded-lg transition-colors duration-200
-                       dark:text-indigo-400 text-gray-600
-                       dark:hover:text-indigo-300 hover:text-gray-800
-                       focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200">
-          <svg *ngIf="!isDarkMode" class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                  d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
-          </svg>
-          <svg *ngIf="isDarkMode" class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                  d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707"/>
-          </svg>
-        </button>
-
         <!-- Notifications Button and Dropdown -->
         <div class="relative">
           <button (click)="toggleNotifications()" 
-                  class="p-2 rounded-lg transition-colors duration-200
-                         dark:text-indigo-400 text-gray-600
-                         dark:hover:text-indigo-300 hover:text-gray-800
-                         focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200">
+                  class="p-2 rounded-lg transition-colors duration-200 text-purple-600 hover:text-purple-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-200">
             <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                     d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -107,12 +74,10 @@
 
           <!-- Notifications Dropdown -->
           <div *ngIf="isNotificationOpen" 
-               class="origin-top-right absolute right-0 mt-2 w-96 rounded-lg shadow-lg 
-                      dark:bg-gray-800 bg-white
-                      ring-1 ring-black ring-opacity-5 z-50">
+               class="origin-top-right absolute right-0 mt-2 w-96 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
             <!-- Header with Mark All as Read -->
-            <div class="px-4 py-2 border-b border-gray-200 flex justify-between items-center">
-              <span class="font-medium dark:text-gray-200 text-gray-700">Notifications</span>
+            <div class="px-4 py-2 border-b border-blue-200 flex justify-between items-center">
+              <span class="font-medium text-blue-700">Notifications</span>
               <button *ngIf="totalUnreadCount > 0" 
                       (click)="markAllNotificationsAsRead()" 
                       class="text-sm text-blue-500 hover:text-blue-600">
@@ -123,16 +88,14 @@
             <!-- Notifications List -->
             <div class="max-h-96 overflow-y-auto">
               <div *ngFor="let notification of notifications" 
-                   class="px-4 py-3 border-b border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700">
+                   class="px-4 py-3 border-b border-blue-100 hover:bg-blue-50">
                 <div class="flex items-center justify-between">
                   <div class="flex-1">
-                    <p class="text-sm" [class.dark:text-gray-300]="!notification.read" 
-                       [class.dark:text-gray-400]="notification.read"
-                       [class.text-gray-900]="!notification.read"
-                       [class.text-gray-600]="notification.read">
+                    <p class="text-sm" [class.text-blue-900]="!notification.read" 
+                       [class.text-blue-400]="notification.read">
                       {{notification.content}}
                     </p>
-                    <p class="text-xs text-gray-500 mt-1">{{notification.type}}</p>
+                    <p class="text-xs text-blue-400 mt-1">{{notification.type}}</p>
                   </div>
                   <button *ngIf="!notification.read" 
                           (click)="markNotificationAsRead(notification._id)" 
@@ -144,10 +107,9 @@
             </div>
 
             <!-- Footer -->
-            <div class="px-4 py-2 border-t border-gray-200">
+            <div class="px-4 py-2 border-t border-blue-200">
               <a routerLink="/developer/notifications" 
-                 class="block text-center text-sm text-indigo-600 hover:text-indigo-700 
-                        dark:text-indigo-400 dark:hover:text-indigo-300">
+                 class="block text-center text-sm text-purple-600 hover:text-purple-700">
                 View All Notifications ({{totalUnreadCount}} unread)
               </a>
             </div>
@@ -157,32 +119,28 @@
         <!-- Profile Dropdown -->
         <div class="relative ml-3">
           <button (click)="toggleProfileDropdown()" 
-                  class="flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200">
+                  class="flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-200">
             <img class="h-8 w-8 rounded-full object-cover" 
                  [src]="developerImage" 
                  [alt]="developerName">
-            <span class="ml-2 text-sm hidden md:block dark:text-gray-200 text-gray-700">{{ developerName }}</span>
+            <span class="ml-2 text-sm hidden md:block text-blue-900">{{ developerName }}</span>
           </button>
 
           <!-- Profile Dropdown Menu -->
           <div *ngIf="isProfileDropdownOpen" 
-               class="origin-top-right absolute right-0 mt-2 w-48 rounded-lg shadow-lg py-1 
-                      dark:bg-gray-800 bg-white
-                      ring-1 ring-black ring-opacity-5 z-50">
-            <div class="px-4 py-2 text-sm dark:text-gray-400 text-gray-500 border-b dark:border-gray-700">
+               class="origin-top-right absolute right-0 mt-2 w-48 rounded-lg shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 z-50">
+            <div class="px-4 py-2 text-sm text-blue-400 border-b border-blue-100">
               Signed in as<br>
-              <span class="font-medium dark:text-gray-200 text-gray-900">{{ developerName }}</span>
+              <span class="font-medium text-blue-900">{{ developerName }}</span>
             </div>
             <a routerLink="/developer/profile" 
-               class="block px-4 py-2 text-sm dark:text-gray-200 text-gray-700 
-                      dark:hover:bg-gray-700 hover:bg-gray-100">
+               class="block px-4 py-2 text-sm text-blue-900 hover:bg-blue-50">
               Your Profile
             </a>
            
-            <hr class="my-1 dark:border-indigo-500/30 border-gray-200">
+            <hr class="my-1 border-blue-100">
             <button (click)="onSignOut()" 
-                    class="block w-full text-left px-4 py-2 text-sm text-red-400 
-                           dark:hover:bg-gray-700 hover:bg-gray-100">
+                    class="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-50">
               Sign out
             </button>
           </div>
@@ -195,14 +153,13 @@
 <!-- Notification Popup - Moved outside and below the navbar -->
 <div *ngIf="activePopup?.visible" 
      [@slideInOut]
-     class="fixed right-4 top-20 w-96 dark:bg-gray-800 bg-white rounded-lg shadow-xl 
-            dark:border-indigo-500/30 border-gray-200 border z-50 transform">
+     class="fixed right-4 top-20 w-96 bg-yellow-50 rounded-lg shadow-xl border-yellow-200 border z-50 transform">
   <div class="p-3">
     <div class="flex items-start space-x-3">
       <!-- Notification Icon -->
       <div class="flex-shrink-0">
-        <div class="h-8 w-8 dark:bg-indigo-500/20 bg-indigo-100 rounded-full flex items-center justify-center">
-          <svg class="h-4 w-4 dark:text-indigo-400 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div class="h-8 w-8 bg-yellow-200 rounded-full flex items-center justify-center">
+          <svg class="h-4 w-4 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" 
                   stroke-linejoin="round" 
                   stroke-width="2" 
@@ -215,12 +172,12 @@
       <div class="flex-1">
         <div class="flex justify-between items-start">
           <div>
-            <p class="text-sm font-medium dark:text-gray-200 text-gray-900">New Notification</p>
-            <p class="mt-0.5 text-sm dark:text-gray-400 text-gray-600">
+            <p class="text-sm font-medium text-yellow-900">New Notification</p>
+            <p class="mt-0.5 text-sm text-yellow-700">
               {{ activePopup?.content }}
             </p>
             <!-- Time indicator -->
-            <div class="mt-1 flex items-center text-xs dark:text-gray-500 text-gray-400">
+            <div class="mt-1 flex items-center text-xs text-yellow-500">
               <svg class="h-3.5 w-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" 
                       stroke-linejoin="round" 
@@ -232,7 +189,7 @@
           </div>
           <!-- Close button -->
           <button (click)="hideNotificationPopup()" 
-                  class="ml-2 dark:text-gray-400 text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                  class="ml-2 text-yellow-500 hover:text-yellow-700 transition-colors">
             <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" 
                     d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" 
@@ -245,8 +202,8 @@
   </div>
 
   <!-- Progress bar for auto-dismiss -->
-  <div class="h-0.5 dark:bg-gray-700 bg-gray-100 rounded-b-lg">
-    <div class="h-0.5 dark:bg-indigo-500 bg-indigo-600 rounded-b-lg transition-all duration-3000 ease-linear"
+  <div class="h-0.5 bg-yellow-200 rounded-b-lg">
+    <div class="h-0.5 bg-yellow-500 rounded-b-lg transition-all duration-3000 ease-linear"
          style="width: 100%">
     </div>
   </div>

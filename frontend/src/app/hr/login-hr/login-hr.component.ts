@@ -30,8 +30,8 @@ export class LoginHrComponent {
         // Store token and HR data in localStorage
         localStorage.setItem('hr_token', response.token);
         localStorage.setItem('hr_data', JSON.stringify(response.hr));
-        // Redirect to users page
-        this.router.navigate(['/hr/users']);
+        // Redirect to dashboard-hr page
+        this.router.navigate(['/hr/dashboard']);
       },
       error: (error) => {
         this.errorMessage = error.error.message || 'Login failed. Please try again.';

@@ -489,6 +489,55 @@ const getManagerRequests = async (req, res) => {
   }
 };
 
+// Initiate password reset for manager
+const initiatePasswordReset = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const manager = await Manager.findOne({ email });
+    if (!manager) {
+      return res.status(404).json({ message: 'Manager not found' });
+    }
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpiration = new Date();
+    otpExpiration.setMinutes(otpExpiration.getMinutes() + 10);
+    manager.resetPasswordOTP = { code: otp, expiresAt: otpExpiration };
+    await manager.save();
+    const mailOptions = {
+      from: 'khanbasha7777777@gmail.com',
+      to: email,
+      subject: 'Password Reset OTP',
+      text: `Your OTP for password reset is: ${otp}\nThis OTP will expire in 10 minutes.`
+    };
+    transporter.sendMail(mailOptions, function(error, info) {
+      if (error) { console.log('Error sending email:', error); }
+    });
+    res.status(200).json({ message: 'OTP has been sent to your email', email });
+  } catch (error) {
+    res.status(500).json({ message: 'Error initiating password reset', error: error.message });
+  }
+};
+
+// Reset password for manager
+const resetPassword = async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+    const manager = await Manager.findOne({ email });
+    if (!manager) {
+      return res.status(404).json({ message: 'Manager not found' });
+    }
+    if (!manager.resetPasswordOTP || manager.resetPasswordOTP.code !== otp || new Date() > manager.resetPasswordOTP.expiresAt) {
+      return res.status(400).json({ message: 'Invalid or expired OTP' });
+    }
+    const hashedPassword = await bcrypt.hash(newPassword, 8);
+    manager.password = hashedPassword;
+    manager.resetPasswordOTP = undefined;
+    await manager.save();
+    res.status(200).json({ message: 'Password reset successful' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error resetting password', error: error.message });
+  }
+};
+
 // Export all controller functions at the end
 module.exports = {
   getNonVerifiedDevelopers,
@@ -503,5 +552,7 @@ module.exports = {
   getManagerNotifications,
   markAllNotificationsAsRead,
   createTeamRequest,
-  getManagerRequests
+  getManagerRequests,
+  initiatePasswordReset,
+  resetPassword
 };

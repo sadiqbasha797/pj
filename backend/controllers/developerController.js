@@ -10,6 +10,16 @@ const Notification = require('../models/Notification');
 const { createNotification,notifyCreation,notifyUpdate,leaveUpdateNotification,leaveNotification } = require('../utils/notificationHelper'); // Adjust the path as necessary
 const Task = require('../models/Task');
 const { uploadToCloudinary, deleteFromCloudinary } = require('../utils/cloudinary');
+const nodemailer = require('nodemailer');
+
+// Email configuration (reuse admin's config or set your own)
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'khanbasha7777777@gmail.com',
+    pass: 'hpdi qrqk plrn blzz'
+  }
+});
 
 const registerDeveloper = async (req, res) => {
   try {
@@ -570,6 +580,84 @@ const markAllNotificationsAsRead = async (req, res) => {
   }
 };
 
+// Developer password reset: initiate
+const initiatePasswordReset = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const developer = await Developer.findOne({ email });
+    if (!developer) {
+      return res.status(404).json({ message: 'Developer not found' });
+    }
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    // Set OTP expiration to 10 minutes from now
+    const otpExpiration = new Date();
+    otpExpiration.setMinutes(otpExpiration.getMinutes() + 10);
+    // Save OTP to developer document
+    developer.resetPasswordOTP = {
+      code: otp,
+      expiresAt: otpExpiration
+    };
+    await developer.save();
+    // Send OTP via email
+    const mailOptions = {
+      from: 'khanbasha7777777@gmail.com',
+      to: email,
+      subject: 'Password Reset OTP',
+      text: `Your OTP for password reset is: ${otp}\nThis OTP will expire in 10 minutes.`
+    };
+    transporter.sendMail(mailOptions, function(error, info) {
+      if (error) {
+        console.log('Error sending email:', error);
+      } else {
+        console.log('Email sent:', info.response);
+      }
+    });
+    res.status(200).json({ 
+      message: 'OTP has been sent to your email',
+      email: email
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Error initiating password reset', 
+      error: error.message 
+    });
+  }
+};
+
+// Developer password reset: complete
+const resetPassword = async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+    const developer = await Developer.findOne({ email });
+    if (!developer) {
+      return res.status(404).json({ message: 'Developer not found' });
+    }
+    // Verify OTP
+    if (!developer.resetPasswordOTP || 
+        developer.resetPasswordOTP.code !== otp || 
+        new Date() > developer.resetPasswordOTP.expiresAt) {
+      return res.status(400).json({ 
+        message: 'Invalid or expired OTP' 
+      });
+    }
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 8);
+    // Update password and clear OTP
+    developer.password = hashedPassword;
+    developer.resetPasswordOTP = undefined;
+    await developer.save();
+    res.status(200).json({ 
+      message: 'Password reset successful' 
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Error resetting password', 
+      error: error.message 
+    });
+  }
+};
+
 
 // Export all controller functions at the end
 module.exports = {
@@ -592,5 +680,7 @@ module.exports = {
   getAssignedTasks,
   fetchDeveloperEvents,
   fetchDeveloperNotifications,
-  markAllNotificationsAsRead
+  markAllNotificationsAsRead,
+  initiatePasswordReset,
+  resetPassword
 };

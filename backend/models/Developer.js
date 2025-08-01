@@ -9,7 +9,11 @@ const DeveloperSchema = new mongoose.Schema({
   resume: { type: String },
   createdAt: { type: Date, default: Date.now },
   role: { type: String, default: "developer" },
-  image: { type: String }
+  image: { type: String },
+  resetPasswordOTP: {
+    code: String,
+    expiresAt: Date
+  }
 });
 
 const Developer = mongoose.model('Developer', DeveloperSchema);

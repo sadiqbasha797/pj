@@ -1,1 +1,263 @@
-<p>profile-hr works!</p>
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 p-8">
+  <!-- Header -->
+  <div class="mb-8 text-center">
+    <h1 class="text-3xl font-bold text-gray-800 mb-2">HR Profile</h1>
+    <p class="text-gray-600">Manage your profile information and security settings</p>
+  </div>
+
+  <!-- Success/Error Messages -->
+  <div *ngIf="successMessage" class="mb-6 p-4 bg-green-50 text-green-700 rounded-xl border border-green-200 flex items-center shadow-sm">
+    <svg class="h-5 w-5 mr-2 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    {{ successMessage }}
+  </div>
+  
+  <div *ngIf="errorMessage" class="mb-6 p-4 bg-red-50 text-red-700 rounded-xl border border-red-200 flex items-center shadow-sm">
+    <svg class="h-5 w-5 mr-2 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    {{ errorMessage }}
+  </div>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="isLoading" class="flex justify-center items-center h-64">
+    <div class="relative w-20 h-20">
+      <div class="absolute top-0 left-0 w-full h-full border-4 border-blue-200 rounded-full animate-pulse"></div>
+      <div class="absolute top-0 left-0 w-full h-full border-4 border-blue-600 rounded-full animate-spin border-t-transparent"></div>
+    </div>
+  </div>
+
+  <!-- Profile Content -->
+  <div *ngIf="!isLoading" class="max-w-4xl mx-auto space-y-8">
+    
+    <!-- Profile Information Card -->
+    <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+      <div class="p-6 border-b border-gray-100">
+        <div class="flex justify-between items-center">
+          <h2 class="text-xl font-bold text-gray-800 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            Profile Information
+          </h2>
+          <button 
+            (click)="toggleEdit()"
+            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            {{ isEditing ? 'Cancel' : 'Edit Profile' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="p-6">
+        <!-- Profile Display -->
+        <div *ngIf="!isEditing" class="space-y-4">
+          <div class="flex items-center space-x-4">
+            <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-2xl font-bold text-gray-800">{{ profileData.name }}</h3>
+              <p class="text-gray-600">{{ profileData.email }}</p>
+              <p class="text-sm text-gray-500">HR Manager</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <h4 class="font-semibold text-gray-700 mb-2">Full Name</h4>
+              <p class="text-gray-800">{{ profileData.name }}</p>
+            </div>
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <h4 class="font-semibold text-gray-700 mb-2">Email Address</h4>
+              <p class="text-gray-800">{{ profileData.email }}</p>
+            </div>
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <h4 class="font-semibold text-gray-700 mb-2">Role</h4>
+              <p class="text-gray-800">Human Resources Manager</p>
+            </div>
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <h4 class="font-semibold text-gray-700 mb-2">Member Since</h4>
+              <p class="text-gray-800">{{ profileData.createdAt !== null && profileData.createdAt !== undefined ? (profileData.createdAt | date:'mediumDate') : 'N/A' }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Profile Edit Form -->
+        <form *ngIf="isEditing" [formGroup]="profileForm" (ngSubmit)="updateProfile()" class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Full Name</label>
+              <input 
+                type="text" 
+                formControlName="name"
+                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition duration-200"
+                [ngClass]="{'border-red-500': isFormControlInvalid(profileForm, 'name')}">
+              <span class="text-red-500 text-xs mt-1" *ngIf="isFormControlInvalid(profileForm, 'name')">
+                {{ getFormControlError(profileForm, 'name') }}
+              </span>
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+              <input 
+                type="email" 
+                formControlName="email"
+                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition duration-200"
+                [ngClass]="{'border-red-500': isFormControlInvalid(profileForm, 'email')}">
+              <span class="text-red-500 text-xs mt-1" *ngIf="isFormControlInvalid(profileForm, 'email')">
+                {{ getFormControlError(profileForm, 'email') }}
+              </span>
+            </div>
+          </div>
+
+          <div class="flex justify-end space-x-3">
+            <button 
+              type="button" 
+              (click)="toggleEdit()"
+              class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition duration-200">
+              Cancel
+            </button>
+            <button 
+              type="submit" 
+              [disabled]="!profileForm.valid || isLoading"
+              class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition duration-200">
+              {{ isLoading ? 'Updating...' : 'Update Profile' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Security Settings Card -->
+    <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+      <div class="p-6 border-b border-gray-100">
+        <div class="flex justify-between items-center">
+          <h2 class="text-xl font-bold text-gray-800 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            Security Settings
+          </h2>
+          <button 
+            (click)="togglePasswordChange()"
+            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-200 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            {{ isChangingPassword ? 'Cancel' : 'Change Password' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="p-6">
+        <!-- Security Info Display -->
+        <div *ngIf="!isChangingPassword" class="space-y-4">
+          <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <div class="flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-yellow-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+              <span class="text-yellow-800 font-medium">Password Security</span>
+            </div>
+            <p class="text-yellow-700 mt-2 text-sm">
+              Keep your account secure by using a strong password and changing it regularly.
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <h4 class="font-semibold text-gray-700 mb-2">Last Password Change</h4>
+              <p class="text-gray-800">Not available</p>
+            </div>
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <h4 class="font-semibold text-gray-700 mb-2">Account Status</h4>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                <span class="w-1.5 h-1.5 bg-green-400 rounded-full mr-1.5"></span>
+                Active
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Password Change Form -->
+        <form *ngIf="isChangingPassword" [formGroup]="passwordForm" (ngSubmit)="changePassword()" class="space-y-6">
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Current Password</label>
+              <input 
+                type="password" 
+                formControlName="currentPassword"
+                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition duration-200"
+                [ngClass]="{'border-red-500': isFormControlInvalid(passwordForm, 'currentPassword')}">
+              <span class="text-red-500 text-xs mt-1" *ngIf="isFormControlInvalid(passwordForm, 'currentPassword')">
+                {{ getFormControlError(passwordForm, 'currentPassword') }}
+              </span>
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">New Password</label>
+              <input 
+                type="password" 
+                formControlName="newPassword"
+                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition duration-200"
+                [ngClass]="{'border-red-500': isFormControlInvalid(passwordForm, 'newPassword')}">
+              <span class="text-red-500 text-xs mt-1" *ngIf="isFormControlInvalid(passwordForm, 'newPassword')">
+                {{ getFormControlError(passwordForm, 'newPassword') }}
+              </span>
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Confirm New Password</label>
+              <input 
+                type="password" 
+                formControlName="confirmPassword"
+                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition duration-200"
+                [ngClass]="{'border-red-500': isFormControlInvalid(passwordForm, 'confirmPassword')}">
+              <span class="text-red-500 text-xs mt-1" *ngIf="isFormControlInvalid(passwordForm, 'confirmPassword')">
+                {{ getFormControlError(passwordForm, 'confirmPassword') }}
+              </span>
+              <span class="text-red-500 text-xs mt-1" *ngIf="passwordForm.errors?.['passwordMismatch'] && passwordForm.get('confirmPassword')?.touched">
+                Passwords do not match
+              </span>
+            </div>
+          </div>
+
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div class="flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span class="text-blue-800 font-medium">Password Requirements</span>
+            </div>
+            <ul class="text-blue-700 mt-2 text-sm space-y-1">
+              <li>• Minimum 6 characters long</li>
+              <li>• Use a combination of letters, numbers, and symbols</li>
+              <li>• Avoid using common passwords</li>
+            </ul>
+          </div>
+
+          <div class="flex justify-end space-x-3">
+            <button 
+              type="button" 
+              (click)="togglePasswordChange()"
+              class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition duration-200">
+              Cancel
+            </button>
+            <button 
+              type="submit" 
+              [disabled]="!passwordForm.valid || isLoading"
+              class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition duration-200">
+              {{ isLoading ? 'Changing...' : 'Change Password' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

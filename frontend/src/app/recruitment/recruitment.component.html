@@ -1,11 +1,5 @@
 <!-- Main Container -->
 <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 p-8">
-    <!-- Header -->
-    <div class="mb-12 text-center">
-      <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 mb-3">Recruitment Management</h1>
-      <p class="text-gray-600 text-lg">Streamline your hiring process with our comprehensive recruitment solution</p>
-    </div>
-  
     <!-- Success/Error Messages -->
     <div *ngIf="successMessage" class="mb-4 p-4 bg-green-50 text-green-700 rounded-xl border border-green-200 flex items-center shadow-sm">
       <svg class="h-5 w-5 mr-2 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -22,35 +16,84 @@
   
     <!-- Tab Navigation -->
     <div class="mb-8 max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
-      <nav class="flex justify-center p-2 space-x-1 bg-gray-50">
-        <button 
-          [ngClass]="{'bg-blue-600 text-white shadow-lg': activeTab === 'jobs',
-                      'text-gray-600 hover:bg-gray-100': activeTab !== 'jobs'}"
-          class="py-3 px-6 font-medium rounded-lg transition-all duration-200 ease-in-out hover:bg-opacity-90"
-          (click)="setActiveTab('jobs')">
-          Jobs
-        </button>
-        <button 
-          [ngClass]="{'bg-blue-600 text-white shadow-lg': activeTab === 'candidates',
-                      'text-gray-600 hover:bg-gray-100': activeTab !== 'candidates'}"
-          class="py-2 px-4 font-medium"
-          (click)="setActiveTab('candidates')">
-          Candidates
-        </button>
-        <button 
-          [ngClass]="{'bg-blue-600 text-white shadow-lg': activeTab === 'interviews',
-                      'text-gray-600 hover:bg-gray-100': activeTab !== 'interviews'}"
-          class="py-2 px-4 font-medium"
-          (click)="setActiveTab('interviews')">
-          Interviews
-        </button>
-        <button 
-          [ngClass]="{'bg-blue-600 text-white shadow-lg': activeTab === 'offerLetters',
-                      'text-gray-600 hover:bg-gray-100': activeTab !== 'offerLetters'}"
-          class="py-2 px-4 font-medium"
-          (click)="setActiveTab('offerLetters')">
-          Offer Letters
-        </button>
+      <nav class="flex justify-between items-center p-2 bg-gray-50">
+        <div class="flex space-x-1">
+          <button 
+            [ngClass]="{'bg-blue-600 text-white shadow-lg': activeTab === 'jobs',
+                        'text-gray-600 hover:bg-gray-100': activeTab !== 'jobs'}"
+            class="py-3 px-6 font-medium rounded-lg transition-all duration-200 ease-in-out hover:bg-opacity-90"
+            (click)="setActiveTab('jobs')">
+            Jobs
+          </button>
+          <button 
+            [ngClass]="{'bg-blue-600 text-white shadow-lg': activeTab === 'candidates',
+                        'text-gray-600 hover:bg-gray-100': activeTab !== 'candidates'}"
+            class="py-2 px-4 font-medium"
+            (click)="setActiveTab('candidates')">
+            Candidates
+          </button>
+          <button 
+            [ngClass]="{'bg-blue-600 text-white shadow-lg': activeTab === 'interviews',
+                        'text-gray-600 hover:bg-gray-100': activeTab !== 'interviews'}"
+            class="py-2 px-4 font-medium"
+            (click)="setActiveTab('interviews')">
+            Interviews
+          </button>
+          <button 
+            [ngClass]="{'bg-blue-600 text-white shadow-lg': activeTab === 'offerLetters',
+                        'text-gray-600 hover:bg-gray-100': activeTab !== 'offerLetters'}"
+            class="py-2 px-4 font-medium"
+            (click)="setActiveTab('offerLetters')">
+            Offer Letters
+          </button>
+        </div>
+        
+        <!-- Toggle Buttons -->
+        <div class="flex space-x-2">
+          <!-- Jobs Tab Button -->
+          <button 
+            *ngIf="activeTab === 'jobs'"
+            (click)="toggleJobForm()"
+            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-200 flex items-center text-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            {{ jobFormVisible ? 'Cancel' : 'Add Job' }}
+          </button>
+          
+          <!-- Candidates Tab Button -->
+          <button 
+            *ngIf="activeTab === 'candidates'"
+            (click)="toggleCandidateForm()"
+            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-200 flex items-center text-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            {{ candidateFormVisible ? 'Cancel' : 'Add Candidate' }}
+          </button>
+          
+          <!-- Interviews Tab Button -->
+          <button 
+            *ngIf="activeTab === 'interviews'"
+            (click)="toggleInterviewForm()"
+            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-200 flex items-center text-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            {{ interviewFormVisible ? 'Cancel' : 'Schedule Interview' }}
+          </button>
+          
+          <!-- Offer Letters Tab Button -->
+          <button 
+            *ngIf="activeTab === 'offerLetters'"
+            (click)="toggleOfferLetterForm()"
+            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-200 flex items-center text-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            {{ offerLetterFormVisible ? 'Cancel' : 'Generate Offer' }}
+          </button>
+        </div>
       </nav>
     </div>
   
@@ -65,7 +108,7 @@
     <!-- Jobs Tab -->
     <div *ngIf="activeTab === 'jobs' && !isLoading" class="max-w-6xl mx-auto space-y-8">
       <!-- Job Form -->
-      <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
+      <div *ngIf="jobFormVisible" class="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
         <h2 class="text-2xl font-bold mb-6 flex items-center">
           <span class="text-blue-600 mr-2">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -129,42 +172,16 @@
         <div class="p-6 border-b border-gray-100">
           <div class="flex justify-between items-center">
             <h3 class="text-xl font-bold text-gray-800">Available Positions</h3>
-            <div class="flex space-x-2">
-              <button class="px-4 py-2 text-sm bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition duration-200">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                </svg>
-                Filter
-              </button>
-              <button class="px-4 py-2 text-sm bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition duration-200">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
-                </svg>
-                Sort
-              </button>
-            </div>
           </div>
         </div>
-        <table class="min-w-full divide-y divide-gray-100">
-          <thead class="bg-gray-50 text-gray-600">
-            <tr>
-              <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Role</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Salary Range</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vacancies</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deadline</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
-            <tr *ngFor="let job of jobs">
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{{ job.role }}</td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                {{ job.salaryOffered.min }} - {{ job.salaryOffered.max }} {{ job.salaryOffered.currency }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">{{ job.vacancies }}</td>
-              <td class="px-6 py-4 whitespace-nowrap">{{ job.dates.deadline | date }}</td>
-              <td class="px-6 py-4 whitespace-nowrap">
+        <div class="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div *ngFor="let job of jobs" class="bg-blue-50 rounded-xl shadow p-5 flex flex-col justify-between border border-blue-100">
+            <div>
+              <h4 class="text-lg font-bold text-blue-700 mb-2">{{ job.role }}</h4>
+              <div class="text-sm text-gray-600 mb-1">Salary: <span class="font-semibold">{{ job.salaryOffered.min }} - {{ job.salaryOffered.max }} {{ job.salaryOffered.currency }}</span></div>
+              <div class="text-sm text-gray-600 mb-1">Vacancies: <span class="font-semibold">{{ job.vacancies }}</span></div>
+              <div class="text-sm text-gray-600 mb-1">Deadline: <span class="font-semibold">{{ job.dates.deadline | date }}</span></div>
+              <div class="text-sm mb-2">
                 <span [ngClass]="{
                   'bg-green-100 text-green-700 ring-green-400': job.status === 'active',
                   'bg-red-100 text-red-700 ring-red-400': job.status === 'closed',
@@ -177,32 +194,32 @@
                   }"></span>
                   {{ job.status }}
                 </span>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <button (click)="editJob(job)" class="inline-flex items-center px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition duration-200 mr-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                  Edit
-                </button>
-                <button (click)="deleteJob(job._id)" class="inline-flex items-center px-3 py-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition duration-200">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                  Delete
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+              </div>
+              <div class="text-xs text-gray-500 mb-2">{{ job.description }}</div>
+            </div>
+            <div class="flex justify-end space-x-2 mt-2">
+              <button (click)="editJob(job)" class="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition duration-200 mr-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Edit
+              </button>
+              <button (click)="deleteJob(job._id)" class="inline-flex items-center px-3 py-1.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition duration-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   
     <!-- Candidates Tab -->
     <div *ngIf="activeTab === 'candidates' && !isLoading" class="max-w-6xl mx-auto space-y-8">
-      <!-- Similar structure as Jobs tab, but with candidate-specific fields -->
       <!-- Candidate Form -->
-      <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
+      <div *ngIf="candidateFormVisible" class="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
         <h2 class="text-2xl font-bold mb-6 flex items-center">
           <span class="text-blue-600 mr-2">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -275,40 +292,15 @@
         <div class="p-6 border-b border-gray-100">
           <div class="flex justify-between items-center">
             <h3 class="text-xl font-bold text-gray-800">Candidate Applications</h3>
-            <div class="flex space-x-2">
-              <button class="px-4 py-2 text-sm bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition duration-200">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                </svg>
-                Filter
-              </button>
-              <button class="px-4 py-2 text-sm bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition duration-200">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
-                </svg>
-                Sort
-              </button>
-            </div>
           </div>
         </div>
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
-            <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applied For</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
-            <tr *ngFor="let candidate of candidates">
-              <td class="px-6 py-4 whitespace-nowrap">{{ candidate.name }}</td>
-              <td class="px-6 py-4 whitespace-nowrap">{{ candidate.email }}</td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                {{ candidate.jobsApplied[0]?.job?.role || 'N/A' }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
+        <div class="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div *ngFor="let candidate of candidates" class="bg-yellow-50 rounded-xl shadow p-5 flex flex-col justify-between border border-yellow-100">
+            <div>
+              <h4 class="text-lg font-bold text-yellow-700 mb-2">{{ candidate.name }}</h4>
+              <div class="text-sm text-gray-600 mb-1">Email: <span class="font-semibold">{{ candidate.email }}</span></div>
+              <div class="text-sm text-gray-600 mb-1">Applied For: <span class="font-semibold">{{ candidate.jobsApplied[0]?.job?.role || 'N/A' }}</span></div>
+              <div class="text-sm mb-2">
                 <span [ngClass]="{
                   'bg-yellow-100 text-yellow-700 ring-yellow-400': candidate.jobsApplied[0]?.status === 'pending',
                   'bg-blue-100 text-blue-700 ring-blue-400': candidate.jobsApplied[0]?.status === 'shortlisted',
@@ -323,24 +315,22 @@
                   }"></span>
                   {{ candidate.jobsApplied[0]?.status }}
                 </span>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <button (click)="scheduleInterview(candidate)" class="text-green-600 hover:text-green-900 mr-3">
-                  Schedule Interview
-                </button>
-                <button (click)="editCandidate(candidate)" class="text-blue-600 hover:text-blue-900 mr-3">Edit</button>
-                <button (click)="deleteCandidate(candidate._id)" class="text-red-600 hover:text-red-900">Delete</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+              </div>
+            </div>
+            <div class="flex justify-end space-x-2 mt-2">
+              <button (click)="scheduleInterview(candidate)" class="text-green-700 hover:text-green-900 mr-2 font-medium">Schedule Interview</button>
+              <button (click)="editCandidate(candidate)" class="text-blue-700 hover:text-blue-900 mr-2 font-medium">Edit</button>
+              <button (click)="deleteCandidate(candidate._id)" class="text-red-700 hover:text-red-900 font-medium">Delete</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   
     <!-- Interviews Tab -->
     <div *ngIf="activeTab === 'interviews' && !isLoading" class="max-w-6xl mx-auto space-y-8">
       <!-- Interview Form -->
-      <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
+      <div *ngIf="interviewFormVisible" class="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
         <h2 class="text-2xl font-bold mb-6 flex items-center">
           <span class="text-blue-600 mr-2">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -418,38 +408,15 @@
         <div class="p-6 border-b border-gray-100">
           <div class="flex justify-between items-center">
             <h3 class="text-xl font-bold text-gray-800">Scheduled Interviews</h3>
-            <div class="flex space-x-2">
-              <button class="px-4 py-2 text-sm bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition duration-200">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                </svg>
-                Filter
-              </button>
-              <button class="px-4 py-2 text-sm bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition duration-200">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
-                </svg>
-                Sort
-              </button>
-            </div>
           </div>
         </div>
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
-            <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Candidate</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
-            <tr *ngFor="let interview of interviews">
-              <td class="px-6 py-4 whitespace-nowrap">{{ interview.name }}</td>
-              <td class="px-6 py-4 whitespace-nowrap">{{ interview.candidate.name }}</td>
-              <td class="px-6 py-4 whitespace-nowrap">{{ interview.interviewDate | date:'medium' }}</td>
-              <td class="px-6 py-4 whitespace-nowrap">
+        <div class="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div *ngFor="let interview of interviews" class="bg-indigo-50 rounded-xl shadow p-5 flex flex-col justify-between border border-indigo-100">
+            <div>
+              <h4 class="text-lg font-bold text-indigo-700 mb-2">{{ interview.name }}</h4>
+              <div class="text-sm text-gray-600 mb-1">Candidate: <span class="font-semibold">{{ interview.candidate.name }}</span></div>
+              <div class="text-sm text-gray-600 mb-1">Date & Time: <span class="font-semibold">{{ interview.interviewDate | date:'medium' }}</span></div>
+              <div class="text-sm mb-2">
                 <span [ngClass]="{
                   'bg-yellow-100 text-yellow-700 ring-yellow-400': interview.interviewStatus === 'scheduled',
                   'bg-green-100 text-green-700 ring-green-400': interview.interviewStatus === 'completed',
@@ -464,31 +431,33 @@
                   }"></span>
                   {{ interview.interviewStatus }}
                 </span>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <button (click)="updateInterviewStatus(interview)" class="inline-flex items-center px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition duration-200 mr-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                  </svg>
-                  Update Status
-                </button>
-                <button (click)="deleteInterview(interview._id)" class="inline-flex items-center px-3 py-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition duration-200">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                  Delete
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+              </div>
+              <div class="text-xs text-gray-500 mb-2" *ngIf="interview.interviewLink">Link: <a [href]="interview.interviewLink" class="text-blue-600 underline" target="_blank">{{ interview.interviewLink }}</a></div>
+              <div class="text-xs text-gray-500 mb-2" *ngIf="interview.additionalNotes">Notes: {{ interview.additionalNotes }}</div>
+            </div>
+            <div class="flex justify-end space-x-2 mt-2">
+              <button (click)="updateInterviewStatus(interview)" class="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition duration-200 mr-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                Update Status
+              </button>
+              <button (click)="deleteInterview(interview._id)" class="inline-flex items-center px-3 py-1.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition duration-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   
     <!-- Offer Letters Tab -->
     <div *ngIf="activeTab === 'offerLetters' && !isLoading" class="space-y-6">
       <!-- Offer Letter Form -->
-      <div class="bg-white p-6 rounded-lg shadow-md">
+      <div *ngIf="offerLetterFormVisible" class="bg-white p-6 rounded-lg shadow-md">
         <h2 class="text-xl font-semibold mb-4">Generate Offer Letter</h2>
         <form [formGroup]="offerLetterForm" (ngSubmit)="onSubmitOfferLetter()" class="space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -580,40 +549,19 @@
   
       <!-- Offer Letters List -->
       <div class="bg-white rounded-lg shadow-md overflow-hidden">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
-            <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Candidate</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Position</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joining Date</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
-            <tr *ngFor="let offer of offerLetters">
-              <td class="px-6 py-4 whitespace-nowrap">{{ offer.candidate.name }}</td>
-              <td class="px-6 py-4 whitespace-nowrap">{{ offer.offerDetails.position }}</td>
-              <td class="px-6 py-4 whitespace-nowrap">{{ offer.joiningDate | date }}</td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <span [ngClass]="{
-                  'bg-yellow-100 text-yellow-800': offer.status === 'pending',
-                  'bg-green-100 text-green-800': offer.status === 'accepted',
-                  'bg-red-100 text-red-800': offer.status === 'rejected'
-                }" class="px-2 py-1 rounded-full text-xs font-medium">
-                  {{ offer.status }}
-                </span>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <a [href]="offer.offerLetterUrl" target="_blank" 
-                  class="text-blue-600 hover:text-blue-900 mr-3">View</a>
-                <button (click)="deleteOfferLetter(offer._id)" class="text-red-600 hover:text-red-900">
-                  Delete
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div *ngFor="let offer of offerLetters" class="bg-green-50 rounded-xl shadow p-5 flex flex-col justify-between border border-green-100">
+            <div>
+              <h4 class="text-lg font-bold text-green-700 mb-2">{{ offer.candidate.name }}</h4>
+              <div class="text-sm text-gray-600 mb-1">Position: <span class="font-semibold">{{ offer.offerDetails.position }}</span></div>
+              <div class="text-sm text-gray-600 mb-1">Joining Date: <span class="font-semibold">{{ offer.joiningDate | date }}</span></div>
+            </div>
+            <div class="flex justify-end space-x-2 mt-2">
+              <a [href]="offer.offerLetterUrl" target="_blank" class="text-blue-700 hover:text-blue-900 mr-2 font-medium">View</a>
+              <button (click)="deleteOfferLetter(offer._id)" class="text-red-700 hover:text-red-900 font-medium">Delete</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>

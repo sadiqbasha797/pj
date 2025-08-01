@@ -24,6 +24,14 @@ interface Task {
   }>;
 }
 
+// For dropdown
+interface ProjectDropdown {
+  _id: string;
+  title: string;
+  description: string;
+  deadline: string;
+}
+// For grouping tasks by project
 interface Project {
   title: string;
   description: string;
@@ -40,6 +48,7 @@ interface Project {
 })
 export class TaskComponent implements OnInit {
   projects: Project[] = [];
+  projectsList: ProjectDropdown[] = [];
   tasks: Task[] = [];
   loading: boolean = false;
   error: string | null = null;
@@ -73,6 +82,7 @@ export class TaskComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadTasks();
+    this.loadProjects();
   }
 
   loadTasks(): void {
@@ -95,7 +105,7 @@ export class TaskComponent implements OnInit {
 
         // Convert to projects array with proper typing
         this.projects = Object.entries(groupedTasks).map(([title, tasks]): Project => ({
-          title,
+          title: title,
           description: tasks[0].projectId.description,
           tasks: tasks,
           isExpanded: false
@@ -107,6 +117,17 @@ export class TaskComponent implements OnInit {
         this.error = 'Failed to load tasks. Please try again later.';
         this.loading = false;
         console.error('Error loading tasks:', error);
+      }
+    });
+  }
+
+  loadProjects(): void {
+    this.marketerService.getProjects().subscribe({
+      next: (projects: ProjectDropdown[]) => {
+        this.projectsList = projects;
+      },
+      error: (error) => {
+        console.error('Error loading projects:', error);
       }
     });
   }
@@ -160,7 +181,8 @@ export class TaskComponent implements OnInit {
   createTask() {
     if (this.taskForm.valid) {
       this.loading = true;
-      this.marketerService.createMarketingTask(this.taskForm.value).subscribe({
+      const formValue = { ...this.taskForm.value, projectId: this.taskForm.value.projectId };
+      this.marketerService.createMarketingTask(formValue).subscribe({
         next: (response) => {
           this.loadTasks();
           this.toggleTaskForm();
@@ -183,7 +205,6 @@ export class TaskComponent implements OnInit {
       alert('You can only edit tasks that you created');
       return;
     }
-    
     this.selectedTask = task;
     this.isEditing = true;
     this.showTaskForm = true;
@@ -202,7 +223,8 @@ export class TaskComponent implements OnInit {
   updateTask() {
     if (this.taskForm.valid && this.selectedTask) {
       this.loading = true;
-      this.marketerService.updateMarketingTask(this.selectedTask._id, this.taskForm.value).subscribe({
+      const formValue = { ...this.taskForm.value, projectId: this.taskForm.value.projectId };
+      this.marketerService.updateMarketingTask(this.selectedTask._id, formValue).subscribe({
         next: (response) => {
           this.loadTasks();
           this.toggleTaskForm();

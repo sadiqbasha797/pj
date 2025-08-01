@@ -16,7 +16,9 @@ const {
     getContentCreatorEvents,
     applyForHoliday,
     withdrawHoliday,
-    fetchHolidays
+    fetchHolidays,
+    initiatePasswordReset,
+    resetPassword
 } = require('../controllers/contentCreatorController');
 const {createMarketingTask, getAllMarketingTasks, getMarketingTaskById, updateMarketingTask, deleteMarketingTask} = require('../controllers/marketingTaskController');
 const {getAllClients} = require('../controllers/clientController');
@@ -70,6 +72,10 @@ const upload = multer({
 // Public routes
 router.post('/register', upload.single('image'), registerContentCreator);
 router.post('/login', login);
+
+// Add password reset routes (public)
+router.post('/forgot-password', initiatePasswordReset);
+router.post('/reset-password', resetPassword);
 
 // Protected routes - only for content creator role
 router.use(verifyContentCreatorToken);

@@ -132,6 +132,9 @@ wss.on('close', () => {
     clearInterval(interval);
 });
 
+// Require the project reminder cron job
+require('./utils/projectReminderJob');
+
 // Start server
 server.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

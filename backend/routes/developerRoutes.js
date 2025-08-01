@@ -17,7 +17,9 @@ const {
     getAssignedTasks,
     fetchDeveloperEvents,
     fetchDeveloperNotifications,
-    markAllNotificationsAsRead
+    markAllNotificationsAsRead,
+    initiatePasswordReset,
+    resetPassword
 } = require('../controllers/developerController');
 const {getAllClients} = require('../controllers/clientController');
 const {getAllManagers, getAllDevelopers, getAllAdmins, markNotificationAsRead} = require('../controllers/adminController');
@@ -73,5 +75,9 @@ router.get('/digital-marketing-members', verifyDeveloperToken, getAllMembers);
 router.get('/content-creator-members', verifyDeveloperToken, getAllContentCreatorMembers);
 //client
 router.get('/clients', verifyDeveloperToken, getAllClients);
+
+// Password reset (no auth required)
+router.post('/initiate-password-reset', initiatePasswordReset);
+router.post('/reset-password', resetPassword);
 
 module.exports = router;

@@ -32,6 +32,17 @@ button {
   cursor: pointer;
 }
 
+.forgot-password-btn {
+  background: none !important;
+  color: #2563eb !important; /* Tailwind's indigo-600 */
+  width: auto;
+  padding: 0;
+  border: none;
+  box-shadow: none;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
 button:hover {
   background-color: #0056b3;
 }

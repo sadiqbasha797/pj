@@ -7,7 +7,11 @@ const DigitalMarketingRoleSchema = new mongoose.Schema({
   skills: [{ type: String }],
   createdAt: { type: Date, default: Date.now },
   role: { type: String, default: "digital-marketing" },
-  image: { type: String }
+  image: { type: String },
+  resetPasswordOTP: {
+    code: { type: String },
+    expiresAt: { type: Date }
+  }
 });
 
 const DigitalMarketingRole = mongoose.model('DigitalMarketingRole', DigitalMarketingRoleSchema);

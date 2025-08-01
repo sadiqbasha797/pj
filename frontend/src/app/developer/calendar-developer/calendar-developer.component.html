@@ -1,8 +1,8 @@
-<div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 lg:p-3 sm:p-6">
+<div class="min-h-screen lg:p-3 sm:p-6">
   <!-- Header Section -->
   <div class="mb-6 sm:mb-8">
     <!-- Header Section with Gradient -->
-    <div class="relative rounded-lg overflow-hidden mb-4 sm:mb-6 bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 p-4 sm:p-6">
+    <div class="relative rounded-lg overflow-hidden mb-4 sm:mb-6 bg-gradient-to-r from-blue-400 via-teal-400 to-purple-400 p-4 sm:p-6">
       <!-- Decorative shapes -->  
       <div class="absolute inset-0">
         <div class="absolute w-32 h-32 -top-16 -right-16 bg-white opacity-10 rounded-full"></div>
@@ -15,11 +15,11 @@
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0">
           <div class="flex items-center gap-3">
             <div class="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
-              <span class="material-icons text-white">calendar_today</span>
+              <span class="material-icons text-blue-700">calendar_today</span>
             </div>
             <div>
               <h1 class="text-xl sm:text-2xl font-bold text-white">Developer Calendar</h1>
-              <p class="text-sm sm:text-base text-cyan-100">Manage your schedule</p>
+              <p class="text-sm sm:text-base text-blue-100">Manage your schedule</p>
             </div>
           </div>
 
@@ -31,8 +31,8 @@
             </button>
             <button (click)="openAddEventDialog()" 
                     class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white rounded-lg hover:bg-opacity-90 transition-all duration-300 group">
-              <span class="material-icons text-cyan-600 group-hover:rotate-180 transition-transform duration-500">add</span>
-              <span class="text-sm font-medium text-cyan-600">Add Event</span>
+              <span class="material-icons text-blue-600 group-hover:rotate-180 transition-transform duration-500">add</span>
+              <span class="text-sm font-medium text-blue-600">Add Event</span>
             </button>
             <button (click)="openFilterModal()" 
                     class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-lg hover:bg-white/20 transition-all duration-300">
@@ -52,41 +52,41 @@
             <span class="material-icons text-blue-500">event</span>
           </div>
           <div>
-            <p class="text-xs sm:text-sm text-gray-500">Total Events</p>
-            <p class="text-base sm:text-lg font-semibold text-gray-800">{{totalEvents}}</p>
+            <p class="text-xs sm:text-sm text-blue-400">Total Events</p>
+            <p class="text-base sm:text-lg font-semibold text-blue-700">{{totalEvents}}</p>
           </div>
         </div>
       </div>
-      <div class="bg-white p-3 sm:p-4 rounded-xl border border-indigo-100/50 hover:shadow-lg hover:shadow-indigo-200 transition-all duration-300">
+      <div class="bg-white p-3 sm:p-4 rounded-xl border border-teal-100/50 hover:shadow-lg hover:shadow-teal-200 transition-all duration-300">
         <div class="flex items-center gap-2 sm:gap-3">
-          <div class="p-2 bg-indigo-50 rounded-lg">
-            <span class="material-icons text-indigo-500">groups</span>
+          <div class="p-2 bg-teal-50 rounded-lg">
+            <span class="material-icons text-teal-500">groups</span>
           </div>
           <div>
-            <p class="text-xs sm:text-sm text-gray-500">Meetings</p>
-            <p class="text-base sm:text-lg font-semibold text-gray-800">{{meetingsCount}}</p>
+            <p class="text-xs sm:text-sm text-teal-400">Meetings</p>
+            <p class="text-base sm:text-lg font-semibold text-teal-700">{{meetingsCount}}</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white p-3 sm:p-4 rounded-xl border border-orange-100/50 hover:shadow-lg hover:shadow-orange-200 transition-all duration-300">
+        <div class="flex items-center gap-2 sm:gap-3">
+          <div class="p-2 bg-orange-50 rounded-lg">
+            <span class="material-icons text-orange-500">task</span>
+          </div>
+          <div>
+            <p class="text-xs sm:text-sm text-orange-400">Tasks</p>
+            <p class="text-base sm:text-lg font-semibold text-orange-700">{{tasksCount}}</p>
           </div>
         </div>
       </div>
       <div class="bg-white p-3 sm:p-4 rounded-xl border border-purple-100/50 hover:shadow-lg hover:shadow-purple-200 transition-all duration-300">
         <div class="flex items-center gap-2 sm:gap-3">
           <div class="p-2 bg-purple-50 rounded-lg">
-            <span class="material-icons text-purple-500">task</span>
+            <span class="material-icons text-purple-500">calendar_today</span>
           </div>
           <div>
-            <p class="text-xs sm:text-sm text-gray-500">Tasks</p>
-            <p class="text-base sm:text-lg font-semibold text-gray-800">{{tasksCount}}</p>
-          </div>
-        </div>
-      </div>
-      <div class="bg-white p-3 sm:p-4 rounded-xl border border-emerald-100/50 hover:shadow-lg hover:shadow-emerald-200 transition-all duration-300">
-        <div class="flex items-center gap-2 sm:gap-3">
-          <div class="p-2 bg-emerald-50 rounded-lg">
-            <span class="material-icons text-emerald-500">calendar_today</span>
-          </div>
-          <div>
-            <p class="text-xs sm:text-sm text-gray-500">This Month</p>
-            <p class="text-base sm:text-lg font-semibold text-gray-800">{{monthlyEvents}}</p>
+            <p class="text-xs sm:text-sm text-purple-400">This Month</p>
+            <p class="text-base sm:text-lg font-semibold text-purple-700">{{monthlyEvents}}</p>
           </div>
         </div>
       </div>
@@ -94,15 +94,15 @@
   </div>
 
   <!-- Calendar Section -->
-  <div class="bg-white rounded-2xl border border-gray-100/50 shadow-xl shadow-gray-100/10 overflow-hidden">
+  <div class="bg-white rounded-2xl border border-blue-100/50 shadow-xl shadow-blue-100/10 overflow-hidden">
     <full-calendar [options]="calendarOptions" class="p-3 sm:p-6"></full-calendar>
   </div>
 </div>
 
 <!-- Events List Modal -->
 <div *ngIf="showEventDialog" 
-     class="fixed inset-0 dark:bg-gray-900/50 bg-gray-600/50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
-  <div class="dark:bg-gray-800 bg-white rounded-lg shadow-xl w-full max-w-2xl animate__animated animate__fadeInDown animate__faster">
+     class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
+  <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl animate__animated animate__fadeInDown animate__faster">
     <!-- Header -->
     <div class="flex justify-between items-center p-6 dark:border-gray-700 border-gray-200 border-b">
       <div class="flex items-center gap-3">

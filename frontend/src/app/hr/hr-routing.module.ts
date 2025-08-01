@@ -10,6 +10,8 @@ import { ProfileHrComponent } from './profile-hr/profile-hr.component';
 import { LeaveHrComponent } from './leave-hr/leave-hr.component';
 import { NotificationsHrComponent } from './notifications-hr/notifications-hr.component';
 import { RecruitmentComponent } from '../recruitment/recruitment.component';
+import { DashboardHrComponent } from './dashboard-hr/dashboard-hr.component';
+
 const routes: Routes = [
   { path: 'login', component: LoginHrComponent },
   {
@@ -24,7 +26,8 @@ const routes: Routes = [
       { path: 'profile', component: ProfileHrComponent },
       {path: 'leaves', component: LeaveHrComponent},
       {path: 'notifications', component: NotificationsHrComponent},
-      {path: 'recruitment', component: RecruitmentComponent}
+      {path: 'recruitment', component: RecruitmentComponent},
+      {path: 'dashboard', component: DashboardHrComponent},
     ]
   }
 ];

@@ -164,6 +164,14 @@ export class CreatorService {
     return this.http.get(`${this.apiUrl}/fetch-holidays`, { headers: this.getHeaders() });
   }
 
+  // Forgot/Reset Password
+  forgotPassword(email: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/forgot-password`, { email });
+  }
+  resetPassword(data: { email: string; otp: string; newPassword: string }): Observable<any> {
+    return this.http.post(`${this.apiUrl}/reset-password`, data);
+  }
+
   getToken(): string | null {
     return localStorage.getItem('creatorToken');
   }

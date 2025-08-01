@@ -12,7 +12,9 @@ const {
   getManagerNotifications,
   markAllNotificationsAsRead,
   createTeamRequest,
-  getManagerRequests
+  getManagerRequests,
+  initiatePasswordReset,
+  resetPassword
 } = require('../controllers/managerController');
 const { registerDeveloper } = require('../controllers/developerController');
 const router = express.Router();
@@ -205,4 +207,7 @@ router.get('/project-task-updates/:projectId', verifyManagerToken, getProjectTas
 // Add these routes to your manager routes
 router.post('/team-request', verifyManagerToken, createTeamRequest);
 router.get('/team-requests', verifyManagerToken, getManagerRequests);
+// Add password reset routes (public)
+router.post('/forgot-password', initiatePasswordReset);
+router.post('/reset-password', resetPassword);
 module.exports = router;

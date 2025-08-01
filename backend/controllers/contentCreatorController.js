@@ -5,6 +5,16 @@ const jwt = require('jsonwebtoken');
 const Notification = require('../models/Notification');
 const CalendarEvent = require('../models/calendarEvent');
 const Holiday = require('../models/Holiday');
+const nodemailer = require('nodemailer');
+
+// Email configuration
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: 'khanbasha7777777@gmail.com',
+        pass: 'hpdi qrqk plrn blzz'
+    }
+});
 
 // Register a new content creator
 const registerContentCreator = async (req, res) => {
@@ -586,6 +596,55 @@ const fetchHolidays = async (req, res) => {
     }
 };
 
+// Initiate password reset for content creator
+const initiatePasswordReset = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await ContentCreator.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpiration = new Date();
+    otpExpiration.setMinutes(otpExpiration.getMinutes() + 10);
+    user.resetPasswordOTP = { code: otp, expiresAt: otpExpiration };
+    await user.save();
+    const mailOptions = {
+      from: 'khanbasha7777777@gmail.com',
+      to: email,
+      subject: 'Password Reset OTP',
+      text: `Your OTP for password reset is: ${otp}\nThis OTP will expire in 10 minutes.`
+    };
+    transporter.sendMail(mailOptions, function(error, info) {
+      if (error) { console.log('Error sending email:', error); }
+    });
+    res.status(200).json({ message: 'OTP has been sent to your email', email });
+  } catch (error) {
+    res.status(500).json({ message: 'Error initiating password reset', error: error.message });
+  }
+};
+
+// Reset password for content creator
+const resetPassword = async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+    const user = await ContentCreator.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    if (!user.resetPasswordOTP || user.resetPasswordOTP.code !== otp || new Date() > user.resetPasswordOTP.expiresAt) {
+      return res.status(400).json({ message: 'Invalid or expired OTP' });
+    }
+    const hashedPassword = await bcrypt.hash(newPassword, 8);
+    user.password = hashedPassword;
+    user.resetPasswordOTP = undefined;
+    await user.save();
+    res.status(200).json({ message: 'Password reset successful' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error resetting password', error: error.message });
+  }
+};
+
 module.exports = {
     registerContentCreator,
     login,
@@ -600,5 +659,7 @@ module.exports = {
     getContentCreatorEvents,
     applyForHoliday,
     withdrawHoliday,
-    fetchHolidays
+    fetchHolidays,
+    initiatePasswordReset,
+    resetPassword
 };

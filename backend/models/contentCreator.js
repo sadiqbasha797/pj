@@ -7,7 +7,11 @@ const ContentCreatorSchema = new mongoose.Schema({
   skills: [{ type: String }],
   createdAt: { type: Date, default: Date.now },
   role: { type: String, default: "content-creator" },
-  image: { type: String }
+  image: { type: String },
+  resetPasswordOTP: {
+    code: { type: String },
+    expiresAt: { type: Date }
+  }
 });
 
 const ContentCreator = mongoose.model('ContentCreator', ContentCreatorSchema);

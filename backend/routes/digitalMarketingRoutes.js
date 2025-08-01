@@ -16,7 +16,9 @@ const {
     getAllMembers,
     applyForHoliday,
     withdrawHoliday,
-    fetchHolidays
+    fetchHolidays,
+    initiatePasswordReset,
+    resetPassword
 } = require('../controllers/digitalMarketingController');
 const {fetchProjects} = require('../controllers/projectController');
 const {createMarketingTask, getAllMarketingTasks, getMarketingTaskById, updateMarketingTask, deleteMarketingTask} = require('../controllers/marketingTaskController');
@@ -69,6 +71,10 @@ const upload = multer({
 // Public routes
 router.post('/register', upload.single('image'), register);
 router.post('/login', login);
+
+// Add password reset routes (public)
+router.post('/forgot-password', initiatePasswordReset);
+router.post('/reset-password', resetPassword);
 
 // Protected routes - only for digital marketing role
 router.use(verifyMarketingToken); // Apply marketing auth middleware to all routes below

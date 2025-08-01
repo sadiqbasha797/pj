@@ -25,7 +25,11 @@ const ManagerSchema = new mongoose.Schema({
     roleName: { type: String },
     creatorName: { type: String },
     assignedOn: { type: Date, default: Date.now }
-  }]
+  }],
+  resetPasswordOTP: {
+    code: { type: String },
+    expiresAt: { type: Date }
+  }
 });
 
 const Manager = mongoose.model('Manager', ManagerSchema);
