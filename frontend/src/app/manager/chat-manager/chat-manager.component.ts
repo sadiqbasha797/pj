@@ -271,32 +271,27 @@ export class ChatManagerComponent implements OnInit, OnDestroy {
         this.selectedUser.role,
         messageContent
       ).subscribe({
-        next: (message) => {
-          const isDuplicate = this.messages.some(m => m._id === message._id);
-          if (!isDuplicate) {
-            this.messages = [...this.messages, message];
-            
-            const currentCache = this.cacheService.getCachedMessages(
-              this.currentUserId,
-              this.selectedUser!._id
-            ) || [];
-            
-            this.cacheService.setCachedMessages(
-              this.currentUserId,
-              this.selectedUser!._id,
-              [...currentCache, message]
-            );
-            
-            this.loadMessagedUsers();
-            this.scrollToBottom();
-          }
+        next: (sentMessage) => {
+          // Add the sent message to the current conversation immediately
+          this.messages.push(sentMessage);
+          const currentCache = this.cacheService.getCachedMessages(
+            this.currentUserId,
+            this.selectedUser!._id
+          ) || [];
           
+          this.cacheService.setCachedMessages(
+            this.currentUserId,
+            this.selectedUser!._id,
+            [...currentCache, sentMessage]
+          );
+          
+          this.newMessage = '';
           this.isSending = false;
+          this.scrollToBottom();
         },
         error: (error) => {
           console.error('Error sending message:', error);
           this.isSending = false;
-          this.newMessage = messageContent;
         }
       });
     }

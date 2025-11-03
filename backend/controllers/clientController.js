@@ -67,7 +67,7 @@ const loginClient = async (req, res) => {
         }
 
         // Generate a token
-        const token = jwt.sign({ id: client._id }, process.env.JWT_SECRET);
+        const token = jwt.sign({ id: client._id, role: 'client' }, process.env.JWT_SECRET);
         
         // Return token with usage instructions and user ID
         res.status(200).json({ 

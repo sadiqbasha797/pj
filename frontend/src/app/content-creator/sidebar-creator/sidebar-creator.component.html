@@ -71,21 +71,7 @@
           </a>
         </li>
 
-        <!-- Meetings -->
-        <li>
-          <a routerLink="/content-creator/meetings" routerLinkActive="bg-gradient-to-r from-blue-100/50 to-blue-100/50 text-blue-700"
-             class="group flex items-center py-2.5 px-4 rounded-xl hover:bg-blue-50/40 transition-all duration-300 hover:shadow-[0_0_15px_rgba(37,99,235,0.5)] hover:border-blue-400 border border-transparent"
-             [title]="isCollapsed ? 'Meetings' : ''">
-            <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-blue-100 to-blue-50 group-hover:from-blue-200 group-hover:to-blue-100 transition-colors duration-300">
-              <svg class="h-5 w-5 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-              </svg>
-            </div>
-            <span [ngClass]="{'hidden': isCollapsed, 'ml-3 font-medium': !isCollapsed}">Meetings</span>
-          </a>
-        </li>
 
-       
         <li>
           <a routerLink="/content-creator/calendar" routerLinkActive="bg-gradient-to-r from-blue-100/50 to-blue-100/50 text-blue-700"
              class="group flex items-center py-2.5 px-4 rounded-xl hover:bg-blue-50/40 transition-all duration-300 hover:shadow-[0_0_15px_rgba(59,130,246,0.5)] hover:border-blue-400 border border-transparent"

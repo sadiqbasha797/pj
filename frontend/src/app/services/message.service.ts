@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { CreatorService } from './creator.service';
 
 interface Message {
   _id?: string;
@@ -28,7 +29,7 @@ export class MessageService {
   private newMessage = new BehaviorSubject<Message | null>(null);
   private wsUrl = 'ws://localhost:4000';
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private creatorService: CreatorService) {
     this.initializeWebSocket();
   }
 
@@ -68,13 +69,7 @@ export class MessageService {
   }
 
   private getToken(): string | null {
-    return localStorage.getItem('managerToken') || 
-           localStorage.getItem('adminToken') || 
-           localStorage.getItem('developerToken') ||
-           localStorage.getItem('marketerToken') ||
-           localStorage.getItem('digitalMarketingToken') ||
-           localStorage.getItem('contentCreatorToken') ||
-           localStorage.getItem('clientToken');
+    return this.creatorService.getToken();
   }
 
   private getHeaders(): HttpHeaders {
@@ -102,14 +97,6 @@ export class MessageService {
       content
     };
 
-    // Send through WebSocket for immediate delivery
-    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      this.ws.send(JSON.stringify({
-        type: 'message',
-        data: payload
-      }));
-    }
-    
     // Send through HTTP for persistence
     return this.http.post<Message>(
       `${this.apiUrl}/send`, 

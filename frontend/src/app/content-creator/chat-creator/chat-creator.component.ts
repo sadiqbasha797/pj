@@ -1,11 +1,11 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ContentCreatorService } from '../../services/content-creator.service';
 import { MessageService } from '../../services/message.service';
-import { MarketerService } from '../../services/marketer.services';
-import { Subscription, forkJoin } from 'rxjs';
 import { CacheService } from '../../services/cache.service';
-import { finalize } from 'rxjs/operators';
+import { Subscription, forkJoin } from 'rxjs';
+import { ThemeService } from '../../services/theme.service';
 
 interface User {
   _id: string;
@@ -20,55 +20,111 @@ interface User {
 }
 
 @Component({
-  selector: 'app-chat-marketer',
+  selector: 'app-chat-creator',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './chat-marketer.component.html',
-  styleUrl: './chat-marketer.component.css'
+  templateUrl: './chat-creator.component.html',
+  styleUrl: './chat-creator.component.css'
 })
-export class ChatMarketerComponent implements OnInit, OnDestroy {
+export class ChatCreatorComponent implements OnInit, OnDestroy {
   messages: any[] = [];
   newMessage: string = '';
   selectedUser: User | null = null;
-  users: User[] = [];
+  developers: any[] = [];
+  managers: any[] = [];
   currentUserId: string = '';
   isLoading: boolean = true;
   private subscriptions: Subscription[] = [];
-  isTyping: any;
   isSending: boolean = false;
+  admins: any[] = [];
+  isDarkMode = false;
   activeTab: 'users' | 'messages' = 'messages';
   allUsers: User[] = [];
   messagedUsers: User[] = [];
   private messagesContainer: HTMLElement | null = null;
+  digitalMarketingMembers: any[] = [];
+  contentCreators: any[] = [];
+  clients: any[] = [];
 
   constructor(
+    private contentCreatorService: ContentCreatorService,
     private messageService: MessageService,
-    private marketerService: MarketerService,
-    private cacheService: CacheService
+    private cacheService: CacheService,
+    private themeService: ThemeService
   ) {
-    this.currentUserId = localStorage.getItem('userId') || '';
+    const storedUserId = localStorage.getItem('userId');
+    this.currentUserId = (storedUserId === null || storedUserId === 'undefined') ? '' : storedUserId;
+    this.themeService.darkMode$.subscribe(
+      isDark => this.isDarkMode = isDark
+    );
   }
 
   ngOnInit() {
     if (!this.currentUserId) {
-      console.error('No user ID found in localStorage');
-      return;
+      this.contentCreatorService.getProfile().subscribe({
+        next: (profile) => {
+          this.currentUserId = profile.contentCreator._id; // Corrected: Access nested _id
+          localStorage.setItem('userId', profile.contentCreator._id);
+          this.initializeChat();
+        },
+        error: (err) => {
+          console.error('Error fetching content creator profile:', err);
+          this.isLoading = false;
+        }
+      });
+    } else {
+      this.initializeChat();
     }
-    
+  }
+
+  private initializeChat() {
     this.loadAllUsers();
     this.loadMessagedUsers();
     this.setupMessageListener();
   }
 
+  private setupMessageListener() {
+    this.subscriptions.push(
+      this.messageService.getNewMessageUpdates().subscribe(message => {
+        if (message && 
+            ((message.sender.id === this.selectedUser?._id) || 
+             (message.receiver.id === this.selectedUser?._id))) {
+          const isDuplicate = this.messages.some(m => m._id === message._id);
+          if (!isDuplicate) {
+            this.messages = [...this.messages, message];
+            if (message.receiver.id === this.currentUserId) {
+              this.markAsRead(message._id!);
+            }
+            
+            // Update cache
+            const currentCache = this.cacheService.getCachedMessages(
+              this.currentUserId,
+              this.selectedUser!._id
+            ) || [];
+            
+            this.cacheService.setCachedMessages(
+              this.currentUserId,
+              this.selectedUser!._id,
+              [...currentCache, message]
+            );
+            
+            this.scrollToBottom();
+            this.loadMessagedUsers(); // Refresh the users list
+          }
+        }
+      })
+    );
+  }
+
   loadAllUsers() {
     this.isLoading = true;
     forkJoin({
-      managers: this.marketerService.getAllManagers(),
-      developers: this.marketerService.getAllDevelopers(),
-      contentCreators: this.marketerService.getAllContentCreators(),
-      marketingMembers: this.marketerService.getAllMarketingMembers(),
-      admins: this.marketerService.getAllAdmins(),
-      clients: this.marketerService.getAllClients()
+      managers: this.contentCreatorService.fetchManagers(),
+      developers: this.contentCreatorService.fetchDevelopers(),
+      clients: this.contentCreatorService.fetchClients(),
+      digitalMarketing: this.contentCreatorService.fetchDigitalMarketingMembers(),
+      contentCreators: this.contentCreatorService.fetchContentCreatorMembers(),
+      admins: this.contentCreatorService.getAllAdmins()
     }).subscribe({
       next: (response) => {
         this.allUsers = [
@@ -84,28 +140,28 @@ export class ChatMarketerComponent implements OnInit, OnDestroy {
             role: 'developer',
             email: user.email
           })),
+          ...(Array.isArray(response.clients?.clients) ? response.clients.clients : []).map((user: any) => ({
+            _id: user._id,
+            username: user.clientName,
+            role: 'client',
+            email: user.email
+          })),
+          ...(Array.isArray(response.digitalMarketing?.data) ? response.digitalMarketing.data : []).map((user: any) => ({
+            _id: user._id,
+            username: user.username,
+            role: 'digitalMarketing',
+            email: user.email
+          })),
           ...(Array.isArray(response.contentCreators?.data) ? response.contentCreators.data : []).map((user: any) => ({
             _id: user._id,
             username: user.username,
             role: 'contentCreator',
             email: user.email
           })),
-          ...(Array.isArray(response.marketingMembers?.data) ? response.marketingMembers.data : []).map((user: any) => ({
-            _id: user._id,
-            username: user.username,
-            role: localStorage.getItem('userRole') || 'digitalMarketing',
-            email: user.email
-          })),
           ...(Array.isArray(response.admins?.admins) ? response.admins.admins : []).map((user: any) => ({
             _id: user._id,
             username: user.username,
             role: 'admin',
-            email: user.email
-          })),
-          ...(Array.isArray(response.clients?.clients) ? response.clients.clients : []).map((user: any) => ({
-            _id: user._id,
-            username: user.clientName,
-            role: 'client',
             email: user.email
           }))
         ].filter(user => user._id !== this.currentUserId);
@@ -121,16 +177,33 @@ export class ChatMarketerComponent implements OnInit, OnDestroy {
   }
 
   loadMessagedUsers() {
-    this.isLoading = true;
-    this.messageService.getMessagedUsers().pipe(
-      finalize(() => this.isLoading = false)
-    ).subscribe({
+    this.messageService.getMessagedUsers().subscribe({
       next: (response: any) => {
-        if (Array.isArray(response)) {
-          this.messagedUsers = response;
-        } else if (response && Array.isArray(response.users)) {
-          this.messagedUsers = response.users;
+        if (response.data && Array.isArray(response.data)) {
+          this.messagedUsers = [];
+          response.data.forEach((user: any) => {
+            this.messageService.getConversation(user._id).subscribe({
+              next: (messages) => {
+                const recentMessage = messages[messages.length - 1];
+                this.messagedUsers.push({
+                  _id: user._id,
+                  username: user.username,
+                  role: user.role,
+                  email: user.email,
+                  recentMessage: recentMessage ? {
+                    content: recentMessage.content,
+                    createdAt: recentMessage.createdAt,
+                    unread: !recentMessage.read && recentMessage.receiver.id === this.currentUserId
+                  } : undefined
+                });
+              },
+              error: (error) => {
+                console.error('Error loading conversation:', error);
+              }
+            });
+          });
         } else {
+          console.error('Invalid response format from getMessagedUsers:', response);
           this.messagedUsers = [];
         }
       },
@@ -148,41 +221,34 @@ export class ChatMarketerComponent implements OnInit, OnDestroy {
 
   loadConversation() {
     if (this.selectedUser) {
-      // Try to get messages from cache first
       const cachedMessages = this.cacheService.getCachedMessages(
         this.currentUserId,
         this.selectedUser._id
       );
 
       if (cachedMessages) {
-        console.log('Loading messages from cache');
         this.messages = cachedMessages;
-        // Still mark unread messages as read
         cachedMessages.forEach(message => {
           if (!message.read && message.receiver.id === this.currentUserId) {
-            this.markAsRead(message._id!);
+            this.markAsRead(message._id);
           }
         });
-        this.scrollToBottom();
       } else {
-        // If no cache, load from API
-        console.log('Loading messages from API');
         this.messageService.getConversation(this.selectedUser._id)
           .subscribe({
             next: (messages) => {
               this.messages = messages;
-              // Cache the messages
               this.cacheService.setCachedMessages(
                 this.currentUserId,
                 this.selectedUser!._id,
                 messages
               );
               messages.forEach(message => {
+                console.log('Message sender ID:', message.sender.id, 'Current User ID:', this.currentUserId);
                 if (!message.read && message.receiver.id === this.currentUserId) {
                   this.markAsRead(message._id!);
                 }
               });
-              this.scrollToBottom();
             },
             error: (error) => {
               console.error('Error loading conversation:', error);
@@ -196,7 +262,7 @@ export class ChatMarketerComponent implements OnInit, OnDestroy {
     if (this.newMessage.trim() && this.selectedUser && !this.isSending) {
       this.isSending = true;
       const messageContent = this.newMessage.trim();
-      this.newMessage = ''; // Clear message input immediately
+      this.newMessage = '';
       
       this.messageService.sendMessage(
         this.selectedUser._id,
@@ -237,15 +303,12 @@ export class ChatMarketerComponent implements OnInit, OnDestroy {
     });
   }
 
-  switchTab(tab: 'users' | 'messages') {
-    this.activeTab = tab;
+  isMessageFromCurrentUser(message: any): boolean {
+    return message.sender.id === this.currentUserId;
   }
 
-  ngOnDestroy() {
-    // Clear message cache when component is destroyed
-    this.cacheService.clearMessageCache(this.currentUserId);
-    this.subscriptions.forEach(sub => sub.unsubscribe());
-    this.messageService.disconnect();
+  switchTab(tab: 'users' | 'messages') {
+    this.activeTab = tab;
   }
 
   private scrollToBottom(): void {
@@ -257,43 +320,9 @@ export class ChatMarketerComponent implements OnInit, OnDestroy {
     }, 100);
   }
 
-  private setupMessageListener() {
-    const subscription = this.messageService.getNewMessageUpdates()
-      .subscribe(message => {
-        if (message) {
-          this.loadMessagedUsers();
-          if (this.selectedUser && 
-              (message.sender.id === this.selectedUser._id || 
-               message.receiver.id === this.selectedUser._id)) {
-            // Add message to current conversation if not duplicate
-            const isDuplicate = this.messages.some(m => m._id === message._id);
-            if (!isDuplicate) {
-              this.messages = [...this.messages, message];
-              
-              // Mark as read if we're the receiver
-              if (message.receiver.id === this.currentUserId) {
-                this.markAsRead(message._id!);
-              }
-              
-              // Update cache
-              const currentCache = this.cacheService.getCachedMessages(
-                this.currentUserId,
-                this.selectedUser._id
-              ) || [];
-              
-              this.cacheService.setCachedMessages(
-                this.currentUserId,
-                this.selectedUser._id,
-                [...currentCache, message]
-              );
-              
-              this.scrollToBottom();
-            }
-          }
-        }
-      });
-
-    // Add subscription to be cleaned up on destroy
-    this.subscriptions.push(subscription);
+  ngOnDestroy() {
+    this.cacheService.clearMessageCache(this.currentUserId);
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+    this.messageService.disconnect();
   }
 }

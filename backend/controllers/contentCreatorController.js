@@ -576,13 +576,6 @@ const fetchHolidays = async (req, res) => {
             role: 'ContentCreator'
         });
         
-        if (holidays.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: 'No holiday requests found'
-            });
-        }
-
         res.status(200).json({
             success: true,
             data: holidays

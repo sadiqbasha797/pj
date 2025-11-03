@@ -1,1 +1,16 @@
+/* Add any additional custom styles here */
+.task-container {
+  font-family: 'Inter', sans-serif;
+}
 
+.transition-all {
+  transition: all 0.3s ease-in-out;
+}
+
+.hover\:-translate-y-1:hover {
+  transform: translateY(-0.25rem);
+}
+
+.hover\:shadow-2xl:hover {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}

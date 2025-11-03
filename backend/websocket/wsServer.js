@@ -1,12 +1,13 @@
 const WebSocket = require('ws');
 const jwt = require('jsonwebtoken');
 
+const clients = new Map();
+
 const setupWebSocket = (server) => {
     const wss = new WebSocket.Server({ server });
 
     wss.on('connection', async (ws, req) => {
         try {
-            // Extract token from URL query parameters
             const url = new URL(req.url, 'ws://localhost');
             const token = url.searchParams.get('token');
 
@@ -15,29 +16,28 @@ const setupWebSocket = (server) => {
                 return;
             }
 
-            // Verify token
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            ws.userId = decoded.id;
+            const userId = decoded.id;
+            ws.userId = userId;
             ws.isAlive = true;
 
-            // Handle ping-pong to keep connection alive
+            clients.set(userId, ws);
+
             ws.on('pong', () => {
                 ws.isAlive = true;
             });
 
-            // Handle client messages
             ws.on('message', (message) => {
                 try {
                     const data = JSON.parse(message);
-                    // Handle different message types if needed
                     console.log('Received:', data);
                 } catch (e) {
                     console.error('Invalid message format');
                 }
             });
 
-            // Handle client disconnect
             ws.on('close', () => {
+                clients.delete(userId);
                 ws.isAlive = false;
             });
 
@@ -46,7 +46,6 @@ const setupWebSocket = (server) => {
         }
     });
 
-    // Ping all clients every 30 seconds to keep connections alive
     const interval = setInterval(() => {
         wss.clients.forEach((ws) => {
             if (ws.isAlive === false) return ws.terminate();
@@ -62,4 +61,11 @@ const setupWebSocket = (server) => {
     return wss;
 };
 
-module.exports = setupWebSocket; 
+const sendMessageToUser = (userId, message) => {
+    const client = clients.get(userId);
+    if (client && client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify(message));
+    }
+};
+
+module.exports = { setupWebSocket, sendMessageToUser };

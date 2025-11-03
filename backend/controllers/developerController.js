@@ -83,7 +83,7 @@ const developerLogin = async (req, res) => {
       'developers.developerId': developer._id
     });
 
-    const token = jwt.sign({ id: developer._id, username: developer.username }, process.env.JWT_SECRET, { expiresIn: '1d' });
+    const token = jwt.sign({ id: developer._id, username: developer.username, role: 'developer' }, process.env.JWT_SECRET, { expiresIn: '1d' });
     
     // Include manager info in response if assigned
     const response = {
@@ -109,7 +109,7 @@ const developerLogin = async (req, res) => {
 
 const getDeveloperProfile = async (req, res) => {
   try {
-    const developerId = req.developer.id;
+    const developerId = req.developer._id;
     const developer = await Developer.findById(developerId);
     if (!developer) {
       return res.status(404).json({ message: 'Developer not found' });

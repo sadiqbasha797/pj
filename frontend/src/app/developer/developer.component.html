@@ -1,8 +1,8 @@
-<div class="flex h-screen transition-colors duration-200 dark:bg-gray-800 bg-gray-100">
+<div class="flex h-screen transition-colors duration-200 bg-gray-100">
     <app-sidebar-developer [collapsed]="isSidebarCollapsed" (closeSidebar)="closeSidebar()"></app-sidebar-developer>
     <div class="flex-1 flex flex-col overflow-hidden">
       <app-navbar-developer (toggleSidebar)="toggleSidebar()" [isSidebarCollapsed]="isSidebarCollapsed"></app-navbar-developer>
-      <main class="flex-1 overflow-x-hidden overflow-y-auto modern-scroll transition-all duration-300 ease-in-out dark:bg-gray-800 bg-gray-50"
+      <main class="flex-1 overflow-x-hidden overflow-y-auto modern-scroll transition-all duration-300 ease-in-out bg-gray-50"
             [ngClass]="{'ml-72': !isSidebarCollapsed, 'ml-20': isSidebarCollapsed && !isMobile, 'ml-0': isMobile}">
         <div class="container mx-auto px-6 py-2">
           <router-outlet></router-outlet>

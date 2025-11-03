@@ -248,7 +248,9 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.selectedUser.role,
         this.newMessage.trim()
       ).subscribe({
-        next: (message) => {
+        next: (sentMessage) => {
+          // Add the sent message to the current conversation immediately
+          this.messages.push(sentMessage);
           const currentCache = this.cacheService.getCachedMessages(
             this.currentUserId,
             this.selectedUser!._id
@@ -257,7 +259,7 @@ export class ChatComponent implements OnInit, OnDestroy {
           this.cacheService.setCachedMessages(
             this.currentUserId,
             this.selectedUser!._id,
-            [...currentCache, message]
+            [...currentCache, sentMessage]
           );
           
           this.newMessage = '';

@@ -6,6 +6,18 @@ const ContentCreator = require('../models/contentCreator');
 const DigitalMarketingRole = require('../models/digitalMarketingRole');
 const Client = require('../models/Client');
 
+const userModels = {
+    admin: Admin,
+    manager: Manager,
+    developer: Developer,
+    'content-creator': ContentCreator,
+    'digital-marketing': DigitalMarketingRole,
+    marketer: DigitalMarketingRole,
+    client: Client
+};
+
+const getUserModel = (role) => userModels[role];
+
 const messageAuth = async (req, res, next) => {
     const bearerHeader = req.headers['authorization'];
     if (!bearerHeader) {
@@ -17,32 +29,21 @@ const messageAuth = async (req, res, next) => {
         
         try {
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            
-            // Try to find the user in all collections
-            const admin = await Admin.findById(decoded.id);
-            const manager = await Manager.findById(decoded.id);
-            const developer = await Developer.findById(decoded.id);
-            const contentCreator = await ContentCreator.findById(decoded.id);
-            const digitalMarketing = await DigitalMarketingRole.findById(decoded.id);
-            const client = await Client.findById(decoded.id);
+            const { id, role } = decoded;
 
-            if (admin) {
-                req.user = { ...admin.toObject(), role: 'admin' };
-            } else if (manager) {
-                req.user = { ...manager.toObject(), role: 'manager' };
-            } else if (developer) {
-                req.user = { ...developer.toObject(), role: 'developer' };
-            } else if (contentCreator) {
-                req.user = { ...contentCreator.toObject(), role: 'content-creator' };
-            } else if (digitalMarketing) {
-                req.user = { ...digitalMarketing.toObject(), role: 'digital-marketing' };
-            } else if (client) {
-                req.user = { ...client.toObject(), role: 'client' };
+            const UserModel = getUserModel(role);
+            if (!UserModel) {
+                return res.status(403).send({ message: 'Invalid user role.' });
+            }
+
+            const user = await UserModel.findById(id);
+
+            if (user) {
+                req.user = { ...user.toObject(), role };
+                next();
             } else {
                 return res.status(403).send({ message: 'User not found.' });
             }
-
-            next();
         } catch (error) {
             return res.status(401).send({ message: 'Failed to authenticate token.' });
         }
@@ -51,4 +52,4 @@ const messageAuth = async (req, res, next) => {
     }
 };
 
-module.exports = messageAuth; 
+module.exports = messageAuth;

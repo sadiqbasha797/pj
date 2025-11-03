@@ -5,32 +5,7 @@ const Developer = require('../models/Developer');
 const ContentCreator = require('../models/contentCreator');
 const DigitalMarketingRole = require('../models/digitalMarketingRole');
 const Client = require('../models/Client');
-const nodemailer = require('nodemailer');
-
-// Email configuration (reusing from adminController)
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: 'khanbasha7777777@gmail.com',
-        pass: 'hpdi qrqk plrn blzz'
-    }
-});
-
-const sendMessageNotification = async (receiverEmail, senderName, messagePreview) => {
-    const mailOptions = {
-        from: 'khanbasha7777777@gmail.com',
-        to: receiverEmail,
-        subject: 'New Message Received',
-        text: `You have received a new message from ${senderName}.\n\nMessage Preview: ${messagePreview.substring(0, 100)}...`
-    };
-
-    try {
-        await transporter.sendMail(mailOptions);
-        console.log('Email notification sent successfully');
-    } catch (error) {
-        console.log('Error sending email notification:', error);
-    }
-};
+const { sendMessageToUser } = require('../websocket/wsServer');
 
 const getUserById = async (userId, role) => {
     switch (role) {
@@ -66,43 +41,15 @@ const messageController = {
                 createdAt: new Date()
             };
 
-            // Send WebSocket message immediately
-            const ws = req.app.get('wss');
-            if (ws) {
-                // Broadcast to all clients - they will filter based on receiverId
-                ws.clients.forEach(client => {
-                    if (client.userId === receiverId.toString()) {
-                        client.send(JSON.stringify({
-                            type: 'newMessage',
-                            data: messageData
-                        }));
-                    }
-                });
-            }
+            const newMessage = new Message(messageData);
+            await newMessage.save();
 
-            // Store message in database asynchronously
-            Promise.all([
-                // Save message
-                (async () => {
-                    const newMessage = new Message(messageData);
-                    await newMessage.save();
-                })(),
-                
-                // Send email notification
-                (async () => {
-                    const receiver = await getUserById(receiverId, receiverRole);
-                    if (receiver?.email) {
-                        await sendMessageNotification(
-                            receiver.email,
-                            req.user.username,
-                            content
-                        );
-                    }
-                })()
-            ]).catch(err => console.error('Background task error:', err));
+            sendMessageToUser(receiverId, {
+                type: 'newMessage',
+                data: newMessage
+            });
 
-            // Respond immediately after sending WebSocket message
-            res.status(201).json(messageData);
+            res.status(201).json(newMessage);
         } catch (error) {
             console.error('Error in sendMessage:', error);
             res.status(500).json({ message: 'Error sending message', error: error.message });

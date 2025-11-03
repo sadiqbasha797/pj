@@ -89,7 +89,7 @@ const login = async (req, res) => {
 
         // Generate JWT token
         const token = jwt.sign(
-            { id: user._id, userRole: 'digital-marketing', username: user.username },
+            { id: user._id, userRole: 'digital-marketing', username: user.username, role: 'digital-marketing' },
             process.env.JWT_SECRET,
             { expiresIn: '24h' }
         );
@@ -577,13 +577,6 @@ const fetchHolidays = async (req, res) => {
             role: 'DigitalMarketingRole'
         });
         
-        if (holidays.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: 'No holiday requests found'
-            });
-        }
-
         res.status(200).json({
             success: true,
             data: holidays

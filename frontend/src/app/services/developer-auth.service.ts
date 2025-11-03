@@ -23,6 +23,8 @@ export class DeveloperAuthService {
         tap((response: any) => {
           if (response.token) {
             localStorage.setItem('developerToken', response.token);
+            localStorage.setItem('userId', response.userId);
+            localStorage.setItem('userRole', 'developer');
           }
         })
       );
@@ -34,6 +36,10 @@ export class DeveloperAuthService {
 
   logout(): void {
     localStorage.removeItem('developerToken');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('userRole');
+    this.cacheService.clearCache();
+    this.router.navigate(['/developer/login']);
   }
 
   isLoggedIn(): boolean {
@@ -61,4 +67,4 @@ export class DeveloperAuthService {
   resetPassword(resetData: { email: string; otp: string; newPassword: string }): Observable<any> {
     return this.http.post(`${this.apiUrl}/reset-password`, resetData);
   }
-} 
+}

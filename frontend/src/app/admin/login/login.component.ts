@@ -40,6 +40,9 @@ export class LoginComponent {
       next: (response) => {
         console.log('Login response:', response);
         if (response && response.token) {
+          localStorage.setItem('adminToken', response.token);
+          localStorage.setItem('userRole', 'admin');
+          localStorage.setItem('userId', response._id);
           console.log('Stored Data in localStorage:');
           console.log('Token:', localStorage.getItem('adminToken'));
           console.log('Role:', localStorage.getItem('userRole'));

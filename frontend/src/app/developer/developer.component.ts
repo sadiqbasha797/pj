@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { SidebarDeveloperComponent } from './sidebar-developer/sidebar-developer.component';
 import { NavbarDeveloperComponent } from './navbar-developer/navbar-developer.component';
-import { ThemeService } from '../services/theme.service';
 
 @Component({
   selector: 'app-developer',
@@ -15,13 +14,9 @@ import { ThemeService } from '../services/theme.service';
 export class DeveloperComponent implements OnInit {
   isSidebarCollapsed = false;
   isMobile = false;
-  isDarkMode = true;
+  isDarkMode = false;
 
-  constructor(private themeService: ThemeService) {
-    this.themeService.darkMode$.subscribe(
-      isDark => this.isDarkMode = isDark
-    );
-  }
+  constructor() { }
 
   ngOnInit() {
     this.checkScreenSize();

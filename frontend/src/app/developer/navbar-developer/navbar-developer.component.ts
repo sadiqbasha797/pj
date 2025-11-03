@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { interval, Subscription } from 'rxjs';
 import { ThemeService } from '../../services/theme.service';
 import { DeveloperService } from '../../services/developer.service';
+import { DeveloperAuthService } from '../../services/developer-auth.service';
 import { animate, style, transition, trigger } from '@angular/animations';
 
 interface SearchResult {
@@ -85,7 +86,8 @@ export class NavbarDeveloperComponent implements OnInit, OnDestroy {
   constructor(
     private router: Router, 
     private themeService: ThemeService,
-    private developerService: DeveloperService
+    private developerService: DeveloperService,
+    private developerAuthService: DeveloperAuthService
   ) {
     this.themeService.darkMode$.subscribe(
       isDark => this.isDarkMode = isDark
@@ -193,8 +195,7 @@ export class NavbarDeveloperComponent implements OnInit, OnDestroy {
   }
 
   onSignOut() {
-    // Will implement with auth service later
-    this.router.navigate(['/developer/login']);
+    this.developerAuthService.logout();
   }
 
   @HostListener('window:resize', ['$event'])

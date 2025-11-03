@@ -13,6 +13,7 @@ import { MeetingsCreatorComponent } from './meetings-creator/meetings-creator.co
 import { CalendarCreatorComponent } from './calendar-creator/calendar-creator.component';
 import { LeaveCreatorComponent } from './leave-creator/leave-creator.component';
 import { CreatorDashboardComponent } from './creator-dashboard/creator-dashboard.component';
+import { ChatCreatorComponent } from './chat-creator/chat-creator.component';
 const routes: Routes = [
   { path: 'login', component: LoginCreatorComponent },
   { 
@@ -30,6 +31,7 @@ const routes: Routes = [
       { path: 'calendar', component: CalendarCreatorComponent },
       { path: 'leave', component: LeaveCreatorComponent },
       { path: 'dashboard', component: CreatorDashboardComponent },
+      { path: 'chat', component: ChatCreatorComponent },
       { path: '', redirectTo: 'profile', pathMatch: 'full' }
     ]
   }

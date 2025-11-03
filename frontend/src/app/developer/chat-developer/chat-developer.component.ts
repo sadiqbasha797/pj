@@ -52,7 +52,8 @@ export class ChatDeveloperComponent implements OnInit, OnDestroy {
     private cacheService: CacheService,
     private themeService: ThemeService
   ) {
-    this.currentUserId = localStorage.getItem('userId') || '';
+    const storedUserId = localStorage.getItem('userId');
+    this.currentUserId = (storedUserId === null || storedUserId === 'undefined') ? '' : storedUserId;
     this.themeService.darkMode$.subscribe(
       isDark => this.isDarkMode = isDark
     );
@@ -60,10 +61,16 @@ export class ChatDeveloperComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     if (!this.currentUserId) {
-      this.developerService.getProfile().subscribe(profile => {
-        this.currentUserId = profile._id;
-        localStorage.setItem('userId', profile._id);
-        this.initializeChat();
+      this.developerService.getProfile().subscribe({
+        next: (profile) => {
+          this.currentUserId = profile.developer._id; // Corrected: Access nested _id
+          localStorage.setItem('userId', profile.developer._id);
+          this.initializeChat();
+        },
+        error: (err) => {
+          console.error('Error fetching developer profile:', err);
+          this.isLoading = false;
+        }
       });
     } else {
       this.initializeChat();
@@ -237,6 +244,7 @@ export class ChatDeveloperComponent implements OnInit, OnDestroy {
                 messages
               );
               messages.forEach(message => {
+                console.log('Message sender ID:', message.sender.id, 'Current User ID:', this.currentUserId);
                 if (!message.read && message.receiver.id === this.currentUserId) {
                   this.markAsRead(message._id!);
                 }
@@ -261,32 +269,27 @@ export class ChatDeveloperComponent implements OnInit, OnDestroy {
         this.selectedUser.role,
         messageContent
       ).subscribe({
-        next: (message) => {
-          const isDuplicate = this.messages.some(m => m._id === message._id);
-          if (!isDuplicate) {
-            this.messages = [...this.messages, message];
-            
-            const currentCache = this.cacheService.getCachedMessages(
-              this.currentUserId,
-              this.selectedUser!._id
-            ) || [];
-            
-            this.cacheService.setCachedMessages(
-              this.currentUserId,
-              this.selectedUser!._id,
-              [...currentCache, message]
-            );
-            
-            this.loadMessagedUsers();
-            this.scrollToBottom();
-          }
+        next: (sentMessage) => {
+          // Add the sent message to the current conversation immediately
+          this.messages.push(sentMessage);
+          const currentCache = this.cacheService.getCachedMessages(
+            this.currentUserId,
+            this.selectedUser!._id
+          ) || [];
           
+          this.cacheService.setCachedMessages(
+            this.currentUserId,
+            this.selectedUser!._id,
+            [...currentCache, sentMessage]
+          );
+          
+          this.newMessage = '';
           this.isSending = false;
+          this.scrollToBottom();
         },
         error: (error) => {
           console.error('Error sending message:', error);
           this.isSending = false;
-          this.newMessage = messageContent;
         }
       });
     }

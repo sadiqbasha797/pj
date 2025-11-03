@@ -1,8 +1,9 @@
 import { Component, Output, EventEmitter, Input, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
-import { AuthService } from '../../services/auth.service';
+import { FormsModule } from '@angular/forms';
 import { interval, Subscription } from 'rxjs';
+import { ThemeService } from '../../services/theme.service';
 import { MarketerService } from '../../services/marketer.services';
 import { animate, style, transition, trigger } from '@angular/animations';
 
@@ -20,7 +21,7 @@ interface NotificationPopup {
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.css',
   animations: [
@@ -53,7 +54,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
   private hasUserInteracted: boolean = false;
 
   constructor(
-    private authService: AuthService,
     private router: Router,
     private marketerService: MarketerService
   ) {
@@ -112,8 +112,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   onSignOut() {
-    this.authService.logout();
-    this.router.navigate(['/marketer/login']);
+    this.marketerService.logout();
   }
 
   @HostListener('window:resize', ['$event'])
@@ -145,7 +144,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   loadUnreadNotificationsCount() {
     this.marketerService.fetchNotifications().subscribe({
       next: (response) => {
-        if (response.success) {
+        if (response.success && Array.isArray(response.data)) {
           this.unreadNotificationsCount = response.data.filter(
             (notification: any) => !notification.read
           ).length;
@@ -160,7 +159,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   private checkForNewNotifications() {
     this.marketerService.fetchNotifications().subscribe({
       next: (response) => {
-        if (response.success) {
+        if (response.success && Array.isArray(response.data)) {
           const newUnreadCount = response.data.filter((n: any) => !n.read).length;
           
           // Check if there are new notifications

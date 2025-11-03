@@ -39,26 +39,12 @@ interface Task {
   };
 }
 
-interface GroupedUpdate {
-  date: string;
-  updates: {
-    content: string;
-    updatedBy: string;
-    updatedByName: string;
-    updatedByModel: string;
-    relatedMedia: string[];
-    _id: string;
-    updateId: string;
-    timestamp: string;
-  }[];
-}
-
 @Component({
   selector: 'app-task-developer',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './task-developer.component.html',
-  styleUrl: './task-developer.component.css'
+  styleUrls: ['./task-developer.component.css']
 })
 export class TaskDeveloperComponent implements OnInit {
   tasks: Task[] = [];
@@ -69,6 +55,8 @@ export class TaskDeveloperComponent implements OnInit {
   selectedFinalFiles: File[] = [];
   isDarkMode = true;
   currentDeveloperId: string = '';
+  activeTab: { [key: string]: string } = {};
+  selectedImage: string | null = null;
 
   constructor(
     private developerService: DeveloperService,
@@ -99,6 +87,9 @@ export class TaskDeveloperComponent implements OnInit {
     this.developerService.getAssignedTasks().subscribe({
       next: (response) => {
         this.tasks = response;
+        this.tasks.forEach(task => {
+          this.activeTab[task._id] = 'details'; // Default to details tab
+        });
       },
       error: (error) => {
         console.error('Error loading tasks:', error);
@@ -110,22 +101,28 @@ export class TaskDeveloperComponent implements OnInit {
     this.expandedTaskId = this.expandedTaskId === taskId ? null : taskId;
   }
 
-  getGroupedUpdates(updates: Task['updates']): GroupedUpdate[] {
-    const grouped = updates.reduce((acc, update) => {
-      const date = new Date(update.timestamp).toDateString();
-      if (!acc[date]) {
-        acc[date] = [];
-      }
-      acc[date].push(update);
-      return acc;
-    }, {} as Record<string, Task['updates']>);
+  setActiveTab(taskId: string, tab: string) {
+    this.activeTab[taskId] = tab;
+  }
 
-    return Object.entries(grouped).map(([date, updates]) => ({
-      date,
-      updates: updates.sort((a, b) => 
-        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-      )
-    }));
+  getTaskProgress(status: string): number {
+    switch (status) {
+      case 'Assigned': return 10;
+      case 'In-Progress': return 50;
+      case 'Testing': return 80;
+      case 'Completed': return 100;
+      default: return 0;
+    }
+  }
+
+  getProgressBarColor(status: string): string {
+    switch (status) {
+      case 'Assigned': return 'bg-blue-500';
+      case 'In-Progress': return 'bg-yellow-500';
+      case 'Testing': return 'bg-purple-500';
+      case 'Completed': return 'bg-green-500';
+      default: return 'bg-gray-300';
+    }
   }
 
   onFileSelect(event: any) {
@@ -141,7 +138,7 @@ export class TaskDeveloperComponent implements OnInit {
       title: 'Success!',
       text: message,
       icon: 'success',
-      confirmButtonColor: '#9333ea', // Purple color to match your theme
+      confirmButtonColor: '#9333ea',
       confirmButtonText: 'OK'
     });
   }
@@ -229,15 +226,12 @@ export class TaskDeveloperComponent implements OnInit {
     });
   }
 
-  // Add image viewer function
   viewImage(imageUrl: string) {
-    Swal.fire({
-      imageUrl,
-      imageAlt: 'Task Image',
-      width: '80%',
-      confirmButtonColor: '#9333ea',
-      confirmButtonText: 'Close'
-    });
+    this.selectedImage = imageUrl;
+  }
+
+  closeImageViewer() {
+    this.selectedImage = null;
   }
 
   canDeleteUpdate(update: any): boolean {

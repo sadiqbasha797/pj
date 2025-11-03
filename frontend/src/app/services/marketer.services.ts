@@ -2,16 +2,20 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { Router } from '@angular/router';
+import { CacheService } from './cache.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MarketerService {
-  [x: string]: any;
     private apiUrl = 'http://localhost:4000/api/digital-marketing'; // Base API URL
 
-
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private cacheService: CacheService
+  ) { }
 
   private getHeaders(): HttpHeaders {
     const token = localStorage.getItem('marketerToken');
@@ -38,6 +42,14 @@ export class MarketerService {
         }
       })
     );
+  }
+
+  logout(): void {
+    localStorage.removeItem('marketerToken');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('userRole');
+    this.cacheService.clearCache();
+    this.router.navigate(['/marketer/login']);
   }
 
   // Profile management
